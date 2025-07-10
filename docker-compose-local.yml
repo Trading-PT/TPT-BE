@@ -1,0 +1,66 @@
+services:
+  # PostgreSQL
+  postgres: # 서비스명 단순화
+    image: postgres:latest
+    container_name: postgresql-server
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tpt-local
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: ehdfprl77
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d tpt-local" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (비밀번호 제거)
+  redis: # 서비스명 단순화
+    image: redis:latest
+    container_name: redis-server
+    command: redis-server  # 비밀번호 옵션 제거
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot App
+  app: # 서비스명 단순화
+    build: .
+    container_name: tpt-server
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker  # docker 프로파일 사용
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tpt-local
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ehdfprl77
+      SPRING_DATA_REDIS_HOST: redis  # 올바른 환경변수명
+      SPRING_DATA_REDIS_PORT: 6379
+      # SPRING_DATA_REDIS_PASSWORD 제거 (비밀번호 없음)
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
