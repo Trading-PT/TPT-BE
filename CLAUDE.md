@@ -238,34 +238,26 @@ The permissions setting for (file) is specified more than once in the applicatio
 - CodeDeploy interprets both settings as applying to individual files
 - Results in duplicate permission settings for the same file
 
-**Solution (Recommended):**
-Use individual file permissions instead of pattern-based permissions:
+**Solution (Final - Course Example Pattern):**
+Use simple root permissions exactly like in course examples:
 ```yaml
 permissions:
-  # Directory owner/group only
-  - object: /home/ubuntu/app
+  - object: /
     owner: ubuntu
     group: ubuntu
-  # Individual script files
-  - object: /home/ubuntu/app/scripts/stop-containers.sh
-    mode: 755
-  - object: /home/ubuntu/app/scripts/load-env.sh
-    mode: 755
-  - object: /home/ubuntu/app/scripts/start-app.sh
-    mode: 755
-  - object: /home/ubuntu/app/scripts/validate.sh
-    mode: 755
 ```
 
-**Alternative Solution:**
-Use only directory-level permissions (may require manual script permissions):
-```yaml
-permissions:
-  - object: /home/ubuntu/app
-    owner: ubuntu
-    group: ubuntu
-    mode: 755
-```
+**No Additional Permission Handling:**
+- Do NOT add chmod commands to scripts
+- Do NOT set individual file permissions
+- Let CodeDeploy handle script execution permissions automatically
+- Keep scripts focused on their core business logic only
+
+**Why This Works:**
+- Follows course example pattern exactly (proven and simple)
+- CodeDeploy automatically handles script execution permissions
+- Eliminates ALL permission-related complexity and conflicts
+- Scripts remain clean and focused on their purpose
 
 **Health Check Failures:**
 - Verify application starts within timeout period (600s)

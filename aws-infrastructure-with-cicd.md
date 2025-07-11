@@ -30,7 +30,7 @@ This document visualizes the complete AWS infrastructure architecture for the TP
 ```mermaid
 flowchart TB
     %% External Users and Internet
-    Users[👥 Users<br/>100-500명] --> Internet{🌐 Internet}
+    Users[👥 Users<br/>100-500명] --> Internet[🌐 Internet]
     DevTeam[👨‍💻 Dev Team<br/>개발자 3명] --> Internet
     
     %% CI/CD Pipeline - External Services
@@ -54,7 +54,7 @@ flowchart TB
             ECR[📦 ECR Repository<br/>tpt/dev-server<br/>Docker Images]
             CodeDeploy[🚀 CodeDeploy<br/>Application: tpt-server<br/>Group: Develop]
             ParameterStore[⚙️ Parameter Store<br/>/dev/ecr/registry<br/>/dev/ecr/repository<br/>/dev/image/tag]
-            S3Deploy[🪣 S3 Deployment<br/>tpt-dev-server<br/>deploy-{SHA}.zip]
+            S3Deploy[🪣 S3 Deployment<br/>tpt-dev-server<br/>deploy-SHA.zip]
         end
         
         %% VPC
@@ -284,7 +284,7 @@ flowchart TB
 - **ECR Repository**: `tpt/dev-server` for Docker image storage
 - **CodeDeploy**: Application deployment with `tpt-server` application and `Develop` group
 - **Parameter Store**: Environment configuration management (`/dev/ecr/*` parameters)
-- **S3 Deployment**: Deployment artifacts storage (`tpt-dev-server` bucket)
+- **S3 Deployment**: Deployment artifacts storage (`tpt-dev-server` bucket with `deploy-SHA.zip` files)
 
 ### 🔐 Security & Permissions
 
