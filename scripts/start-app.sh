@@ -33,14 +33,14 @@ echo "Starting containers..."
 # -f: 사용할 compose 파일 지정
 # up: 컨테이너 생성 및 시작
 # -d: 백그라운드 실행 (detached mode)
-docker-compose -f docker-compose-dev.yml up -d
+docker compose -f docker-compose-dev.yml up -d
 
 # 컨테이너 로그 출력 (디버깅용)
 echo "Container logs:"
 # timeout 30: 30초 동안만 로그 출력
 # logs -f: 실시간 로그 스트리밍
 # || true: 타임아웃이 발생해도 스크립트 계속 실행
-timeout 30 docker-compose -f docker-compose-dev.yml logs -f || true
+timeout 30 docker compose -f docker-compose-dev.yml logs -f || true
 
 # 완료 메시지
 echo "Application started successfully"

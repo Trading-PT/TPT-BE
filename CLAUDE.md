@@ -44,13 +44,13 @@ principles. The application uses PostgreSQL as the primary database with Redis f
 
 ```bash
 # Local development environment (PostgreSQL + Redis + App)
-docker-compose -f docker-compose-local.yml up -d
+docker compose -f docker-compose-local.yml up -d
 
 # Development environment
-docker-compose -f docker-compose-dev.yml up -d
+docker compose -f docker-compose-dev.yml up -d
 
 # Stop containers
-docker-compose -f docker-compose-local.yml down
+docker compose -f docker-compose-local.yml down
 ```
 
 ### Database Operations
@@ -203,43 +203,52 @@ com.example.tpt/
 ### Common CodeDeploy Issues
 
 **Script Not Found Error:**
+
 ```
 ScriptMissing: Script does not exist at specified location
 ```
+
 **Solution:**
+
 1. Verify script files have execute permissions: `chmod +x scripts/*.sh`
 2. Check appspec.yml script paths match actual file names
 3. Ensure GitHub Actions includes scripts/ directory in deployment package
 4. Confirm all required scripts exist:
-   - scripts/stop-containers.sh (BeforeInstall)
-   - scripts/load-env.sh (AfterInstall)
-   - scripts/start-app.sh (ApplicationStart)
-   - scripts/validate.sh (ValidateService)
+    - scripts/stop-containers.sh (BeforeInstall)
+    - scripts/load-env.sh (AfterInstall)
+    - scripts/start-app.sh (ApplicationStart)
+    - scripts/validate.sh (ValidateService)
 
 **Deployment Package Issues:**
+
 ```bash
 # Verify deployment package contents
 unzip -l deploy.zip | grep scripts/
 ```
 
 **Parameter Store Access:**
+
 - Ensure EC2 instance has appropriate IAM role for Parameter Store access
 - Check parameter names match script expectations:
-  - `/dev/ecr/registry`
-  - `/dev/ecr/repository`
-  - `/dev/image/tag`
+    - `/dev/ecr/registry`
+    - `/dev/ecr/repository`
+    - `/dev/image/tag`
 
 **Permissions Duplicate Error:**
+
 ```
 The permissions setting for (file) is specified more than once in the application specification file
 ```
+
 **Root Cause:**
+
 - Directory-level permissions and pattern-based permissions conflict
 - CodeDeploy interprets both settings as applying to individual files
 - Results in duplicate permission settings for the same file
 
 **Solution (Final - Course Example Pattern):**
 Use simple root permissions exactly like in course examples:
+
 ```yaml
 permissions:
   - object: /
@@ -248,26 +257,32 @@ permissions:
 ```
 
 **No Additional Permission Handling:**
+
 - Do NOT add chmod commands to scripts
 - Do NOT set individual file permissions
 - Let CodeDeploy handle script execution permissions automatically
 - Keep scripts focused on their core business logic only
 
 **Why This Works:**
+
 - Follows course example pattern exactly (proven and simple)
 - CodeDeploy automatically handles script execution permissions
 - Eliminates ALL permission-related complexity and conflicts
 - Scripts remain clean and focused on their purpose
 
 **Script Syntax Errors:**
+
 ```
 export: 'not a valid identifier' errors with Korean text
 ```
+
 **Root Cause:**
+
 - Korean comments in .env file being interpreted as export commands
 - Bash attempting to export Korean text as environment variables
 
 **Solution:**
+
 1. Remove Korean comments from .env file generation:
    ```bash
    # In load-env.sh, generate .env without comments
@@ -285,6 +300,7 @@ export: 'not a valid identifier' errors with Korean text
    ```
 
 **Health Check Failures:**
+
 - Verify application starts within timeout period (600s)
 - Check container logs: `docker logs tpt-app`
 - Validate database connectivity and Redis availability
