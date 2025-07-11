@@ -259,6 +259,31 @@ permissions:
 - Eliminates ALL permission-related complexity and conflicts
 - Scripts remain clean and focused on their purpose
 
+**Script Syntax Errors:**
+```
+export: 'not a valid identifier' errors with Korean text
+```
+**Root Cause:**
+- Korean comments in .env file being interpreted as export commands
+- Bash attempting to export Korean text as environment variables
+
+**Solution:**
+1. Remove Korean comments from .env file generation:
+   ```bash
+   # In load-env.sh, generate .env without comments
+   cat > /home/ubuntu/app/.env << EOF
+   DB_NAME=$(get_parameter "/dev/db/name")
+   DB_USER=$(get_parameter "/dev/db/user")
+   # ... other variables without Korean comments
+   EOF
+   ```
+
+2. Use safe export method in start-app.sh:
+   ```bash
+   # Filter out comments and empty lines
+   export $(grep -v '^#' .env | grep -v '^$' | xargs)
+   ```
+
 **Health Check Failures:**
 - Verify application starts within timeout period (600s)
 - Check container logs: `docker logs tpt-app`

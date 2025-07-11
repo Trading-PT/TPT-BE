@@ -8,9 +8,10 @@ cd /home/ubuntu/app
 # .env 파일이 존재하는 경우 환경변수로 로드
 # -f: 파일 존재 여부 확인
 if [ -f .env ]; then
-    # export: 환경변수로 설정
-    # cat .env | xargs: .env 파일의 각 라인을 환경변수로 변환
-    export $(cat .env | xargs)
+    # 주석(#으로 시작)과 빈 줄을 제외하고 환경변수 설정
+    # grep -v: 주석 라인 제외
+    # grep -v '^$': 빈 줄 제외
+    export $(grep -v '^#' .env | grep -v '^$' | xargs)
 fi
 
 # ECR 로그인 과정

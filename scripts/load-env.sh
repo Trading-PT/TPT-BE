@@ -16,20 +16,13 @@ get_parameter() {
 }
 
 # .env 파일 생성 (Docker Compose에서 사용)
-# EOF까지의 내용을 .env 파일로 저장
+# EOF까지의 내용을 .env 파일로 저장 (한글 주석 제거)
 cat > /home/ubuntu/app/.env << EOF
-# 데이터베이스 설정
 DB_NAME=$(get_parameter "/dev/db/name")
 DB_USER=$(get_parameter "/dev/db/user")
 DB_PASSWORD=$(get_parameter "/dev/db/password")
-
-# Redis 설정
 REDIS_PASSWORD=$(get_parameter "/dev/redis/password")
-
-# 보안 설정
 JWT_SECRET=$(get_parameter "/dev/jwt/secret")
-
-# ECR 설정
 ECR_REGISTRY=$(get_parameter "/dev/ecr/registry")
 ECR_REPOSITORY=$(get_parameter "/dev/ecr/repository")
 IMAGE_TAG=$(get_parameter "/dev/image/tag")
