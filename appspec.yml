@@ -1,0 +1,48 @@
+# CodeDeploy 사양 파일 버전
+version: 0.0
+# 대상 운영체제
+os: linux
+
+# 파일 복사 설정
+files:
+  # source: 소스 디렉토리 (/ = 전체)
+  # destination: EC2 인스턴스의 목적지 경로
+  - source: /
+    destination: /home/ubuntu/app
+
+# 파일 권한 설정
+permissions:
+  # /home/ubuntu/app 디렉토리의 소유자와 그룹 설정
+  - object: /home/ubuntu/app
+    owner: ubuntu
+    group: ubuntu
+  # 스크립트 파일들에 실행 권한 부여
+  - object: /home/ubuntu/app/scripts
+    pattern: "*.sh"
+    mode: 755  # rwxr-xr-x (소유자: 읽기/쓰기/실행, 그룹/기타: 읽기/실행)
+
+# 배포 수명 주기 이벤트 훅
+hooks:
+  # BeforeInstall: 파일이 복사되기 전에 실행
+  BeforeInstall:
+    - location: scripts/stop-containers.sh  # 실행할 스크립트 경로
+      timeout: 60                          # 타임아웃 (초)
+      runas: root                          # 실행 사용자 (root 권한 필요)
+
+  # AfterInstall: 파일 복사 후 실행
+  AfterInstall:
+    - location: scripts/load-env.sh
+      timeout: 300                         # 5분 (Parameter Store 접근 시간 고려)
+      runas: ubuntu                        # 일반 사용자 권한으로 실행
+
+  # ApplicationStart: 애플리케이션 시작
+  ApplicationStart:
+    - location: scripts/start-app.sh
+      timeout: 600                         # 10분 (이미지 다운로드 시간 고려)
+      runas: ubuntu
+
+  # ValidateService: 서비스 검증
+  ValidateService:
+    - location: scripts/validate.sh
+      timeout: 300                         # 5분 (헬스체크 대기 시간)
+      runas: ubuntu

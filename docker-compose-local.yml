@@ -1,66 +1,88 @@
 services:
-  # PostgreSQL
-  postgres: # 서비스명 단순화
+  # PostgreSQL 데이터베이스 서비스
+  postgres:
     image: postgres:latest
-    container_name: postgresql-server
-    restart: unless-stopped
+    # 컨테이너 이름 (docker ps에서 표시됨)
+    container_name: dev-postgres
+    # 환경변수 설정 (PostgreSQL 초기화용)
     environment:
-      POSTGRES_DB: tpt-local
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: ehdfprl77
-    ports:
-      - "5432:5432"
+      # 생성할 데이터베이스 이름 (.env 파일에서 읽음)
+      POSTGRES_DB: ${DB_NAME}
+      # 데이터베이스 사용자명
+      POSTGRES_USER: ${DB_USER}
+      # 데이터베이스 비밀번호
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    # 볼륨 마운트 (데이터 영속성)
     volumes:
+      # postgres_data라는 이름의 볼륨을 컨테이너 내부 PostgreSQL 데이터 디렉토리에 마운트
       - postgres_data:/var/lib/postgresql/data
+    # 헬스체크 설정 (서비스 준비 상태 확인)
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U root -d tpt-local" ]
+      # pg_isready: PostgreSQL 연결 준비 상태 확인 명령
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      # 10초마다 헬스체크 실행
       interval: 10s
+      # 5초 이내에 응답이 없으면 실패
       timeout: 5s
+      # 5번 연속 실패하면 unhealthy 상태로 전환
       retries: 5
 
-  # Redis (비밀번호 제거)
-  redis: # 서비스명 단순화
+  # Redis 캐시 서비스
+  redis:
     image: redis:latest
-    container_name: redis-server
-    command: redis-server  # 비밀번호 옵션 제거
-    ports:
-      - "6379:6379"
+    # 컨테이너 이름
+    container_name: dev-redis
+    # Redis 시작 명령 (비밀번호 설정 포함)
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    # 볼륨 마운트 (데이터 영속성)
     volumes:
+      # Redis 데이터를 저장할 볼륨
       - redis_data:/data
+    # 헬스체크 설정
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      # redis-cli ping 명령으로 서비스 상태 확인
+      # -a: 비밀번호 옵션
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # Spring Boot App
-  app: # 서비스명 단순화
-    build: .
-    container_name: tpt-server
+  # Spring Boot 애플리케이션
+  app:
+    # ECR에서 가져올 도커 이미지 (환경변수로 동적 지정)
+    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    # 컨테이너 이름
+    container_name: dev-app
+    # 포트 매핑 (호스트:컨테이너)
     ports:
+      # 호스트의 8080 포트를 컨테이너의 8080 포트에 연결
       - "8080:8080"
+    # 애플리케이션 환경변수
     environment:
-      SPRING_PROFILES_ACTIVE: docker  # docker 프로파일 사용
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tpt-local
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: ehdfprl77
-      SPRING_DATA_REDIS_HOST: redis  # 올바른 환경변수명
-      SPRING_DATA_REDIS_PORT: 6379
-      # SPRING_DATA_REDIS_PASSWORD 제거 (비밀번호 없음)
+      # Spring 프로파일 설정 (dev 환경)
+      SPRING_PROFILES_ACTIVE: dev
+      # PostgreSQL 연결 URL (서비스명 'postgres' 사용)
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      # 데이터베이스 연결 정보
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Redis 연결 정보 (서비스명 'redis' 사용)
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # JWT 시크릿 키
+      JWT_SECRET: ${JWT_SECRET}
+    # 서비스 의존성 설정
     depends_on:
+      # PostgreSQL이 healthy 상태가 될 때까지 대기
       postgres:
         condition: service_healthy
+      # Redis가 healthy 상태가 될 때까지 대기
       redis:
         condition: service_healthy
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
+# 명명된 볼륨 정의
 volumes:
+  # PostgreSQL 데이터 저장용 볼륨
   postgres_data:
-    driver: local
+  # Redis 데이터 저장용 볼륨
   redis_data:
-    driver: local
