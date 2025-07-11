@@ -8,102 +8,192 @@ before taking action on the enhanced prompt. The enhanced prompts will follow th
 Korean prompt input will output Korean prompt enhancements, English prompt input will output English prompt
 enhancements, etc.)
 
-## Project Overview
+## Core Architecture
 
-TPT-BE is a Spring Boot backend application written in Kotlin that provides RESTful APIs with authentication and data persistence capabilities.
+TPT is a Spring Boot 3.5.3 application built with Kotlin 1.9.25 following clean architecture and domain-driven design
+principles. The application uses PostgreSQL as the primary database with Redis for caching and session management.
 
-- **Framework**: Spring Boot 3.5.3
-- **Language**: Kotlin 1.9.25
-- **Build Tool**: Gradle with Kotlin DSL
-- **Java Version**: 17
-- **Database**: PostgreSQL with JPA/Hibernate
+### Key Architectural Patterns
 
-## Essential Commands
+- **Clean Architecture**: Domain entities are separated from infrastructure concerns
+- **Repository Pattern**: Data access abstraction with QueryDSL for type-safe queries
+- **CQRS**: Command Query Responsibility Segregation in service layer
+- **Exception Handling**: Global exception handling with custom error codes via `BaseException` and
+  `GlobalExceptionHandler`
+- **API Response Standardization**: All endpoints use `BaseResponse<T>` wrapper
 
-### Development
+## Common Development Commands
+
+### Build and Run
+
 ```bash
-# Run the application
+# Run application locally
 ./gradlew bootRun
 
-# Build the project
+# Build project
 ./gradlew build
 
 # Run tests
 ./gradlew test
 
-# Run a specific test class
-./gradlew test --tests "com.example.tpt.SomeTestClass"
-
-# Run a specific test method
-./gradlew test --tests "com.example.tpt.SomeTestClass.testMethod"
-
-# Clean build artifacts
-./gradlew clean
-
-# Build without running tests
-./gradlew build -x test
+# Build without tests (CI/CD)
+./gradlew clean build -x test
 ```
 
-### Code Quality
+### Docker Development
+
 ```bash
-# Check Kotlin code style (if ktlint is configured)
-./gradlew ktlintCheck
+# Local development environment (PostgreSQL + Redis + App)
+docker-compose -f docker-compose-local.yml up -d
 
-# Format Kotlin code (if ktlint is configured)
-./gradlew ktlintFormat
+# Development environment
+docker-compose -f docker-compose-dev.yml up -d
 
-# Run static code analysis (if detekt is configured)
-./gradlew detekt
+# Stop containers
+docker-compose -f docker-compose-local.yml down
 ```
 
-## Architecture & Structure
+### Database Operations
 
-### Package Organization
-The codebase follows standard Spring Boot conventions with the base package `com.example.tpt`:
+- **Flyway migrations**: Database schema changes go in `src/main/resources/db/migration/`
+- **QueryDSL**: Generated Q-classes for type-safe queries (regenerated on build)
+- **JPA Auditing**: All entities should extend `BaseEntity` for automatic created/updated timestamps
+
+## Technology Stack
+
+### Core Framework
+
+- **Spring Boot 3.5.3** with Jakarta EE
+- **Kotlin 1.9.25** on Java 17
+- **Gradle Kotlin DSL** for build configuration
+
+### Database & Persistence
+
+- **PostgreSQL** with HikariCP connection pooling
+- **Spring Data JPA** with QueryDSL 5.1.0
+- **Flyway** for database migrations
+- **Redis** for caching (1-hour TTL) and session storage
+
+### Security
+
+- **Spring Security** with OAuth2 Client
+- **JWT tokens** using jjwt 0.12.6
+- **Session management** with Redis backing
+- **CSRF protection** (disabled for API endpoints)
+
+### API & Documentation
+
+- **SpringDoc OpenAPI 2.6.0** for API documentation
+- **Jackson** with Kotlin serialization support
+- **Spring Validation** for request validation
+
+## Configuration Profiles
+
+### Environment-Specific Files
+
+- `application.yml` - Base configuration
+- `application-local.yml` - Local development settings
+- `application-dev.yml` - Development environment with enhanced logging
+
+### Key Configuration Areas
+
+- **Database**: Connection pooling, JPA settings, and transaction management
+- **Redis**: Caching configuration with JSON serialization
+- **Security**: OAuth2 providers, JWT settings, and session management
+- **Logging**: Structured logging with different levels per environment
+
+## Code Organization
+
+### Package Structure
 
 ```
-src/main/kotlin/com/example/tpt/
-├── config/          # Spring configuration classes
-├── controller/      # REST API endpoints
-├── service/         # Business logic layer
-├── repository/      # Data access layer (JPA repositories)
-├── entity/          # JPA entities
-├── dto/             # Data Transfer Objects
-├── security/        # Security configuration and utilities
-└── TptApplication.kt # Main application class
+com.example.tpt/
+├── common/
+│   ├── base/           # BaseEntity, BaseResponse
+│   ├── exception/      # Global exception handling
+│   ├── util/          # Utility classes
+│   └── validator/     # Custom validators
+├── config/            # Spring configuration classes
+├── domain/            # Domain entities and business logic
+├── infrastructure/    # External integrations and persistence
+└── security/          # Security configuration and services
 ```
 
-### Key Technologies & Patterns
+### Key Base Classes
 
-1. **Security Architecture**
-   - Spring Security with OAuth2 client support
-   - JWT token-based authentication
-   - Security configuration in the `security` package
+- **BaseEntity**: JPA entity base with auditing fields
+- **BaseResponse<T>**: Standardized API response wrapper
+- **BaseException**: Custom exception hierarchy with error codes
+- **GlobalExceptionHandler**: Centralized exception handling
 
-2. **API Design**
-   - RESTful endpoints following standard conventions
-   - API versioning (e.g., `/api/v1/`)
-   - Request validation using Spring Validation
+## Development Guidelines
 
-3. **Data Layer**
-   - JPA entities with Kotlin data classes
-   - Spring Data JPA repositories
-   - PostgreSQL as the primary database
+### Entity Development
 
-4. **Configuration**
-   - Environment-specific properties in `application.properties`
-   - Spring profiles for different environments
+- Extend `BaseEntity` for automatic auditing
+- Use QueryDSL for complex queries
+- Follow JPA naming conventions
 
-### Development Workflow
+### API Development
 
-1. **Issue Management**: Use GitHub issue templates in `.github/ISSUE_TEMPLATE/`
-2. **Pull Requests**: Follow the comprehensive checklist in `.github/PULL_REQUEST_TEMPLATE.md`
-3. **Commits**: Use conventional commit format
-4. **Labels**: Follow the Korean labeling system defined in `.github/LABELS.md`
+- Wrap all responses in `BaseResponse<T>`
+- Use custom exception codes from `code/` package
+- Apply validation annotations for request DTOs
+- Document APIs with SpringDoc annotations
 
-### Important Notes
+### Security Integration
 
-- The project uses Korean language for documentation and issue templates
-- Spring Boot DevTools is included for hot reloading during development
-- JPA entities require the `@Entity`, `@MappedSuperclass`, or `@Embeddable` annotations to be open (configured in build.gradle.kts)
-- Kotlin compiler is configured with strict JSR-305 nullability checks
+- OAuth2 configuration in `security/config/SecurityConfig.kt`
+- Custom user service implementation for OAuth2
+- JWT token management with Redis session backing
+- Role-based access control setup
+
+## Testing
+
+### Test Structure
+
+- **Unit Tests**: JUnit 5 with Kotlin Test
+- **Integration Tests**: Spring Boot Test with test containers
+- **Security Tests**: Spring Security Test for authentication flows
+
+### Test Configuration
+
+- Test profiles for different testing scenarios
+- MockMvc for API endpoint testing
+- Separate test configuration for database and Redis
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+- **Trigger**: Push to `develop` branch
+- **Build**: JDK 17 with Gradle caching
+- **Deploy**: AWS ECR → CodeDeploy → EC2
+
+### AWS Integration
+
+- **ECR**: Container registry for Docker images
+- **Parameter Store**: Secure configuration management
+- **CodeDeploy**: Automated deployment with health checks
+- **S3**: Deployment artifact storage
+
+### Deployment Scripts
+
+- `scripts/load-env.sh` - Load environment variables from AWS Parameter Store
+- `scripts/start-app.sh` - ECR login, image pull, and container startup
+- `scripts/validate.sh` - Health check validation with retry logic
+
+## Monitoring and Logging
+
+### Observability
+
+- **Spring Boot Actuator** for application metrics
+- **CloudWatch** integration for AWS environments
+- **Structured logging** with different levels per environment
+
+### Health Checks
+
+- Application health endpoint: `/actuator/health`
+- Database connectivity validation
+- Redis connectivity validation
+- Custom health indicators as needed
