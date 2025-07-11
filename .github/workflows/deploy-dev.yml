@@ -12,7 +12,7 @@ env:
   # AWS 리전 (서울)
   AWS_REGION: ap-northeast-2
   # ECR 리포지토리 이름
-  ECR_REPOSITORY: tpt-app
+  ECR_REPOSITORY: tpt/dev-server
 
 # 작업 정의
 jobs:
