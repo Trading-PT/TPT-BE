@@ -1,0 +1,35 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+            
+  # DATABASES
+  # POSTGRESQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tpt-local
+    username: root
+    password: ehdfprl77
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 20000
+      idle-timeout: 300000
+
+  # REDIS
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      password: ehdfprl77
+
+  # Flyway (필요한 경우)
+  flyway:
+    enabled: false  # 또는 true
+    user: root
+    password: ehdfprl77

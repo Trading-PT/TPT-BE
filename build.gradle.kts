@@ -51,6 +51,8 @@ dependencies {
 	kapt("jakarta.annotation:jakarta.annotation-api")
 	kapt("jakarta.persistence:jakarta.persistence-api")
 
+	kapt("org.springframework.boot:spring-boot-configuration-processor")
+
 	// SpringDoc OpenAPI (Swagger)
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 	implementation("org.springdoc:springdoc-openapi-starter-common:2.6.0")
@@ -61,7 +63,7 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
 
 	// Logging
-	implementation("net.logstash.logback:logstash-logback-encoder:8.0") // JSON 로깅
+	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 
 	// Database
 	runtimeOnly("org.postgresql:postgresql")
@@ -113,6 +115,7 @@ kotlin {
 
 // KAPT 설정
 kapt {
+	correctErrorTypes = true  // ✅ 이 줄 추가
 	keepJavacAnnotationProcessors = true
 	arguments {
 		arg("querydsl.entityAccessors", "true")

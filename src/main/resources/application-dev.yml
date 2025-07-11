@@ -1,0 +1,92 @@
+# Spring Boot Dev 환경 설정
+spring:
+  application:
+    name: tpt-server-dev
+
+  # 데이터소스 설정
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+
+  # JPA 설정
+  jpa:
+    hibernate:
+      ddl-auto: update  # Dev 환경에서는 update 사용
+    show-sql: true      # SQL 로그 출력
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_batch_fetch_size: 100
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST}
+      port: ${SPRING_DATA_REDIS_PORT}
+      password: ${SPRING_DATA_REDIS_PASSWORD}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # 파일 업로드 설정
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+# 서버 설정
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-stacktrace: on-param  # ?trace=true 파라미터로 스택트레이스 확인
+
+# 액추에이터 설정 (모니터링용)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,loggers,env
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      cloudwatch:
+        enabled: false  # 메트릭은 CloudWatch Agent가 처리
+
+# 로깅 설정
+logging:
+  level:
+    root: INFO
+    com.example.tpt: DEBUG  # 우리 패키지는 DEBUG 레벨
+    org.springframework.web: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: ${LOGGING_FILE_NAME:/var/log/app/application.log}
+    max-size: 10MB
+    max-history: 30
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000  # 1일 (밀리초)
+
+# Dev 환경 전용 설정
+debug: true
