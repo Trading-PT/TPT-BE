@@ -97,4 +97,4 @@ jobs:
           aws deploy create-deployment \
             --application-name tpt-server \
             --deployment-group-name Develop \
-            --s3-location bucket=your-app-deployments,key=dev/deploy-${{ github.sha }}.zip,bundleType=zip
+            --s3-location bucket=tpt-dev-server,key=dev/deploy-${{ github.sha }}.zip,bundleType=zip
