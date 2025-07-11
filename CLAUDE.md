@@ -233,22 +233,39 @@ unzip -l deploy.zip | grep scripts/
 ```
 The permissions setting for (file) is specified more than once in the application specification file
 ```
-**Solution:**
-1. Check appspec.yml permissions section for duplicate entries
-2. Remove overlapping permission settings:
-   - Avoid setting permissions for both parent directory and files with patterns
-   - Use either directory-level permissions OR file-pattern permissions, not both
-3. Example fix:
-   ```yaml
-   permissions:
-     - object: /home/ubuntu/app
-       owner: ubuntu
-       group: ubuntu
-       mode: 755
-     - object: /home/ubuntu/app/scripts
-       pattern: "*.sh"
-       mode: 755  # Don't specify owner/group again
-   ```
+**Root Cause:**
+- Directory-level permissions and pattern-based permissions conflict
+- CodeDeploy interprets both settings as applying to individual files
+- Results in duplicate permission settings for the same file
+
+**Solution (Recommended):**
+Use individual file permissions instead of pattern-based permissions:
+```yaml
+permissions:
+  # Directory owner/group only
+  - object: /home/ubuntu/app
+    owner: ubuntu
+    group: ubuntu
+  # Individual script files
+  - object: /home/ubuntu/app/scripts/stop-containers.sh
+    mode: 755
+  - object: /home/ubuntu/app/scripts/load-env.sh
+    mode: 755
+  - object: /home/ubuntu/app/scripts/start-app.sh
+    mode: 755
+  - object: /home/ubuntu/app/scripts/validate.sh
+    mode: 755
+```
+
+**Alternative Solution:**
+Use only directory-level permissions (may require manual script permissions):
+```yaml
+permissions:
+  - object: /home/ubuntu/app
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+```
 
 **Health Check Failures:**
 - Verify application starts within timeout period (600s)

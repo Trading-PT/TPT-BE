@@ -10,16 +10,20 @@ files:
   - source: /
     destination: /home/ubuntu/app
 
-# 파일 권한 설정
+# 파일 권한 설정 (중복 방지를 위해 개별 파일별 권한 설정)
 permissions:
   # /home/ubuntu/app 디렉토리의 소유자와 그룹 설정
   - object: /home/ubuntu/app
     owner: ubuntu
     group: ubuntu
+  # 개별 스크립트 파일들에 실행 권한 부여
+  - object: /home/ubuntu/app/scripts/stop-containers.sh
     mode: 755
-  # 스크립트 파일들에 실행 권한 부여
-  - object: /home/ubuntu/app/scripts
-    pattern: "*.sh"
+  - object: /home/ubuntu/app/scripts/load-env.sh
+    mode: 755
+  - object: /home/ubuntu/app/scripts/start-app.sh
+    mode: 755
+  - object: /home/ubuntu/app/scripts/validate.sh
     mode: 755
 
 # 배포 수명 주기 이벤트 훅
