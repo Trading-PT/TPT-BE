@@ -197,3 +197,78 @@ com.example.tpt/
 - Database connectivity validation
 - Redis connectivity validation
 - Custom health indicators as needed
+
+## Deployment Troubleshooting
+
+### Common CodeDeploy Issues
+
+**Script Not Found Error:**
+```
+ScriptMissing: Script does not exist at specified location
+```
+**Solution:**
+1. Verify script files have execute permissions: `chmod +x scripts/*.sh`
+2. Check appspec.yml script paths match actual file names
+3. Ensure GitHub Actions includes scripts/ directory in deployment package
+4. Confirm all required scripts exist:
+   - scripts/stop-containers.sh (BeforeInstall)
+   - scripts/load-env.sh (AfterInstall)
+   - scripts/start-app.sh (ApplicationStart)
+   - scripts/validate.sh (ValidateService)
+
+**Deployment Package Issues:**
+```bash
+# Verify deployment package contents
+unzip -l deploy.zip | grep scripts/
+```
+
+**Parameter Store Access:**
+- Ensure EC2 instance has appropriate IAM role for Parameter Store access
+- Check parameter names match script expectations:
+  - `/dev/ecr/registry`
+  - `/dev/ecr/repository`
+  - `/dev/image/tag`
+
+**Permissions Duplicate Error:**
+```
+The permissions setting for (file) is specified more than once in the application specification file
+```
+**Solution:**
+1. Check appspec.yml permissions section for duplicate entries
+2. Remove overlapping permission settings:
+   - Avoid setting permissions for both parent directory and files with patterns
+   - Use either directory-level permissions OR file-pattern permissions, not both
+3. Example fix:
+   ```yaml
+   permissions:
+     - object: /home/ubuntu/app
+       owner: ubuntu
+       group: ubuntu
+       mode: 755
+     - object: /home/ubuntu/app/scripts
+       pattern: "*.sh"
+       mode: 755  # Don't specify owner/group again
+   ```
+
+**Health Check Failures:**
+- Verify application starts within timeout period (600s)
+- Check container logs: `docker logs tpt-app`
+- Validate database connectivity and Redis availability
+- Ensure all required environment variables are loaded
+
+### Quick Diagnosis Commands
+
+```bash
+# Check script permissions
+ls -la scripts/
+
+# Verify deployment package
+zip -r test-deploy.zip docker-compose-dev.yml appspec.yml scripts/
+unzip -l test-deploy.zip
+
+# Check application health
+curl -f http://localhost:8080/actuator/health || echo "Health check failed"
+
+# Container status
+docker ps -a | grep tpt
+```

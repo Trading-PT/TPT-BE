@@ -16,10 +16,11 @@ permissions:
   - object: /home/ubuntu/app
     owner: ubuntu
     group: ubuntu
+    mode: 755
   # 스크립트 파일들에 실행 권한 부여
   - object: /home/ubuntu/app/scripts
     pattern: "*.sh"
-    mode: 755  # rwxr-xr-x (소유자: 읽기/쓰기/실행, 그룹/기타: 읽기/실행)
+    mode: 755
 
 # 배포 수명 주기 이벤트 훅
 hooks:
