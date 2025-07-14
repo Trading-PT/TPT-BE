@@ -1,4 +1,4 @@
-package com.example.tpt.config.redis
+package com.example.tpt.global.config
 
 import org.springframework.cache.annotation.EnableCaching
 import org.springframework.context.annotation.Bean
