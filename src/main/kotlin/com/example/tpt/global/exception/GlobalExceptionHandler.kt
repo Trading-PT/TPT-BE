@@ -1,8 +1,8 @@
 package com.example.tpt.global.exception
 
-import com.example.tpt.common.base.BaseResponse
-import com.example.tpt.common.exception.code.BaseCode
-import com.example.tpt.common.exception.code.GlobalErrorStatus
+import com.example.tpt.global.common.BaseResponse
+import com.example.tpt.global.exception.code.BaseCode
+import com.example.tpt.global.exception.code.GlobalErrorStatus
 import mu.KotlinLogging
 import org.hibernate.exception.ConstraintViolationException
 import org.springframework.http.HttpHeaders
