@@ -1,6 +1,6 @@
 package com.example.tpt.domain.user.entity
 
-import com.example.tpt.common.base.BaseEntity
+import com.example.tpt.global.common.BaseEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType

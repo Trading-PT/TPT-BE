@@ -1,7 +1,7 @@
 package com.example.tpt.global.exception
 
-import com.example.tpt.common.exception.code.BaseCode
-import com.example.tpt.common.exception.code.BaseCodeInterface
+import com.example.tpt.global.exception.code.BaseCode
+import com.example.tpt.global.exception.code.BaseCodeInterface
 
 open class BaseException(
 	private val errorCode: BaseCodeInterface
