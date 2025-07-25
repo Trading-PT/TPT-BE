@@ -2,6 +2,9 @@
 spring:
   application:
     name: tpt-server-dev
+  config:
+    activate:
+      on-profile: dev
 
   # 데이터소스 설정
   datasource:

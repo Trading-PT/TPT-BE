@@ -3,15 +3,15 @@ services:
   postgres:
     image: postgres:latest
     # 컨테이너 이름 (docker ps에서 표시됨)
-    container_name: dev-postgres
+    container_name: local-postgres
     # 환경변수 설정 (PostgreSQL 초기화용)
     environment:
-      # 생성할 데이터베이스 이름 (.env 파일에서 읽음)
-      POSTGRES_DB: ${DB_NAME}
+      # 생성할 데이터베이스 이름 (application-local.yml과 동기화)
+      POSTGRES_DB: tpt-local
       # 데이터베이스 사용자명
-      POSTGRES_USER: ${DB_USER}
+      POSTGRES_USER: root
       # 데이터베이스 비밀번호
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: ehdfprl77
     # 볼륨 마운트 (데이터 영속성)
     volumes:
       # postgres_data라는 이름의 볼륨을 컨테이너 내부 PostgreSQL 데이터 디렉토리에 마운트
@@ -19,7 +19,7 @@ services:
     # 헬스체크 설정 (서비스 준비 상태 확인)
     healthcheck:
       # pg_isready: PostgreSQL 연결 준비 상태 확인 명령
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      test: [ "CMD-SHELL", "pg_isready -U root" ]
       # 10초마다 헬스체크 실행
       interval: 10s
       # 5초 이내에 응답이 없으면 실패
@@ -31,9 +31,9 @@ services:
   redis:
     image: redis:latest
     # 컨테이너 이름
-    container_name: dev-redis
+    container_name: local-redis
     # Redis 시작 명령 (비밀번호 설정 포함)
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --requirepass ehdfprl77
     # 볼륨 마운트 (데이터 영속성)
     volumes:
       # Redis 데이터를 저장할 볼륨
@@ -42,7 +42,7 @@ services:
     healthcheck:
       # redis-cli ping 명령으로 서비스 상태 확인
       # -a: 비밀번호 옵션
-      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      test: [ "CMD", "redis-cli", "-a", "ehdfprl77", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -50,27 +50,27 @@ services:
   # Spring Boot 애플리케이션
   app:
     # ECR에서 가져올 도커 이미지 (환경변수로 동적 지정)
-    image: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+    build: .
     # 컨테이너 이름
-    container_name: dev-app
+    container_name: local-app
     # 포트 매핑 (호스트:컨테이너)
     ports:
       # 호스트의 8080 포트를 컨테이너의 8080 포트에 연결
       - "8080:8080"
     # 애플리케이션 환경변수
     environment:
-      # Spring 프로파일 설정 (dev 환경)
-      SPRING_PROFILES_ACTIVE: dev
+      # Spring 프로파일 설정 (local 환경)
+      SPRING_PROFILES_ACTIVE: local
       # PostgreSQL 연결 URL (서비스명 'postgres' 사용)
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/tpt-local
       # 데이터베이스 연결 정보
-      SPRING_DATASOURCE_USERNAME: ${DB_USER}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ehdfprl77
       # Redis 연결 정보 (서비스명 'redis' 사용)
       SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      SPRING_DATA_REDIS_PASSWORD: ehdfprl77
       # JWT 시크릿 키
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: xHobA9dUjxEx9MJvmMuGfTXENVeRFn6UHfYO02tHnBh3/1GnZsCyb6+07vQ9N29SuDhsuOdL0oz/XzNOH7mPAg==
     # 서비스 의존성 설정
     depends_on:
       # PostgreSQL이 healthy 상태가 될 때까지 대기

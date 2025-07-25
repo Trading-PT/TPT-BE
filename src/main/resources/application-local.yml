@@ -1,4 +1,8 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -6,7 +10,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-            
+
   # DATABASES
   # POSTGRESQL
   datasource:

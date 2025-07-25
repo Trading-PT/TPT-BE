@@ -2,7 +2,7 @@ FROM openjdk:17-jdk
 
 WORKDIR /app
 
-COPY app.jar app.jar
+COPY build/libs/*-SNAPSHOT.jar app.jar
 
 EXPOSE 8080
 
