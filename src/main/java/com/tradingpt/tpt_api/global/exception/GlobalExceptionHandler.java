@@ -106,14 +106,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 5) 파일 업로드 크기 초과
+	 * 5) 파일 업로드 크기 초과 - 올바른 오버라이드 방식
 	 */
-	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	public ResponseEntity<BaseResponse<String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
-		log.error("[handleMaxUploadSizeExceeded] File size exceeded: {}", e.getMessage());
+	@Override
+	protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
+		MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		log.error("[handleMaxUploadSizeExceededException] 파일 크기 초과: {}", ex.getMessage());
 
 		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus._BAD_REQUEST.getCode().getCode(), // ✅ 수정
+			GlobalErrorStatus._BAD_REQUEST.getCode().getCode(),
 			"업로드 파일 크기가 제한을 초과했습니다.",
 			null
 		);

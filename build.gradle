@@ -25,29 +25,39 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation "org.springframework.boot:spring-boot-starter-mail"
-    implementation 'net.nurigo:sdk:4.2.7'   // Solapi(CoolSMS)
+    // 핵심 Spring Boot 스타터들
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'        // JPA 및 Hibernate ORM 지원
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'      // Redis 캐시 및 세션 저장소 지원
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'   // OAuth2 클라이언트 (소셜 로그인)
+    implementation 'org.springframework.boot:spring-boot-starter-security'        // Spring Security 인증/인가
+    implementation 'org.springframework.boot:spring-boot-starter-validation'      // Bean Validation (JSR-303)
+    implementation 'org.springframework.boot:spring-boot-starter-web'             // Spring MVC 웹 애플리케이션
+    implementation 'org.springframework.boot:spring-boot-starter-mail'            // 이메일 발송 기능
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'        // 모니터링 및 관리 엔드포인트 (Health Check 등)
 
+    // 외부 라이브러리들
+    implementation 'net.nurigo:sdk:4.2.7'                                        // Solapi(CoolSMS) SMS 발송 서비스
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'     // Swagger/OpenAPI 문서화 및 UI
 
+    // 컴파일 타임 전용 (런타임에 포함되지 않음)
+    compileOnly 'org.projectlombok:lombok'                                       // 코드 생성 라이브러리 (getter, setter 등)
 
-    // Swagger/OpenAPI 문서화
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
-	
-    compileOnly 'org.projectlombok:lombok'
-    developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    runtimeOnly 'com.mysql:mysql-connector-j'
-    annotationProcessor 'org.projectlombok:lombok'
+    // 개발 환경 전용
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'               // 개발 시 자동 재시작, 라이브 리로드
+
+    // 런타임 전용 (컴파일 시에는 불필요)
+    runtimeOnly 'com.mysql:mysql-connector-j'                                    // MySQL JDBC 드라이버
+
+    // 어노테이션 프로세서
+    annotationProcessor 'org.projectlombok:lombok'                               // Lombok 어노테이션 처리
+
+    // 테스트 의존성들
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot 테스트 스타터 (JUnit 5, Mockito 등)
+    testImplementation 'org.springframework.security:spring-security-test'       // Spring Security 테스트 지원
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'                // JUnit Platform 런처
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform()  // JUnit 5 플랫폼 사용
 }
