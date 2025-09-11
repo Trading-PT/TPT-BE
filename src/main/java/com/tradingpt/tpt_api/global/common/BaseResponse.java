@@ -14,7 +14,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @JsonPropertyOrder({"timestamp", "code", "message", "result"}) // JSON 응답 시 순서를 정의
 @Schema(description = "공통 응답 DTO")
-public class ApiResponse<T> {
+public class BaseResponse<T> {
 
 	@Schema(description = "응답 시간", example = "2021-07-01T00:00:00")
 	private final LocalDateTime timestamp = LocalDateTime.now();
@@ -30,28 +30,28 @@ public class ApiResponse<T> {
 	private T result;
 
 	//성공한 경우 응답 생성
-	public static <T> ApiResponse<T> onSuccess(T result) {
-		return new ApiResponse<>("COMMON200", "요청에 성공하였습니다.", result);
+	public static <T> BaseResponse<T> onSuccess(T result) {
+		return new BaseResponse<>("COMMON200", "요청에 성공하였습니다.", result);
 	}
 
 	// 생성, 수정, 삭제 요청 성공 시 응답 생성
-	public static <T> ApiResponse<T> onSuccessCreate(T result) {
-		return new ApiResponse<>("COMMON201", "요청에 성공하였습니다.", result);
+	public static <T> BaseResponse<T> onSuccessCreate(T result) {
+		return new BaseResponse<>("COMMON201", "요청에 성공하였습니다.", result);
 	}
 
 	// 생성, 수정, 삭제 요청 성공 시 응답 생성
-	public static <T> ApiResponse<T> onSuccessDelete(T result) {
-		return new ApiResponse<>("COMMON202", "삭제 요청에 성공하였습니다.", result);
+	public static <T> BaseResponse<T> onSuccessDelete(T result) {
+		return new BaseResponse<>("COMMON202", "삭제 요청에 성공하였습니다.", result);
 	}
 
 	// 공통 코드를 사용하여 응답 생성
-	public static <T> ApiResponse<T> of(BaseCodeInterface code, T result) {
-		return new ApiResponse<>(code.getCode().getCode(), code.getCode().getMessage(), result);
+	public static <T> BaseResponse<T> of(BaseCodeInterface code, T result) {
+		return new BaseResponse<>(code.getCode().getCode(), code.getCode().getMessage(), result);
 	}
 
 	// 실패한 경우 응답 생성
-	public static <T> ApiResponse<T> onFailure(String code, String message, T result) {
-		return new ApiResponse<>(code, message, result);
+	public static <T> BaseResponse<T> onFailure(String code, String message, T result) {
+		return new BaseResponse<>(code, message, result);
 	}
 
 }
