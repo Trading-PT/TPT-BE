@@ -1,7 +1,7 @@
-package com.tradingpt.tpt_api.domain.user.user.entity;
+package com.tradingpt.tpt_api.domain.user.entity;
 
 
-import com.tradingpt.tpt_api.domain.user.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

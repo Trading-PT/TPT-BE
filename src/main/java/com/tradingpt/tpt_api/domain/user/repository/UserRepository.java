@@ -1,6 +1,6 @@
-package com.tradingpt.tpt_api.domain.user.user.repository;
+package com.tradingpt.tpt_api.domain.user.repository;
 
-import com.tradingpt.tpt_api.domain.user.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 

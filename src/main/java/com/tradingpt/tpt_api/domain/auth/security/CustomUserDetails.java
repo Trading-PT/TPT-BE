@@ -1,7 +1,7 @@
 package com.tradingpt.tpt_api.domain.auth.security;
 
-import com.tradingpt.tpt_api.domain.user.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import java.util.Collection;
 import java.util.List;
 import lombok.Getter;

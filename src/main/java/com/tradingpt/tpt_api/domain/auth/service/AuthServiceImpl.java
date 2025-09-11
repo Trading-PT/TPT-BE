@@ -7,13 +7,16 @@ import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.auth.support.VerificationService;
 import com.tradingpt.tpt_api.domain.auth.util.AuthUtil;
-import com.tradingpt.tpt_api.domain.user.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.user.entity.Uid;
-import com.tradingpt.tpt_api.domain.user.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.user.enums.AccountStatus;
-import com.tradingpt.tpt_api.domain.user.user.enums.Provider;
-import com.tradingpt.tpt_api.domain.user.user.enums.Role;
-import com.tradingpt.tpt_api.domain.user.user.service.UserService;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Uid;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.exception.AuthException;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +35,9 @@ public class AuthServiceImpl implements AuthService {
 	private final VerificationService verificationService;
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
+	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
+	private final TrainerRepository trainerRepository;
 
 	/* === 휴대폰 인증 === */
 	@Override
@@ -89,7 +95,7 @@ public class AuthServiceImpl implements AuthService {
 			.email(email)
 			.name(req.getName())
 			.build();
-		user = userService.saveUser(user);
+		user = userRepository.save(user);
 
 		// 6) Customer 조립 (투자유형 포함)
 		Customer customer = Customer.builder()
@@ -131,7 +137,7 @@ public class AuthServiceImpl implements AuthService {
 		}
 
 		// 8) 저장 (cascade로 UID까지 함께 저장)
-		userService.saveCustomer(customer);
+		customerRepository.save(customer);
 
 		// 9) 인증 흔적 정리
 		verificationService.clearPhoneTrace(phone);
@@ -140,6 +146,6 @@ public class AuthServiceImpl implements AuthService {
 
 	@Override
 	public boolean isUsernameAvailable(String username) {
-		return !userService.existsByUsername(username);
+		return !userRepository.existsByUsername(username);
 	}
 }

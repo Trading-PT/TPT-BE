@@ -1,6 +1,6 @@
 package com.tradingpt.tpt_api.domain.auth.dto.request;
 
-import com.tradingpt.tpt_api.domain.user.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.util.List;

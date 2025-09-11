@@ -105,23 +105,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.body(response);
 	}
 
-	/**
-	 * 5) 파일 업로드 크기 초과
-	 */
-	@ExceptionHandler(MaxUploadSizeExceededException.class)
-	public ResponseEntity<BaseResponse<String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
-		log.error("[handleMaxUploadSizeExceeded] File size exceeded: {}", e.getMessage());
-
-		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus._BAD_REQUEST.getCode().getCode(), // ✅ 수정
-			"업로드 파일 크기가 제한을 초과했습니다.",
-			null
-		);
-
-		return ResponseEntity
-			.status(HttpStatus.BAD_REQUEST)
-			.body(response);
-	}
+//	/**
+//	 * 5) 파일 업로드 크기 초과
+//	 */
+//	@ExceptionHandler(MaxUploadSizeExceededException.class)
+//	public ResponseEntity<BaseResponse<String>> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+//		log.error("[handleMaxUploadSizeExceeded] File size exceeded: {}", e.getMessage());
+//
+//		BaseResponse<String> response = BaseResponse.onFailure(
+//			GlobalErrorStatus._BAD_REQUEST.getCode().getCode(), // ✅ 수정
+//			"업로드 파일 크기가 제한을 초과했습니다.",
+//			null
+//		);
+//
+//		return ResponseEntity
+//			.status(HttpStatus.BAD_REQUEST)
+//			.body(response);
+//	}
 
 	/**
 	 * 6) 데이터베이스 제약조건 위반

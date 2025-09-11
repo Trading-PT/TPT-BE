@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.user.user.entity;
+package com.tradingpt.tpt_api.domain.user.entity;
 
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.*;

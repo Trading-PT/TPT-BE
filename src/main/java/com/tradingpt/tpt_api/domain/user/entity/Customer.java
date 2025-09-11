@@ -1,9 +1,9 @@
-package com.tradingpt.tpt_api.domain.user.user.entity;
+package com.tradingpt.tpt_api.domain.user.entity;
 
-import com.tradingpt.tpt_api.domain.user.user.enums.AccountStatus;
-import com.tradingpt.tpt_api.domain.user.user.enums.InvestmentType;
-import com.tradingpt.tpt_api.domain.user.user.enums.MembershipLevel;
-import com.tradingpt.tpt_api.domain.user.user.enums.Provider;
+import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
