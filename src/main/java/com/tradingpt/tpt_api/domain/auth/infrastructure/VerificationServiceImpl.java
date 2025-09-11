@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.auth.support;
+package com.tradingpt.tpt_api.domain.auth.infrastructure;
 
 
 
@@ -6,6 +6,7 @@ import static com.tradingpt.tpt_api.domain.auth.util.AuthUtil.normalizeEmail;
 import static com.tradingpt.tpt_api.domain.auth.util.AuthUtil.normalizePhone;
 
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
+import com.tradingpt.tpt_api.domain.auth.infrastructure.sms.SensSmsClient;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Set;

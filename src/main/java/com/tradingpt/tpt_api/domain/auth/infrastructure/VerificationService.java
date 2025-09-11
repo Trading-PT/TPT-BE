@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.auth.support;
+package com.tradingpt.tpt_api.domain.auth.infrastructure;
 
 import jakarta.servlet.http.HttpSession;
 

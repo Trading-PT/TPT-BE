@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.auth.support;
+package com.tradingpt.tpt_api.domain.auth.infrastructure.sms;
 
 import net.nurigo.sdk.NurigoApp;
 import net.nurigo.sdk.message.model.Message;
