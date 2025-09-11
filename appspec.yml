@@ -1,0 +1,33 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /home/ubuntu/tpt-server-dev
+
+permissions:
+  - object: /home/ubuntu/tpt-server-dev
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+
+hooks:
+  BeforeInstall:
+    - location: scripts/before-install.sh
+      timeout: 300
+      runas: ubuntu
+
+  ApplicationStart:
+    - location: scripts/start-server.sh
+      timeout: 300
+      runas: ubuntu
+
+  ApplicationStop:
+    - location: scripts/stop-server.sh
+      timeout: 60
+      runas: ubuntu
+
+  ValidateService:
+    - location: scripts/validate-service.sh
+      timeout: 300
+      runas: ubuntu

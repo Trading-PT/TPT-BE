@@ -1,0 +1,98 @@
+name: Deploy To Dev Environment
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: tpt-server-dev
+  S3_BUCKET: tpt-dev-deployments
+  CODEDEPLOY_APP: tpt-server-dev
+  DEPLOYMENT_GROUP: Develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Github Repository 파일 불러오기
+        uses: actions/checkout@v4
+
+      - name: JDK 17버전 설치
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: 17
+
+      - name: Gradle 권한 설정
+        run: chmod +x ./gradlew
+
+      - name: 테스트 및 빌드하기
+        run: ./gradlew clean bootJar
+
+      - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: ECR에 로그인하기
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Docker 이미지 생성 및 태그
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Docker 이미지 빌드
+          docker build -t $ECR_REPOSITORY .
+          
+          # 태그 설정
+          docker tag $ECR_REPOSITORY $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker tag $ECR_REPOSITORY $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: ECR에 Docker 이미지 Push하기
+        run: |
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+
+      - name: 배포 패키지 생성
+        run: |
+          # 환경 정보 파일 생성
+          cat > deployment-info.env << EOF
+          ECR_REGISTRY=${{ env.ECR_REGISTRY }}
+          ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          AWS_REGION=${{ env.AWS_REGION }}
+          EOF
+          
+          # 배포 패키지 압축
+          tar -czvf $GITHUB_SHA.tar.gz appspec.yml scripts deployment-info.env
+
+      - name: S3에 배포 패키지 업로드하기
+        run: |
+          aws s3 cp --region ${{ env.AWS_REGION }} ./$GITHUB_SHA.tar.gz s3://${{ env.S3_BUCKET }}/$GITHUB_SHA.tar.gz
+          echo "✅ 배포 패키지 업로드 완료: s3://${{ env.S3_BUCKET }}/$GITHUB_SHA.tar.gz"
+
+      - name: CodeDeploy를 통한 배포 실행
+        run: |
+          DEPLOYMENT_ID=$(aws deploy create-deployment \
+            --application-name ${{ env.CODEDEPLOY_APP }} \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --deployment-group-name ${{ env.DEPLOYMENT_GROUP }} \
+            --s3-location bucket=${{ env.S3_BUCKET }},bundleType=tgz,key=$GITHUB_SHA.tar.gz \
+            --query 'deploymentId' \
+            --output text)
+          
+          echo "🚀 배포 시작: $DEPLOYMENT_ID"
+          
+          # 배포 완료 대기
+          aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
+          echo "✅ 배포 완료!"

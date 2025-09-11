@@ -1,25 +1,37 @@
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/${LOCAL_DB_NAME:tpt_local_db}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: ${LOCAL_DB_USERNAME:root}
+    password: ${LOCAL_DB_PASSWORD:ehdfprl77}
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 20000
-      idle-timeout: 300000
-      max-lifetime: 1200000
       pool-name: HikariCP-Local
+
+  # Redis 설정 (로컬)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+  # JPA 설정 (로컬 개발)
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
         use_sql_comments: true
-        jdbc:
-          lob:
-            non_contextual_creation: true
+    open-in-view: false
+
+# 로깅 설정 (로컬 개발)
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.springframework.jdbc.core: DEBUG
