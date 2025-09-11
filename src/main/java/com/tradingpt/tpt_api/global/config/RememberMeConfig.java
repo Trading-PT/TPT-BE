@@ -1,8 +1,8 @@
 package com.tradingpt.tpt_api.global.config;
 
 
-import com.tradingpt.tpt_api.auth.service.CustomRememberMeServices;
-import com.tradingpt.tpt_api.auth.service.CustomUserDetailsService;
+import com.tradingpt.tpt_api.domain.auth.service.CustomRememberMeServices;
+import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

@@ -23,8 +23,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAILNAME}
-    password: ${MAILPASSWORD}
+    username: ${MAIL_NAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
@@ -104,7 +104,7 @@ management:
 
 app:
   mail:
-    from: ${MAILNAME}
+    from: ${MAIL_NAME}
 
 solapi:
   api-key: ${SOLAPI_API_KEY}
