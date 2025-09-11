@@ -1,6 +1,6 @@
 package com.tradingpt.tpt_api.global.exception;
 
-import com.tradingpt.tpt_api.auth.exception.code.AuthErrorStatus;
+import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;
 
 /**
@@ -17,9 +17,7 @@ public class AuthException extends BaseException {
         super(baseCodeInterface, customMessage);
     }
 
-    public AuthException(BaseCodeInterface baseCodeInterface, Throwable cause) {
-        super(baseCodeInterface, cause);
-    }
+
 
     // ========== JWT 토큰 관련 정적 메소드 ==========
     

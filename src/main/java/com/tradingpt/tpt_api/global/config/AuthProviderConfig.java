@@ -1,6 +1,6 @@
 package com.tradingpt.tpt_api.global.config;
 
-import com.tradingpt.tpt_api.auth.service.CustomUserDetailsService;
+import com.tradingpt.tpt_api.domain.auth.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

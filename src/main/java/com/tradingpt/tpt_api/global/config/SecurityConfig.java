@@ -1,9 +1,9 @@
 package com.tradingpt.tpt_api.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tradingpt.tpt_api.auth.filter.JsonUsernamePasswordAuthFilter;
-import com.tradingpt.tpt_api.auth.handler.CustomFailureHandler;
-import com.tradingpt.tpt_api.auth.handler.CustomSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
