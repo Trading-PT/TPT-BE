@@ -5,7 +5,7 @@ import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
-import com.tradingpt.tpt_api.domain.auth.support.VerificationService;
+import com.tradingpt.tpt_api.domain.auth.infrastructure.VerificationService;
 import com.tradingpt.tpt_api.domain.auth.util.AuthUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Uid;

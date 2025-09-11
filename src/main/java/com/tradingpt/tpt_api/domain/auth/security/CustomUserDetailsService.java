@@ -1,8 +1,7 @@
-package com.tradingpt.tpt_api.domain.auth.service;
+package com.tradingpt.tpt_api.domain.auth.security;
 
 
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
-import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.global.exception.AuthException;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
