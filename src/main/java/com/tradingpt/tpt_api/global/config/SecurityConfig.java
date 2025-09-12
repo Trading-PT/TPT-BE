@@ -59,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
         JsonUsernamePasswordAuthFilter filter = new JsonUsernamePasswordAuthFilter(objectMapper);
-        filter.setFilterProcessesUrl("/api/auth/login");
+        filter.setFilterProcessesUrl("/api/v1/auth/login");
         filter.setAuthenticationManager(authManager);          // ★ 자동 구성된 DaoAuthenticationProvider를 사용
         filter.setAuthenticationSuccessHandler(customSuccessHandler);
         filter.setAuthenticationFailureHandler(customFailureHandler);
@@ -77,7 +77,7 @@ public class SecurityConfig {
         http
                 // DaoAuthenticationProvider 빈 직접 주입 불필요(.authenticationProvider(...) 제거)
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**", "/oauth2/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**"))
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(sf -> sf.migrateSession())
@@ -89,7 +89,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**", "/oauth2/**",
+                                "/api/v1/auth/**", "/oauth2/**",
                                 "/swagger-ui.html", "/swagger-ui/**",
                                 "/swagger-resources/**", "/webjars/**",
                                 "/v3/api-docs/**"
