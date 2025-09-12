@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
-import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,6 +33,11 @@ public class SecurityConfig {
     private final CustomFailureHandler customFailureHandler;
     private final RememberMeServices rememberMeServices;
 
+    /** PasswordEncoder만 빈으로 제공하면 Spring이 내부적으로 DaoAuthenticationProvider를 구성합니다. */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     /** AuthenticationManager는 AuthenticationConfiguration에서 주입받아 노출 */
     @Bean
@@ -92,20 +96,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                // .oauth2Login(o -> o
-                //         .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-                //         .successHandler(customSuccessHandler)
-                //         .failureHandler(customFailureHandler)
-                // )
-                // .rememberMe(rm -> rm
-                //         .rememberMeServices(rememberMeServices)
-                //         .rememberMeParameter("remember-me")
-                //         .alwaysRemember(false)
-                //         .useSecureCookie(true) //배포환경시
-                // )
+                .rememberMe(rm -> rm.rememberMeServices(rememberMeServices))
                 .addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
