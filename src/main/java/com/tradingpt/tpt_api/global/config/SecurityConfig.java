@@ -97,17 +97,17 @@ public class SecurityConfig {
 
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .oauth2Login(o -> o
-                        .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler)
-                        .failureHandler(customFailureHandler)
-                )
-                .rememberMe(rm -> rm
-                        .rememberMeServices(rememberMeServices)
-                        .rememberMeParameter("remember-me")
-                        .alwaysRemember(false)
-                        .useSecureCookie(true) //배포환경시
-                )
+                // .oauth2Login(o -> o
+                //         .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+                //         .successHandler(customSuccessHandler)
+                //         .failureHandler(customFailureHandler)
+                // )
+                // .rememberMe(rm -> rm
+                //         .rememberMeServices(rememberMeServices)
+                //         .rememberMeParameter("remember-me")
+                //         .alwaysRemember(false)
+                //         .useSecureCookie(true) //배포환경시
+                // )
                 .addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
