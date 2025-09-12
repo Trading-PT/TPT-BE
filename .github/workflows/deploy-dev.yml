@@ -90,9 +90,9 @@ jobs:
             --s3-location bucket=${{ env.S3_BUCKET }},bundleType=tgz,key=$GITHUB_SHA.tar.gz \
             --query 'deploymentId' \
             --output text)
-          
+
           echo "🚀 배포 시작: $DEPLOYMENT_ID"
-          
+
           # 배포 완료 대기
           aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
           echo "✅ 배포 완료!"
