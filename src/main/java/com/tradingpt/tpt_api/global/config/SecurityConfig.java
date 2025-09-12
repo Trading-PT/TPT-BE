@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,15 +30,11 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
+    private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomFailureHandler customFailureHandler;
     private final RememberMeServices rememberMeServices;
 
-    /** PasswordEncoder만 빈으로 제공하면 Spring이 내부적으로 DaoAuthenticationProvider를 구성합니다. */
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     /** AuthenticationManager는 AuthenticationConfiguration에서 주입받아 노출 */
     @Bean
@@ -59,7 +56,7 @@ public class SecurityConfig {
     @Bean
     public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
         JsonUsernamePasswordAuthFilter filter = new JsonUsernamePasswordAuthFilter(objectMapper);
-        filter.setFilterProcessesUrl("/api/auth/login");
+        filter.setFilterProcessesUrl("/api/v1/auth/login");
         filter.setAuthenticationManager(authManager);          // ★ 자동 구성된 DaoAuthenticationProvider를 사용
         filter.setAuthenticationSuccessHandler(customSuccessHandler);
         filter.setAuthenticationFailureHandler(customFailureHandler);
@@ -71,13 +68,14 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             SessionRegistry sessionRegistry,
-            JsonUsernamePasswordAuthFilter jsonLoginFilter
+            JsonUsernamePasswordAuthFilter jsonLoginFilter,
+            CustomOAuth2UserService customOAuth2UserService
     ) throws Exception {
 
         http
                 // DaoAuthenticationProvider 빈 직접 주입 불필요(.authenticationProvider(...) 제거)
                 .cors(Customizer.withDefaults())
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/auth/**", "/oauth2/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**"))
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(sf -> sf.migrateSession())
@@ -89,16 +87,27 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**", "/oauth2/**",
+                                "/api/v1/auth/**", "/oauth2/**",
                                 "/swagger-ui.html", "/swagger-ui/**",
                                 "/swagger-resources/**", "/webjars/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
-                .rememberMe(rm -> rm.rememberMeServices(rememberMeServices))
+                .oauth2Login(o -> o
+                        .userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler)
+                        .failureHandler(customFailureHandler)
+                )
+                .rememberMe(rm -> rm
+                        .rememberMeServices(rememberMeServices)
+                        .rememberMeParameter("remember-me")
+                        .alwaysRemember(false)
+                        .useSecureCookie(true) //배포환경시
+                )
                 .addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
