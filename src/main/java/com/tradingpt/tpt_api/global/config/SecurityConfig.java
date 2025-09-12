@@ -30,7 +30,6 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 public class SecurityConfig {
 
     private final ObjectMapper objectMapper;
-    private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final CustomFailureHandler customFailureHandler;
     private final RememberMeServices rememberMeServices;
@@ -68,8 +67,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             SessionRegistry sessionRegistry,
-            JsonUsernamePasswordAuthFilter jsonLoginFilter,
-            CustomOAuth2UserService customOAuth2UserService
+            JsonUsernamePasswordAuthFilter jsonLoginFilter
     ) throws Exception {
 
         http
