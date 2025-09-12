@@ -9,7 +9,6 @@ permissions:
   - object: /home/ubuntu/tpt-server-dev
     owner: ubuntu
     group: ubuntu
-    mode: 755
 
 hooks:
   BeforeInstall:
