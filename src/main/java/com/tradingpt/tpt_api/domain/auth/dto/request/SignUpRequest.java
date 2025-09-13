@@ -35,6 +35,7 @@ public class SignUpRequest {
     private String passwordCheck;
 
     @Schema(description = "필수 약관 동의(필수)", example = "true")
+
     @NotNull
     private Boolean termsService;
 

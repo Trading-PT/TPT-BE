@@ -40,6 +40,9 @@ spring:
       enabled: true
       max-file-size: 200MB
       max-request-size: 300MB
+    cookie:
+      same-site: none
+      secure: true
 
   # 메일 설정
   mail:
@@ -136,6 +139,10 @@ management:
 app:
   mail:
     from: ${MAIL_NAME}
+  frontend:
+    base-url: http://localhost:3000
+
+
 
 # SMS 설정
 solapi:

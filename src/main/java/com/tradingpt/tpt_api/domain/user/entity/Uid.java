@@ -41,9 +41,10 @@ public class Uid extends BaseEntity {
 	@Column(nullable = false)
 	private String uid;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "customer_id", nullable = false)
+	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@JoinColumn(name = "customer_id", referencedColumnName = "user_id", nullable = false)
 	private Customer customer;
+
 
 	// ⭐ Customer 설정을 위한 패키지 접근 메서드 (편의 메서드용)
 	void assignCustomer(Customer customer) {

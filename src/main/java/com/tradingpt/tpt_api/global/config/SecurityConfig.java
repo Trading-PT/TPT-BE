@@ -1,5 +1,11 @@
 package com.tradingpt.tpt_api.global.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,19 +17,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
-import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
-import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
-
-import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -35,17 +32,6 @@ public class SecurityConfig {
 	private final CustomFailureHandler customFailureHandler;
 	private final RememberMeServices rememberMeServices;
 
-	@Bean
-	public static HttpSessionEventPublisher httpSessionEventPublisher() {
-		return new HttpSessionEventPublisher();
-	}
-
-	/** PasswordEncoder만 빈으로 제공하면 Spring이 내부적으로 DaoAuthenticationProvider를 구성합니다. */
-	@Bean
-	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
-
 	/** AuthenticationManager는 AuthenticationConfiguration에서 주입받아 노출 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
@@ -53,58 +39,66 @@ public class SecurityConfig {
 	}
 
 	/** 동시 세션 제어에 필요한 빈들 */
-	@Bean
-	public SessionRegistry sessionRegistry() {
-		return new SessionRegistryImpl();
-	}
+	@Bean public SessionRegistry sessionRegistry() { return new SessionRegistryImpl(); }
+	@Bean public static HttpSessionEventPublisher httpSessionEventPublisher() { return new HttpSessionEventPublisher(); }
 
-	/** JSON 로그인 필터: 외부에서 AuthenticationManager 주입 */
+	/** JSON 로그인 필터 */
 	@Bean
 	public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
-		JsonUsernamePasswordAuthFilter filter = new JsonUsernamePasswordAuthFilter(objectMapper);
+		var filter = new JsonUsernamePasswordAuthFilter(objectMapper);
 		filter.setFilterProcessesUrl("/api/v1/auth/login");
-		filter.setAuthenticationManager(authManager);          // ★ 자동 구성된 DaoAuthenticationProvider를 사용
+		filter.setAuthenticationManager(authManager);
 		filter.setAuthenticationSuccessHandler(customSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
-		filter.setRememberMeServices(rememberMeServices);
+		filter.setRememberMeServices(rememberMeServices); // 로컬(JSON) 로그인 remember-me 처리
 		return filter;
 	}
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(
-		HttpSecurity http,
-		SessionRegistry sessionRegistry,
-		JsonUsernamePasswordAuthFilter jsonLoginFilter
+			HttpSecurity http,
+			SessionRegistry sessionRegistry,
+			JsonUsernamePasswordAuthFilter jsonLoginFilter,
+			CustomOAuth2UserService customOAuth2UserService   // 메서드 파라미터로 주입(순환참조 방지)
 	) throws Exception {
 
 		http
-			// DaoAuthenticationProvider 빈 직접 주입 불필요(.authenticationProvider(...) 제거)
-			.cors(Customizer.withDefaults())
-			.csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**"))
-			.sessionManagement(sm -> sm
-				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-				.sessionFixation(sf -> sf.migrateSession())
-				.sessionConcurrency(sc -> sc
-					.maximumSessions(3)
-					.maxSessionsPreventsLogin(false)
-					.sessionRegistry(sessionRegistry)
+				.cors(Customizer.withDefaults())
+				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**"))
+				.sessionManagement(sm -> sm
+						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+						.sessionFixation(sf -> sf.migrateSession())
+						.sessionConcurrency(sc -> sc
+								.maximumSessions(3)
+								.maxSessionsPreventsLogin(false)
+								.sessionRegistry(sessionRegistry)
+						)
 				)
-			)
-			.authorizeHttpRequests(auth -> auth
-				.requestMatchers(
-					"/api/v1/auth/**", "/oauth2/**",
-					"/swagger-ui.html", "/swagger-ui/**",
-					"/swagger-resources/**", "/webjars/**",
-					"/v3/api-docs/**"
-				).permitAll()
-				.requestMatchers("/actuator/health").permitAll()  // 이 설정이 없으면 차단됨
-				.requestMatchers("/actuator/**").permitAll()      // 모든 actuator 엔드포인트 허용
-				.anyRequest().authenticated()
-			)
-			.formLogin(AbstractHttpConfigurer::disable)
-			.httpBasic(AbstractHttpConfigurer::disable)
-			.rememberMe(rm -> rm.rememberMeServices(rememberMeServices))
-			.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers(
+								"/api/v1/auth/**", "/oauth2/**",
+								"/swagger-ui.html", "/swagger-ui/**",
+								"/swagger-resources/**", "/webjars/**",
+								"/v3/api-docs/**"
+						).permitAll()
+						.requestMatchers("/actuator/health").permitAll()
+						.requestMatchers("/actuator/**").permitAll()
+						.anyRequest().authenticated()
+				)
+				.formLogin(AbstractHttpConfigurer::disable)
+				.httpBasic(AbstractHttpConfigurer::disable)
+				.oauth2Login(o -> o
+						.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+						.successHandler(customSuccessHandler)   // 소셜 성공 시: 핸들러에서 remember-me + 리다이렉트
+						.failureHandler(customFailureHandler)
+				)
+				.rememberMe(rm -> rm
+						.rememberMeServices(rememberMeServices)
+						.rememberMeParameter("remember-me")
+						.alwaysRemember(false)
+						.useSecureCookie(true) // 배포 HTTPS에서 Secure 쿠키
+				)
+				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
