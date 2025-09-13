@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +8,6 @@ import java.util.List;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
-import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 
 import jakarta.persistence.CascadeType;
@@ -20,6 +20,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -31,23 +32,19 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @DiscriminatorValue(value = "ROLE_CUSTOMER")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Customer extends User {
 
 	/**
 	 * 연관 관계 매핑
 	 */
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
 	private List<Uid> uids = new ArrayList<>();
 
 	/**
 	 * 필드
 	 */
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private Provider provider;      // LOCAL, KAKAO, NAVER
-
-	@Column(name = "provider_id")
-	private String providerId; // 소셜 id
 
 	@Column(name = "phone_number")
 	private String phoneNumber;
@@ -85,15 +82,29 @@ public class Customer extends User {
 		uids.add(uid);
 	}
 
-	// ⭐ 기존 Uid 객체를 추가하는 메서드 (패키지 접근 메서드 사용)
 	public void addUid(Uid uid) {
+		if (uids == null) uids = new ArrayList<>(); // 과거 데이터 대비 가드
 		uids.add(uid);
-		uid.assignCustomer(this); // 패키지 접근 메서드 사용
+		uid.assignCustomer(this);
 	}
 
 	public void removeUid(Uid uid) {
 		uids.remove(uid);
 		// customer 참조는 제거하지 않음 (불변성 유지)
 	}
+
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+
+	public void setMembershipLevel(MembershipLevel membershipLevel) {
+		this.membershipLevel = membershipLevel;
+	}
+
+	public void setPrimaryInvestmentType(InvestmentType investmentType){
+		this.primaryInvestmentType = investmentType;
+	}
+
+
 
 }
