@@ -1,8 +1,8 @@
 package com.tradingpt.tpt_api.domain.auth.service;
 
-import java.util.ArrayList;
+import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,8 +19,6 @@ import com.tradingpt.tpt_api.domain.auth.util.AuthUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Uid;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
-import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
-import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.exception.AuthException;
@@ -36,8 +34,6 @@ public class AuthServiceImpl implements AuthService {
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
-	private final CustomerRepository customerRepository;
-	private final TrainerRepository trainerRepository;
 
 	/* === 휴대폰 인증 === */
 	@Override
@@ -65,80 +61,111 @@ public class AuthServiceImpl implements AuthService {
 		verificationService.verifyEmail(email, req.getCode(), session);
 	}
 
-	/* === 회원가입 === */
 	@Override
 	@Transactional
 	public void signUp(SignUpRequest req, HttpSession session) {
-		// 1) 기본 검증
-		if (!req.getPassword().equals(req.getPasswordCheck())) {
-			throw new AuthException(AuthErrorStatus.PASSWORD_MISMATCH);
-		}
+		// 필수 동의 검증
 		if (!Boolean.TRUE.equals(req.getTermsService()) || !Boolean.TRUE.equals(req.getTermsPrivacy())) {
 			throw new AuthException(AuthErrorStatus.TERMS_AGREEMENT_REQUIRED);
 		}
 
-		// 2) 정규화
 		final String phone = AuthUtil.normalizePhone(req.getPhone());
 		final String email = AuthUtil.normalizeEmail(req.getEmail());
-
-		// 3) 인증 요구(휴대폰/이메일)
 		verificationService.requireVerified(phone, email, session);
 
-		// 4) 중복 체크
-		userService.ensureUnique(req.getUsername(), email, phone);
+		// 소셜 임시계정 여부
+		boolean isSocialUsername =
+				req.getUsername() != null &&
+						(req.getUsername().startsWith("KAKAO_") || req.getUsername().startsWith("NAVER_"));
 
-		// 5) Customer 직접 생성 (User 필드들 포함)
-		// ⭐ 핵심 변경: User 따로 생성하지 않고 Customer에서 모든 필드 설정
-		Customer customer = Customer.builder()
-			.username(req.getUsername())
-			.password(passwordEncoder.encode(req.getPassword()))
-			.email(email)
-			.name(req.getName())
-			.phoneNumber(phone)
-			.membershipLevel(MembershipLevel.BASIC)
-			.build();
-
-		// 6) UID 처리 - 빌더에서 직접 customer 설정
-		if (req.getUids() != null && !req.getUids().isEmpty()) {
-			if (req.getUids().size() > 5) {
-				throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
-			}
-
-			Set<String> seen = new HashSet<>();
-			List<Uid> uidList = new ArrayList<>();
-
-			for (SignUpRequest.UidRequest u : req.getUids()) {
-				String exchange = u.getExchangeName() == null ? "" : u.getExchangeName().trim();
-				String uidValue = u.getUid() == null ? "" : u.getUid().trim();
-
-				if (exchange.isEmpty() || uidValue.isEmpty()) {
-					throw new AuthException(AuthErrorStatus.REQUIRED_FIELD_MISSING);
-				}
-				if (!seen.add(uidValue)) {
-					throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
-				}
-
-				// ⭐ 빌더에서 customer 직접 설정
-				Uid uid = Uid.builder()
-					.exchangeName(exchange)
-					.uid(uidValue)
-					.customer(customer)  // 빌더에서 customer 설정
-					.build();
-
-				uidList.add(uid);
-			}
-
-			// Customer의 uids 리스트에 직접 설정
-			customer.getUids().addAll(uidList);
+		if (isSocialUsername) {
+			updateSocialCustomer(req, session, phone, email);
+			return;
 		}
 
-		// 7) Customer 저장
-		customerRepository.save(customer);
+		// 일반 회원가입
+		if (!req.getPassword().equals(req.getPasswordCheck())) {
+			throw new AuthException(AuthErrorStatus.PASSWORD_MISMATCH);
+		}
+		userService.ensureUnique(req.getUsername(), email, phone);
 
-		// 8) 인증 흔적 정리
+		Customer customer = Customer.builder()
+				.username(req.getUsername())
+				.password(passwordEncoder.encode(req.getPassword()))
+				.email(email)
+				.name(req.getName())
+				.provider(Provider.LOCAL)
+				.phoneNumber(phone)
+				.membershipLevel(MembershipLevel.BASIC)
+				.status(AccountStatus.ACTIVE)
+				.primaryInvestmentType(req.getInvestmentType())
+				.build();
+
+		attachUids(customer, req);     // 자식 먼저 붙이고
+		userRepository.save(customer); // 저장은 한 번 (cascade로 Uid 함께 INSERT)
+
 		verificationService.clearPhoneTrace(phone);
 		verificationService.clearEmailTrace(email);
 	}
+
+	private void updateSocialCustomer(SignUpRequest req, HttpSession session, String phone, String email) {
+		var userOpt = userRepository.findByUsername(req.getUsername());
+		if (userOpt.isEmpty() || !(userOpt.get() instanceof Customer)) {
+			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
+		}
+		Customer customer = (Customer) userOpt.get();
+
+		// 이메일/휴대폰 변경 시에만 중복 체크
+		if (!email.equalsIgnoreCase(customer.getEmail()) || !phone.equals(customer.getPhoneNumber())) {
+			userService.ensureUnique(customer.getUsername(), email, phone);
+		}
+
+		// 기본 정보 업데이트
+		customer.setPhoneNumber(phone);
+		if (customer.getMembershipLevel() == null) {
+			customer.setMembershipLevel(MembershipLevel.BASIC);
+		}
+		customer.setPrimaryInvestmentType(req.getInvestmentType());
+
+		// UID 병합/설정
+		attachUids(customer, req);
+
+		// 기존 엔티티 저장 (변경 감지 + cascade)
+		userRepository.save(customer);
+
+		verificationService.clearPhoneTrace(phone);
+		verificationService.clearEmailTrace(email);
+	}
+
+	private void attachUids(Customer customer, SignUpRequest req) {
+		if (req.getUids() == null || req.getUids().isEmpty()) return;
+
+		int existing = customer.getUids() == null ? 0 : customer.getUids().size();
+		if (existing + req.getUids().size() > 5) {
+			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
+		}
+
+		Set<String> seen = new HashSet<>();
+		if (customer.getUids() != null) {
+			for (Uid u : customer.getUids()) seen.add(u.getUid());
+		}
+
+		for (SignUpRequest.UidRequest ur : req.getUids()) {
+			String exchange = ur.getExchangeName() == null ? "" : ur.getExchangeName().trim();
+			String uidValue = ur.getUid() == null ? "" : ur.getUid().trim();
+			if (exchange.isEmpty() || uidValue.isEmpty()) {
+				throw new AuthException(AuthErrorStatus.REQUIRED_FIELD_MISSING);
+			}
+			if (!seen.add(uidValue)) {
+				throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
+			}
+			customer.addUid(Uid.builder()
+					.exchangeName(exchange)
+					.uid(uidValue)
+					.build());
+		}
+	}
+
 
 	@Override
 	public boolean isUsernameAvailable(String username) {
