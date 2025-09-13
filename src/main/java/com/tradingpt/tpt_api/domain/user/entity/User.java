@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
@@ -7,6 +8,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -44,6 +47,13 @@ public abstract class User extends BaseEntity {
 
 	@Column(name = "name", nullable = false)
 	private String name; //유저의 이름
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private Provider provider;      // LOCAL, KAKAO, NAVER
+
+	@Column(name = "provider_id")
+	private String providerId; // 소셜 id
 
 	// 추상 메서드로 Role 반환
 	public abstract Role getRole();
