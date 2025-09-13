@@ -1,30 +1,36 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
-import jakarta.persistence.*;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name="trainer")
+@Table(name = "trainer")
 @Getter
-@Builder
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Trainer {
+@AllArgsConstructor
+@DiscriminatorValue(value = "ROLE_TRAINER")
+public class Trainer extends User {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Column(name = "profile_image_url")
+	private String profileImageUrl;
 
-    @Column(name="profile_image_url")
-    private String profileImageUrl;
+	@Column(name = "oneline_introduction")
+	private String oneLineIntroduction;
 
-    @Column(name="oneline_introduction")
-    private String oneLineIntroduction;
+	// ⭐ getRole() 구현
+	@Override
+	public Role getRole() {
+		return Role.ROLE_TRAINER;
+	}
 
-    @OneToOne
-    @JoinColumn(name="user_id", unique = true)
-    private User user;
 }
