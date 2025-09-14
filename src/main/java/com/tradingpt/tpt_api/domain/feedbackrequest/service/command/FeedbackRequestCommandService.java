@@ -26,14 +26,4 @@ public interface FeedbackRequestCommandService {
      * 피드백 요청 삭제
      */
     void deleteFeedbackRequest(Long feedbackRequestId, Long customerId);
-
-    /**
-     * 피드백 답변 생성
-     */
-    void createFeedbackResponse(Long feedbackRequestId, String responseContent, Long trainerId);
-
-    /**
-     * 피드백 답변 수정
-     */
-    void updateFeedbackResponse(Long feedbackRequestId, String responseContent, Long trainerId);
 }
