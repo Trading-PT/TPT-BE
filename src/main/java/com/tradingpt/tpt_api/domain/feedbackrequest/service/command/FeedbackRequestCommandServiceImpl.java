@@ -57,7 +57,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	}
 
 	@Override
-	public void deleteFeedbackRequest(Long feedbackRequestId, Long customerId) {
+	public Void deleteFeedbackRequest(Long feedbackRequestId, Long customerId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
@@ -72,8 +72,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		}
 
 		feedbackRequestRepository.delete(feedbackRequest);
-	}
 
+		return null;
+	}
 
 	private Customer getCustomerById(Long customerId) {
 		return (Customer)userRepository.findById(customerId)

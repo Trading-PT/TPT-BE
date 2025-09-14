@@ -40,7 +40,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	}
 
 	@Override
-	public Object getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+	public FeedbackRequestResponse getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
