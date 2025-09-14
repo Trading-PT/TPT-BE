@@ -2,7 +2,10 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.time.LocalDate;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -58,5 +61,30 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	@Override
 	public FeedbackType getFeedbackType() {
 		return FeedbackType.SCALPING;
+	}
+
+	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequest request, Customer customer) {
+		return ScalpingRequestDetail.builder()
+				.customer(customer)
+				.feedbackRequestedAt(LocalDate.now())
+				.status(Status.NOT_YET)
+				.isCourseCompleted(request.getIsCourseCompleted())
+				.feedbackYear(request.getFeedbackYear())
+				.feedbackMonth(request.getFeedbackMonth())
+				.feedbackWeek(request.getFeedbackWeek())
+				.isBestFeedback(false)
+				.requestDate(request.getRequestDate())
+				.category(request.getCategory())
+				.dailyTradingCount(request.getDailyTradingCount())
+				.screenshotImageUrl(request.getScreenshotImageUrl())
+				.riskTaking(request.getRiskTaking())
+				.leverage(request.getLeverage())
+				.totalPositionTakingCount(request.getTotalPositionTakingCount())
+				.totalProfitMarginPerTrades(request.getTotalProfitMarginPerTrades())
+				.positionStartReason(request.getPositionStartReason())
+				.positionEndReason(request.getPositionEndReason())
+				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+				.trendAnalysis(request.getTrendAnalysis())
+				.build();
 	}
 }

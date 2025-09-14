@@ -91,4 +91,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 	// 추상 메서드로 FeedbackType 반환
 	public abstract FeedbackType getFeedbackType();
 
+	public void setStatus(Status status) {
+		this.status = status;
+	}
+
 }

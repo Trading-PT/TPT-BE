@@ -4,10 +4,13 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -91,6 +94,41 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	@Override
 	public FeedbackType getFeedbackType() {
-		return FeedbackType.DAY;
+		return FeedbackType.SWING;
+	}
+
+	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequest request, Customer customer) {
+		return SwingRequestDetail.builder()
+				.customer(customer)
+				.feedbackRequestedAt(LocalDate.now())
+				.status(Status.NOT_YET)
+				.isCourseCompleted(request.getIsCourseCompleted())
+				.feedbackYear(request.getFeedbackYear())
+				.feedbackMonth(request.getFeedbackMonth())
+				.feedbackWeek(request.getFeedbackWeek())
+				.isBestFeedback(false)
+				.requestDate(request.getRequestDate())
+				.category(request.getCategory())
+				.positionStartDate(request.getPositionStartDate())
+				.positionEndDate(request.getPositionEndDate())
+				.screenshotImageUrl(request.getScreenshotImageUrl())
+				.riskTaking(request.getRiskTaking())
+				.leverage(request.getLeverage())
+				.position(request.getPosition())
+				.positionStartReason(request.getPositionStartReason())
+				.positionEndReason(request.getPositionEndReason())
+				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+				.directionFrame(request.getDirectionFrame())
+				.mainFrame(request.getMainFrame())
+				.subFrame(request.getSubFrame())
+				.trendAnalysis(request.getTrendAnalysis())
+				.pnl(request.getPnl())
+				.winLossRatio(request.getWinLossRatio())
+				.entryPoint1(request.getEntryPoint1())
+				.grade(request.getGrade())
+				.entryPoint2(request.getEntryPoint2())
+				.entryPoint3(request.getEntryPoint3())
+				.tradingReview(request.getTradingReview())
+				.build();
 	}
 }
