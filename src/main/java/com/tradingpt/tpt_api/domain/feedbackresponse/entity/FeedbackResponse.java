@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -16,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
@@ -46,6 +48,10 @@ public class FeedbackResponse extends BaseEntity {
 	@JoinColumn(name = "feedback_request_id")
 	private FeedbackRequest feedbackRequest;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "trainer_id")
+	private Trainer trainer;
+
 	@Builder.Default
 	@OneToMany(mappedBy = "feedbackResponse", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FeedbackResponseAttachment> feedbackResponseAttachments = new ArrayList<>();
@@ -55,8 +61,21 @@ public class FeedbackResponse extends BaseEntity {
 	 */
 
 	@Lob
-	private String content; // 피드백 내용
+	private String responseContent; // 피드백 내용
 
 	private LocalDateTime submittedAt; // 피드백 제공 시각
+
+	public void updateContent(String newContent) {
+		this.responseContent = newContent;
+	}
+
+	public static FeedbackResponse createResponse(FeedbackRequest feedbackRequest, Trainer trainer, String responseContent) {
+		return FeedbackResponse.builder()
+				.feedbackRequest(feedbackRequest)
+				.trainer(trainer)
+				.responseContent(responseContent)
+				.submittedAt(java.time.LocalDateTime.now())
+				.build();
+	}
 
 }
