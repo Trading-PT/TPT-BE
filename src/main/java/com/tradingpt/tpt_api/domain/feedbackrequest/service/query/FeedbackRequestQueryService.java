@@ -18,7 +18,7 @@ public interface FeedbackRequestQueryService {
     /**
      * 피드백 요청 상세 조회
      */
-    Object getFeedbackRequestById(Long feedbackRequestId, Long currentUserId);
+    FeedbackRequestResponse getFeedbackRequestById(Long feedbackRequestId, Long currentUserId);
 
     /**
      * 내 피드백 요청 목록 조회

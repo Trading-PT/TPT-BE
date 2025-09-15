@@ -40,6 +40,8 @@ spring:
       enabled: true
       max-file-size: 200MB
       max-request-size: 300MB
+      file-size-threshold: 2KB    # 메모리에서 디스크로 옮기는 임계값
+      location: ${java.io.tmpdir} # 임시 파일 저장 위치
     cookie:
       same-site: none
       secure: true
@@ -141,8 +143,6 @@ app:
     from: ${MAIL_NAME}
   frontend:
     base-url: http://localhost:3000
-
-
 
 # SMS 설정
 solapi:

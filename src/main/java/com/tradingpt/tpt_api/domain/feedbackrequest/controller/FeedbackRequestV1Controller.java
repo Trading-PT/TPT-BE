@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -53,8 +52,8 @@ public class FeedbackRequestV1Controller {
 		@Valid @RequestBody CreateDayRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		FeedbackRequestResponse response = feedbackRequestCommandService.createDayRequest(request, userDetails.getId());
-		return BaseResponse.onSuccessCreate(response);
+		return BaseResponse.onSuccessCreate(
+			feedbackRequestCommandService.createDayRequest(request, userDetails.getId()));
 	}
 
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
@@ -64,8 +63,8 @@ public class FeedbackRequestV1Controller {
 		@Valid @RequestBody CreateScalpingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		FeedbackRequestResponse response = feedbackRequestCommandService.createScalpingRequest(request, userDetails.getId());
-		return BaseResponse.onSuccessCreate(response);
+		return BaseResponse.onSuccessCreate(
+			feedbackRequestCommandService.createScalpingRequest(request, userDetails.getId()));
 	}
 
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
@@ -75,8 +74,8 @@ public class FeedbackRequestV1Controller {
 		@Valid @RequestBody CreateSwingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		FeedbackRequestResponse response = feedbackRequestCommandService.createSwingRequest(request, userDetails.getId());
-		return BaseResponse.onSuccessCreate(response);
+		return BaseResponse.onSuccessCreate(
+			feedbackRequestCommandService.createSwingRequest(request, userDetails.getId()));
 	}
 
 	@Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
@@ -88,21 +87,19 @@ public class FeedbackRequestV1Controller {
 		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
 		@Parameter(description = "고객 ID 필터 (트레이너만 사용 가능)") @RequestParam(required = false) Long customerId) {
 
-		Page<FeedbackRequestResponse> responsePage = feedbackRequestQueryService.getFeedbackRequests(
-			pageable, feedbackType, status, customerId);
-		return BaseResponse.onSuccess(responsePage);
+		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequests(
+			pageable, feedbackType, status, customerId));
 	}
 
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	public BaseResponse<Object> getFeedbackRequest(
+	public BaseResponse<FeedbackRequestResponse> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		Object response = feedbackRequestQueryService.getFeedbackRequestById(
-			feedbackRequestId, userDetails.getId());
-		return BaseResponse.onSuccess(response);
+		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequestById(
+			feedbackRequestId, userDetails.getId()));
 	}
 
 	@Operation(summary = "피드백 요청 삭제", description = "피드백 요청을 삭제합니다. (고객만 가능)")
@@ -113,8 +110,8 @@ public class FeedbackRequestV1Controller {
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, userDetails.getId());
-		return BaseResponse.onSuccessDelete(null);
+		return BaseResponse.onSuccessDelete(
+			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, userDetails.getId()));
 	}
 
 	@Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
@@ -125,10 +122,8 @@ public class FeedbackRequestV1Controller {
 		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		List<FeedbackRequestResponse> responses = feedbackRequestQueryService.getMyFeedbackRequests(
-			userDetails.getId(), feedbackType, status);
-		return BaseResponse.onSuccess(responses);
+		return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
+			userDetails.getId(), feedbackType, status));
 	}
-
 
 }

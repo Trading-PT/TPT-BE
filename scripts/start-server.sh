@@ -66,6 +66,8 @@ docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 # Spring Boot 애플리케이션 실행
 echo "Spring Boot 애플리케이션 시작 중..."
+
+# 컨테이너 실행 부분을 다음으로 변경
 docker run -d \
   --name tpt-spring-app \
   --env-file $ENV_FILE \
@@ -73,9 +75,10 @@ docker run -d \
   --memory="700m" \
   --memory-swap="1g" \
   --restart unless-stopped \
-  --log-driver json-file \
-  --log-opt max-size=100m \
-  --log-opt max-file=3 \
+  --log-driver awslogs \
+  --log-opt awslogs-group="/tpt/dev/application" \
+  --log-opt awslogs-stream="tpt-spring-app-$(date +%Y%m%d)" \
+  --log-opt awslogs-region="ap-northeast-2" \
   $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
 # 환경변수 파일 보안 삭제

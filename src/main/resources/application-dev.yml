@@ -1,6 +1,10 @@
 spring:
+  config:
+    activate:
+      on-profile: dev
+
   datasource:
-    url: jdbc:mysql://${DEV_DB_HOST}:3306/${DEV_DB_NAME:love_keeper}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://${DEV_DB_HOST}:3306/${DEV_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DEV_DB_USERNAME}
     password: ${DEV_DB_PASSWORD}
     hikari:
@@ -20,7 +24,7 @@ spring:
   # JPA 설정 (개발 환경)
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     show-sql: false
     properties:
       hibernate:
@@ -33,5 +37,14 @@ spring:
 # 로깅 설정 (개발 환경)
 logging:
   level:
-    org.hibernate.SQL: warn
-    org.springframework.jdbc.core: warn
+    root: INFO
+    com.tradingpt.tpt_api: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    bucket-name: ${S3_BUCKET_NAME}
