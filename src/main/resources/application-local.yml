@@ -1,4 +1,8 @@
 spring:
+  config:
+    activate:
+      on-profile: local
+
   datasource:
     url: jdbc:mysql://localhost:3306/${LOCAL_DB_NAME:tpt_local_db}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
     username: ${LOCAL_DB_USERNAME:root}
@@ -35,3 +39,10 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.springframework.jdbc.core: DEBUG
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    bucket-name: ${S3_BUCKET_NAME}
