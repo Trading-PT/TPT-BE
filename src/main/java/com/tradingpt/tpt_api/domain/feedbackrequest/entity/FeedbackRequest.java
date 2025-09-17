@@ -77,16 +77,16 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private Boolean isCourseCompleted; // 완강 여부
 
-	private Integer feedbackYear;
+	private Integer feedbackYear; // 피드백 연도
 
-	private Integer feedbackMonth;
+	private Integer feedbackMonth; // 피드백 월
 
-	private Integer feedbackWeek;
+	private Integer feedbackWeek; // 피드백 주차
 
 	@Enumerated(EnumType.STRING)
-	private Status status;
+	private Status status; // 피드백 답변 여뷰
 
-	private Boolean isBestFeedback;
+	private Boolean isBestFeedback; // 베스트 피드백 여부
 
 	// 추상 메서드로 FeedbackType 반환
 	public abstract FeedbackType getFeedbackType();

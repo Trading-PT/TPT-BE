@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
@@ -107,12 +108,13 @@ public class DayRequestDetail extends FeedbackRequest {
 				.feedbackMonth(request.getFeedbackMonth())
 				.feedbackWeek(request.getFeedbackWeek())
 				.isBestFeedback(false)
+				.feedbackRequestAttachments(new ArrayList<>())
 				.requestDate(request.getRequestDate())
 				.category(request.getCategory())
 				.positionHoldingTime(request.getPositionHoldingTime())
 				.positionStartDate(request.getPositionStartDate())
 				.positionEndDate(request.getPositionEndDate())
-				.screenshotImageUrl(request.getScreenshotImageUrl())
+				.screenshotImageUrl(null) // 파일 업로드는 서비스 레이어에서 처리
 				.riskTaking(request.getRiskTaking())
 				.leverage(request.getLeverage())
 				.position(request.getPosition())

@@ -11,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -46,10 +47,10 @@ public class FeedbackRequestV1Controller {
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
 
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
-	@PostMapping("/day")
+	@PostMapping(value = "/day", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<FeedbackRequestResponse> createDayRequest(
-		@Valid @RequestBody CreateDayRequestDetailRequest request,
+		@Valid @ModelAttribute CreateDayRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(

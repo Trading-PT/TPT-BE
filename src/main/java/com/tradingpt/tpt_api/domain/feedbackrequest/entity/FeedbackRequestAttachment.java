@@ -39,4 +39,19 @@ public class FeedbackRequestAttachment extends BaseEntity {
 
 	private String fileUrl; // 이미지 파일 url
 
+	public static FeedbackRequestAttachment createScreenshot(FeedbackRequest feedbackRequest, String fileUrl) {
+		FeedbackRequestAttachment newScreenshot = FeedbackRequestAttachment.builder()
+			.feedbackRequest(feedbackRequest)
+			.fileUrl(fileUrl)
+			.build();
+
+		feedbackRequest.getFeedbackRequestAttachments().add(newScreenshot);
+
+		return newScreenshot;
+	}
+
+	public void setFeedbackRequest(FeedbackRequest feedbackRequest) {
+		this.feedbackRequest = feedbackRequest;
+	}
+
 }
