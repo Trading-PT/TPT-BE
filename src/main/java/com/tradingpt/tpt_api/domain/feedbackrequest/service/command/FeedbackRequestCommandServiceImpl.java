@@ -62,7 +62,21 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	@Override
 	public FeedbackRequestResponse createScalpingRequest(CreateScalpingRequestDetailRequest request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
+
+		// ScalpingRequestDetail 생성
 		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer);
+
+		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
+		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
+			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
+				if (screenshotFile != null && !screenshotFile.isEmpty()) {
+					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
+					FeedbackRequestAttachment.createScreenshot(scalpingRequest, uploadResult.url());
+				}
+			}
+		}
+
+		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
 		return FeedbackRequestResponse.of(saved);
 	}
@@ -70,7 +84,21 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	@Override
 	public FeedbackRequestResponse createSwingRequest(CreateSwingRequestDetailRequest request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
+
+		// SwingRequestDetail 생성
 		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer);
+
+		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
+		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
+			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
+				if (screenshotFile != null && !screenshotFile.isEmpty()) {
+					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
+					FeedbackRequestAttachment.createScreenshot(swingRequest, uploadResult.url());
+				}
+			}
+		}
+
+		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
 		return FeedbackRequestResponse.of(saved);
 	}

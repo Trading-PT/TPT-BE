@@ -50,8 +50,4 @@ public class FeedbackRequestAttachment extends BaseEntity {
 		return newScreenshot;
 	}
 
-	public void setFeedbackRequest(FeedbackRequest feedbackRequest) {
-		this.feedbackRequest = feedbackRequest;
-	}
-
 }

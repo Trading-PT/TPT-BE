@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
@@ -48,8 +49,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	private LocalDate positionEndDate; // 포지션 종료 날짜
 
-	private String screenshotImageUrl; // 스크린샷 이미지 url
-
 	private Integer riskTaking; // 리스크 테이킹
 
 	private Integer leverage; // 레버리지
@@ -92,43 +91,43 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
+	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequest request, Customer customer) {
+		return SwingRequestDetail.builder()
+			.customer(customer)
+			.feedbackRequestedAt(LocalDate.now())
+			.status(Status.NOT_YET)
+			.isCourseCompleted(request.getIsCourseCompleted())
+			.feedbackYear(request.getFeedbackYear())
+			.feedbackMonth(request.getFeedbackMonth())
+			.feedbackWeek(request.getFeedbackWeek())
+			.isBestFeedback(false)
+			.feedbackRequestAttachments(new ArrayList<>())
+			.requestDate(request.getRequestDate())
+			.category(request.getCategory())
+			.positionStartDate(request.getPositionStartDate())
+			.positionEndDate(request.getPositionEndDate())
+			.riskTaking(request.getRiskTaking())
+			.leverage(request.getLeverage())
+			.position(request.getPosition())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.directionFrame(request.getDirectionFrame())
+			.mainFrame(request.getMainFrame())
+			.subFrame(request.getSubFrame())
+			.trendAnalysis(request.getTrendAnalysis())
+			.pnl(request.getPnl())
+			.winLossRatio(request.getWinLossRatio())
+			.entryPoint1(request.getEntryPoint1())
+			.grade(request.getGrade())
+			.entryPoint2(request.getEntryPoint2())
+			.entryPoint3(request.getEntryPoint3())
+			.tradingReview(request.getTradingReview())
+			.build();
+	}
+
 	@Override
 	public FeedbackType getFeedbackType() {
 		return FeedbackType.SWING;
-	}
-
-	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequest request, Customer customer) {
-		return SwingRequestDetail.builder()
-				.customer(customer)
-				.feedbackRequestedAt(LocalDate.now())
-				.status(Status.NOT_YET)
-				.isCourseCompleted(request.getIsCourseCompleted())
-				.feedbackYear(request.getFeedbackYear())
-				.feedbackMonth(request.getFeedbackMonth())
-				.feedbackWeek(request.getFeedbackWeek())
-				.isBestFeedback(false)
-				.requestDate(request.getRequestDate())
-				.category(request.getCategory())
-				.positionStartDate(request.getPositionStartDate())
-				.positionEndDate(request.getPositionEndDate())
-				.screenshotImageUrl(request.getScreenshotImageUrl())
-				.riskTaking(request.getRiskTaking())
-				.leverage(request.getLeverage())
-				.position(request.getPosition())
-				.positionStartReason(request.getPositionStartReason())
-				.positionEndReason(request.getPositionEndReason())
-				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-				.directionFrame(request.getDirectionFrame())
-				.mainFrame(request.getMainFrame())
-				.subFrame(request.getSubFrame())
-				.trendAnalysis(request.getTrendAnalysis())
-				.pnl(request.getPnl())
-				.winLossRatio(request.getWinLossRatio())
-				.entryPoint1(request.getEntryPoint1())
-				.grade(request.getGrade())
-				.entryPoint2(request.getEntryPoint2())
-				.entryPoint3(request.getEntryPoint3())
-				.tradingReview(request.getTradingReview())
-				.build();
 	}
 }

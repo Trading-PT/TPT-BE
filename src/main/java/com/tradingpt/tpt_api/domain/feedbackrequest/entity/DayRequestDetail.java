@@ -47,8 +47,6 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private LocalDate positionEndDate; // 포지션 종료 날짜
 
-	private String screenshotImageUrl; // 스크린샷 이미지 url
-
 	private Integer riskTaking; // 리스크 테이킹
 
 	private Integer leverage; // 레버리지
@@ -93,47 +91,46 @@ public class DayRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
+	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
+		return DayRequestDetail.builder()
+			.customer(customer)
+			.feedbackRequestedAt(LocalDate.now())
+			.status(Status.NOT_YET)
+			.isCourseCompleted(request.getIsCourseCompleted())
+			.feedbackYear(request.getFeedbackYear())
+			.feedbackMonth(request.getFeedbackMonth())
+			.feedbackWeek(request.getFeedbackWeek())
+			.isBestFeedback(false)
+			.feedbackRequestAttachments(new ArrayList<>())
+			.requestDate(request.getRequestDate())
+			.category(request.getCategory())
+			.positionHoldingTime(request.getPositionHoldingTime())
+			.positionStartDate(request.getPositionStartDate())
+			.positionEndDate(request.getPositionEndDate())
+			.riskTaking(request.getRiskTaking())
+			.leverage(request.getLeverage())
+			.position(request.getPosition())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.directionFrameExists(request.getDirectionFrameExists())
+			.directionFrame(request.getDirectionFrame())
+			.mainFrame(request.getMainFrame())
+			.subFrame(request.getSubFrame())
+			.trendAnalysis(request.getTrendAnalysis())
+			.pnl(request.getPnl())
+			.winLossRatio(request.getWinLossRatio())
+			.entryPoint1(request.getEntryPoint1())
+			.grade(request.getGrade())
+			.entryPoint2(request.getEntryPoint2())
+			.entryPoint3(request.getEntryPoint3())
+			.tradingReview(request.getTradingReview())
+			.build();
+	}
+
 	@Override
 	public FeedbackType getFeedbackType() {
 		return FeedbackType.DAY;
-	}
-
-	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
-		return DayRequestDetail.builder()
-				.customer(customer)
-				.feedbackRequestedAt(LocalDate.now())
-				.status(Status.NOT_YET)
-				.isCourseCompleted(request.getIsCourseCompleted())
-				.feedbackYear(request.getFeedbackYear())
-				.feedbackMonth(request.getFeedbackMonth())
-				.feedbackWeek(request.getFeedbackWeek())
-				.isBestFeedback(false)
-				.feedbackRequestAttachments(new ArrayList<>())
-				.requestDate(request.getRequestDate())
-				.category(request.getCategory())
-				.positionHoldingTime(request.getPositionHoldingTime())
-				.positionStartDate(request.getPositionStartDate())
-				.positionEndDate(request.getPositionEndDate())
-				.screenshotImageUrl(null) // 파일 업로드는 서비스 레이어에서 처리
-				.riskTaking(request.getRiskTaking())
-				.leverage(request.getLeverage())
-				.position(request.getPosition())
-				.positionStartReason(request.getPositionStartReason())
-				.positionEndReason(request.getPositionEndReason())
-				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-				.directionFrameExists(request.getDirectionFrameExists())
-				.directionFrame(request.getDirectionFrame())
-				.mainFrame(request.getMainFrame())
-				.subFrame(request.getSubFrame())
-				.trendAnalysis(request.getTrendAnalysis())
-				.pnl(request.getPnl())
-				.winLossRatio(request.getWinLossRatio())
-				.entryPoint1(request.getEntryPoint1())
-				.grade(request.getGrade())
-				.entryPoint2(request.getEntryPoint2())
-				.entryPoint3(request.getEntryPoint3())
-				.tradingReview(request.getTradingReview())
-				.build();
 	}
 
 }

@@ -12,10 +12,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -26,11 +22,9 @@ import lombok.Setter;
 @Schema(description = "데이 트레이딩 피드백 요청 DTO")
 public class CreateDayRequestDetailRequest {
 
-	@NotNull
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
 
-	@NotBlank
 	@Schema(description = "종목")
 	private String category;
 
@@ -46,17 +40,12 @@ public class CreateDayRequestDetailRequest {
 	@Schema(description = "스크린샷 이미지 파일")
 	private List<MultipartFile> screenshotFiles;
 
-	@Min(1)
-	@Max(100)
 	@Schema(description = "리스크 테이킹 (1-100)")
 	private Integer riskTaking;
 
-	@Min(1)
-	@Max(1000)
 	@Schema(description = "레버리지 (1-1000)")
 	private Integer leverage;
 
-	@NotNull
 	@Schema(description = "포지션 (LONG/SHORT)")
 	private Position position;
 

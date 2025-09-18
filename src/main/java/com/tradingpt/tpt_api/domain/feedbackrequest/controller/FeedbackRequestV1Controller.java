@@ -58,10 +58,10 @@ public class FeedbackRequestV1Controller {
 	}
 
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
-	@PostMapping("/scalping")
+	@PostMapping(value = "/scalping", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<FeedbackRequestResponse> createScalpingRequest(
-		@Valid @RequestBody CreateScalpingRequestDetailRequest request,
+		@Valid @ModelAttribute CreateScalpingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -69,10 +69,10 @@ public class FeedbackRequestV1Controller {
 	}
 
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
-	@PostMapping("/swing")
+	@PostMapping(value = "/swing", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<FeedbackRequestResponse> createSwingRequest(
-		@Valid @RequestBody CreateSwingRequestDetailRequest request,
+		@Valid @ModelAttribute CreateSwingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
