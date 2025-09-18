@@ -28,6 +28,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final StringPath email = _super.email;
 
+    public final ListPath<com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest, com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest> feedbackRequests = this.<com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest, com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest>createList("feedbackRequests", com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest.class, com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest.class, PathInits.DIRECT2);
+
     //inherited
     public final NumberPath<Long> id = _super.id;
 

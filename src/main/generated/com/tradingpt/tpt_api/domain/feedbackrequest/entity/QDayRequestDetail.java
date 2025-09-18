@@ -40,8 +40,6 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final DateTimePath<java.time.LocalDateTime> entryPoint2 = createDateTime("entryPoint2", java.time.LocalDateTime.class);
 
-    public final DateTimePath<java.time.LocalDateTime> entryPoint3 = createDateTime("entryPoint3", java.time.LocalDateTime.class);
-
     //inherited
     public final NumberPath<Integer> feedbackMonth;
 
@@ -79,21 +77,13 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
-    public final DatePath<java.time.LocalDate> positionEndDate = createDate("positionEndDate", java.time.LocalDate.class);
-
     public final StringPath positionEndReason = createString("positionEndReason");
 
     public final StringPath positionHoldingTime = createString("positionHoldingTime");
 
-    public final DatePath<java.time.LocalDate> positionStartDate = createDate("positionStartDate", java.time.LocalDate.class);
-
     public final StringPath positionStartReason = createString("positionStartReason");
 
-    public final DatePath<java.time.LocalDate> requestDate = createDate("requestDate", java.time.LocalDate.class);
-
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
-
-    public final StringPath screenshotImageUrl = createString("screenshotImageUrl");
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;

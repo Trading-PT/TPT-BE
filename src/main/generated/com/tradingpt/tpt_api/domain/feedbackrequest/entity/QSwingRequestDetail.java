@@ -83,11 +83,7 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final StringPath positionStartReason = createString("positionStartReason");
 
-    public final DatePath<java.time.LocalDate> requestDate = createDate("requestDate", java.time.LocalDate.class);
-
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
-
-    public final StringPath screenshotImageUrl = createString("screenshotImageUrl");
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;

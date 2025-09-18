@@ -11,9 +11,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -23,6 +23,7 @@ import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -46,10 +47,10 @@ public class FeedbackRequestV1Controller {
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
 
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
-	@PostMapping("/day")
+	@PostMapping(value = "/day", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponse> createDayRequest(
-		@Valid @RequestBody CreateDayRequestDetailRequest request,
+	public BaseResponse<DayRequestDetailResponse> createDayRequest(
+		@Valid @ModelAttribute CreateDayRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -57,10 +58,10 @@ public class FeedbackRequestV1Controller {
 	}
 
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
-	@PostMapping("/scalping")
+	@PostMapping(value = "/scalping", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<FeedbackRequestResponse> createScalpingRequest(
-		@Valid @RequestBody CreateScalpingRequestDetailRequest request,
+		@Valid @ModelAttribute CreateScalpingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -68,10 +69,10 @@ public class FeedbackRequestV1Controller {
 	}
 
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
-	@PostMapping("/swing")
+	@PostMapping(value = "/swing", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<FeedbackRequestResponse> createSwingRequest(
-		@Valid @RequestBody CreateSwingRequestDetailRequest request,
+		@Valid @ModelAttribute CreateSwingRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(

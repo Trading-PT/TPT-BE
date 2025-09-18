@@ -10,12 +10,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Schema(description = "스윙 피드백 요청 DTO")
 public class CreateSwingRequestDetailRequest {
@@ -33,6 +37,9 @@ public class CreateSwingRequestDetailRequest {
 
     @Schema(description = "포지션 종료 날짜")
     private LocalDate positionEndDate;
+
+    @Schema(description = "스크린샷 이미지 파일")
+    private List<MultipartFile> screenshotFiles;
 
     @Schema(description = "스크린샷 이미지 URL")
     private String screenshotImageUrl;

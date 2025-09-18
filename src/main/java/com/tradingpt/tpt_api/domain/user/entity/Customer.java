@@ -1,10 +1,10 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
-import jakarta.persistence.PrimaryKeyJoinColumn;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
@@ -17,6 +17,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,10 @@ public class Customer extends User {
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<Uid> uids = new ArrayList<>();
+
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<FeedbackRequest> feedbackRequests = new ArrayList<>();
 
 	/**
 	 * 필드
@@ -83,7 +88,8 @@ public class Customer extends User {
 	}
 
 	public void addUid(Uid uid) {
-		if (uids == null) uids = new ArrayList<>(); // 과거 데이터 대비 가드
+		if (uids == null)
+			uids = new ArrayList<>(); // 과거 데이터 대비 가드
 		uids.add(uid);
 		uid.assignCustomer(this);
 	}
@@ -101,10 +107,8 @@ public class Customer extends User {
 		this.membershipLevel = membershipLevel;
 	}
 
-	public void setPrimaryInvestmentType(InvestmentType investmentType){
+	public void setPrimaryInvestmentType(InvestmentType investmentType) {
 		this.primaryInvestmentType = investmentType;
 	}
-
-
 
 }

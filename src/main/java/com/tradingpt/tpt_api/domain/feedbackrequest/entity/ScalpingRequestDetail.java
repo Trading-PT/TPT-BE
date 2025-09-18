@@ -29,13 +29,9 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private LocalDate requestDate; // 날짜
-
 	private String category; // 종목
 
 	private Integer dailyTradingCount; // 하루 매매 횟수
-
-	private String screenshotImageUrl; // 스크린샷 이미지 url
 
 	private Integer riskTaking; // 리스크 테이킹
 
@@ -57,34 +53,32 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trendAnalysis; // 15분봉 기준 추세 분석
 
+	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequest request, Customer customer) {
+		return ScalpingRequestDetail.builder()
+			.customer(customer)
+			.feedbackRequestedAt(LocalDate.now())
+			.status(Status.NOT_YET)
+			.isCourseCompleted(request.getIsCourseCompleted())
+			.feedbackYear(request.getFeedbackYear())
+			.feedbackMonth(request.getFeedbackMonth())
+			.feedbackWeek(request.getFeedbackWeek())
+			.isBestFeedback(false)
+			.category(request.getCategory())
+			.dailyTradingCount(request.getDailyTradingCount())
+			.riskTaking(request.getRiskTaking())
+			.leverage(request.getLeverage())
+			.totalPositionTakingCount(request.getTotalPositionTakingCount())
+			.totalProfitMarginPerTrades(request.getTotalProfitMarginPerTrades())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.trendAnalysis(request.getTrendAnalysis())
+			.build();
+	}
+
 	// ⭐ getFeedbackType() 구현
 	@Override
 	public FeedbackType getFeedbackType() {
 		return FeedbackType.SCALPING;
-	}
-
-	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequest request, Customer customer) {
-		return ScalpingRequestDetail.builder()
-				.customer(customer)
-				.feedbackRequestedAt(LocalDate.now())
-				.status(Status.NOT_YET)
-				.isCourseCompleted(request.getIsCourseCompleted())
-				.feedbackYear(request.getFeedbackYear())
-				.feedbackMonth(request.getFeedbackMonth())
-				.feedbackWeek(request.getFeedbackWeek())
-				.isBestFeedback(false)
-				.requestDate(request.getRequestDate())
-				.category(request.getCategory())
-				.dailyTradingCount(request.getDailyTradingCount())
-				.screenshotImageUrl(request.getScreenshotImageUrl())
-				.riskTaking(request.getRiskTaking())
-				.leverage(request.getLeverage())
-				.totalPositionTakingCount(request.getTotalPositionTakingCount())
-				.totalProfitMarginPerTrades(request.getTotalProfitMarginPerTrades())
-				.positionStartReason(request.getPositionStartReason())
-				.positionEndReason(request.getPositionEndReason())
-				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-				.trendAnalysis(request.getTrendAnalysis())
-				.build();
 	}
 }

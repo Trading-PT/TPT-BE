@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
@@ -9,7 +8,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -36,17 +34,9 @@ public class DayRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private LocalDate requestDate; // 날짜
-
 	private String category; // 종목
 
 	private String positionHoldingTime; // 포지션 홀딩 시간
-
-	private LocalDate positionStartDate; // 포지션 진입 날짜
-
-	private LocalDate positionEndDate; // 포지션 종료 날짜
-
-	private String screenshotImageUrl; // 스크린샷 이미지 url
 
 	private Integer riskTaking; // 리스크 테이킹
 
@@ -77,7 +67,7 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private BigDecimal pnl; // P&L
 
-	private String winLossRatio;
+	private String winLossRatio; // 손익비
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -87,51 +77,43 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private LocalDateTime entryPoint2; // 2 진입 타점
 
-	private LocalDateTime entryPoint3; // 3 진입 타점
-
 	@Lob
 	private String tradingReview; // 매매 복기
+
+	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
+		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
+			.customer(customer)
+			.feedbackRequestedAt(request.getRequestDate())
+			.isCourseCompleted(request.getIsCourseCompleted())
+			.category(request.getCategory())
+			.positionHoldingTime(request.getPositionHoldingTime())
+			.riskTaking(request.getRiskTaking())
+			.leverage(request.getLeverage())
+			.position(request.getPosition())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.directionFrame(request.getDirectionFrame())
+			.mainFrame(request.getMainFrame())
+			.subFrame(request.getSubFrame())
+			.directionFrameExists(request.getDirectionFrameExists())
+			.trendAnalysis(request.getTrendAnalysis())
+			.pnl(request.getPnl())
+			.winLossRatio(request.getWinLossRatio())
+			.entryPoint1(request.getEntryPoint1())
+			.grade(request.getGrade())
+			.entryPoint2(request.getEntryPoint2())
+			.tradingReview(request.getTradingReview())
+			.build();
+
+		customer.getFeedbackRequests().add(newDayRequestDetail); // 양방향 연관 관계 매핑
+
+		return newDayRequestDetail;
+	}
 
 	@Override
 	public FeedbackType getFeedbackType() {
 		return FeedbackType.DAY;
-	}
-
-	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
-		return DayRequestDetail.builder()
-				.customer(customer)
-				.feedbackRequestedAt(LocalDate.now())
-				.status(Status.NOT_YET)
-				.isCourseCompleted(request.getIsCourseCompleted())
-				.feedbackYear(request.getFeedbackYear())
-				.feedbackMonth(request.getFeedbackMonth())
-				.feedbackWeek(request.getFeedbackWeek())
-				.isBestFeedback(false)
-				.requestDate(request.getRequestDate())
-				.category(request.getCategory())
-				.positionHoldingTime(request.getPositionHoldingTime())
-				.positionStartDate(request.getPositionStartDate())
-				.positionEndDate(request.getPositionEndDate())
-				.screenshotImageUrl(request.getScreenshotImageUrl())
-				.riskTaking(request.getRiskTaking())
-				.leverage(request.getLeverage())
-				.position(request.getPosition())
-				.positionStartReason(request.getPositionStartReason())
-				.positionEndReason(request.getPositionEndReason())
-				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-				.directionFrameExists(request.getDirectionFrameExists())
-				.directionFrame(request.getDirectionFrame())
-				.mainFrame(request.getMainFrame())
-				.subFrame(request.getSubFrame())
-				.trendAnalysis(request.getTrendAnalysis())
-				.pnl(request.getPnl())
-				.winLossRatio(request.getWinLossRatio())
-				.entryPoint1(request.getEntryPoint1())
-				.grade(request.getGrade())
-				.entryPoint2(request.getEntryPoint2())
-				.entryPoint3(request.getEntryPoint3())
-				.tradingReview(request.getTradingReview())
-				.build();
 	}
 
 }

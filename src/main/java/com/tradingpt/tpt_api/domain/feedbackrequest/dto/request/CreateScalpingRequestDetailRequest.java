@@ -7,10 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter
+@Setter
 @NoArgsConstructor
 @Schema(description = "스켈핑 피드백 요청 DTO")
 public class CreateScalpingRequestDetailRequest {
@@ -26,6 +30,9 @@ public class CreateScalpingRequestDetailRequest {
     @Min(1) @Max(1000)
     @Schema(description = "하루 매매 횟수")
     private Integer dailyTradingCount;
+
+    @Schema(description = "스크린샷 이미지 파일")
+    private List<MultipartFile> screenshotFiles;
 
     @Schema(description = "스크린샷 이미지 URL")
     private String screenshotImageUrl;
