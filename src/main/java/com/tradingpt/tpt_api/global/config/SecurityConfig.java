@@ -5,6 +5,7 @@ import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
+import com.tradingpt.tpt_api.global.filter.CsrfCookieFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
@@ -63,11 +66,15 @@ public class SecurityConfig {
 			CustomOAuth2UserService customOAuth2UserService   // 메서드 파라미터로 주입(순환참조 방지)
 	) throws Exception {
 
+		var requestHandler = new CsrfTokenRequestAttributeHandler();
+		requestHandler.setCsrfRequestAttributeName("_csrf");
+
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf
 						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**")
 						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+						.csrfTokenRequestHandler(requestHandler)
 				)
 				.sessionManagement(sm -> sm
 						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -102,7 +109,8 @@ public class SecurityConfig {
 						.alwaysRemember(false)
 						.useSecureCookie(true) // 배포 HTTPS에서 Secure 쿠키
 				)
-				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
+				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
+				.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class);
 
 		return http.build();
 	}
