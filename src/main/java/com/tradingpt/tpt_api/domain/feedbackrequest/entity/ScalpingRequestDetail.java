@@ -29,8 +29,6 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private LocalDate requestDate; // 날짜
-
 	private String category; // 종목
 
 	private Integer dailyTradingCount; // 하루 매매 횟수
@@ -65,7 +63,6 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())
 			.isBestFeedback(false)
-			.requestDate(request.getRequestDate())
 			.category(request.getCategory())
 			.dailyTradingCount(request.getDailyTradingCount())
 			.riskTaking(request.getRiskTaking())

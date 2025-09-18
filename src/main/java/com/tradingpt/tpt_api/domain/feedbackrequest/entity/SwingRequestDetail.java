@@ -41,8 +41,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	private Integer feedbackWeek; // 몇 주차
 
-	private LocalDate requestDate; // 요청 날짜
-
 	private String category; // 종목
 
 	private LocalDate positionStartDate; // 포지션 진입 날짜
@@ -102,7 +100,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.feedbackWeek(request.getFeedbackWeek())
 			.isBestFeedback(false)
 			.feedbackRequestAttachments(new ArrayList<>())
-			.requestDate(request.getRequestDate())
 			.category(request.getCategory())
 			.positionStartDate(request.getPositionStartDate())
 			.positionEndDate(request.getPositionEndDate())

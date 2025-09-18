@@ -1,16 +1,13 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -37,8 +34,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private LocalDate requestDate; // 날짜
-
 	private String category; // 종목
 
 	private String positionHoldingTime; // 포지션 홀딩 시간
@@ -72,7 +67,7 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private BigDecimal pnl; // P&L
 
-	private String winLossRatio;
+	private String winLossRatio; // 손익비
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -82,23 +77,14 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private LocalDateTime entryPoint2; // 2 진입 타점
 
-	private LocalDateTime entryPoint3; // 3 진입 타점
-
 	@Lob
 	private String tradingReview; // 매매 복기
 
 	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
-		return DayRequestDetail.builder()
+		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
-			.feedbackRequestedAt(LocalDate.now())
-			.status(Status.NOT_YET)
+			.feedbackRequestedAt(request.getRequestDate())
 			.isCourseCompleted(request.getIsCourseCompleted())
-			.feedbackYear(request.getFeedbackYear())
-			.feedbackMonth(request.getFeedbackMonth())
-			.feedbackWeek(request.getFeedbackWeek())
-			.isBestFeedback(false)
-			.feedbackRequestAttachments(new ArrayList<>())
-			.requestDate(request.getRequestDate())
 			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
 			.riskTaking(request.getRiskTaking())
@@ -107,19 +93,22 @@ public class DayRequestDetail extends FeedbackRequest {
 			.positionStartReason(request.getPositionStartReason())
 			.positionEndReason(request.getPositionEndReason())
 			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-			.directionFrameExists(request.getDirectionFrameExists())
 			.directionFrame(request.getDirectionFrame())
 			.mainFrame(request.getMainFrame())
 			.subFrame(request.getSubFrame())
+			.directionFrameExists(request.getDirectionFrameExists())
 			.trendAnalysis(request.getTrendAnalysis())
 			.pnl(request.getPnl())
 			.winLossRatio(request.getWinLossRatio())
 			.entryPoint1(request.getEntryPoint1())
 			.grade(request.getGrade())
 			.entryPoint2(request.getEntryPoint2())
-			.entryPoint3(request.getEntryPoint3())
 			.tradingReview(request.getTradingReview())
 			.build();
+
+		customer.getFeedbackRequests().add(newDayRequestDetail); // 양방향 연관 관계 매핑
+
+		return newDayRequestDetail;
 	}
 
 	@Override

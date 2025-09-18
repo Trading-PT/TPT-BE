@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
@@ -38,7 +39,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private final S3FileService s3FileService;
 
 	@Override
-	public FeedbackRequestResponse createDayRequest(CreateDayRequestDetailRequest request, Long customerId) {
+	public DayRequestDetailResponse createDayRequest(CreateDayRequestDetailRequest request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// DayRequestDetail 생성
@@ -56,7 +57,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
-		return FeedbackRequestResponse.of(saved);
+		return DayRequestDetailResponse.of(saved);
 	}
 
 	@Override

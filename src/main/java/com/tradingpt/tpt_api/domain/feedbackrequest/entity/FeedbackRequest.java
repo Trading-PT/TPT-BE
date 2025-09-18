@@ -83,10 +83,12 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private Integer feedbackWeek; // 피드백 주차
 
+	@Builder.Default
 	@Enumerated(EnumType.STRING)
-	private Status status; // 피드백 답변 여뷰
+	private Status status = Status.NOT_YET; // 피드백 답변 여뷰
 
-	private Boolean isBestFeedback; // 베스트 피드백 여부
+	@Builder.Default
+	private Boolean isBestFeedback = false; // 베스트 피드백 여부
 
 	// 추상 메서드로 FeedbackType 반환
 	public abstract FeedbackType getFeedbackType();

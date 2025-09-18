@@ -22,6 +22,9 @@ import lombok.Setter;
 @Schema(description = "데이 트레이딩 피드백 요청 DTO")
 public class CreateDayRequestDetailRequest {
 
+	@Schema(description = "완강 여부")
+	private Boolean isCourseCompleted;
+
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
 
@@ -50,10 +53,7 @@ public class CreateDayRequestDetailRequest {
 	private String positionEndReason;
 
 	@Schema(description = "담당 트레이너 피드백 요청 사항")
-	private String trainerFeedbackRequestContent;
-
-	@Schema(description = "디렉션 프레임 방향성 유무")
-	private Boolean directionFrameExists;
+	private String trainerFeedbackRequestContent; // 구독 하지 않았거나 완강 전인 고객의 경우 이 필드를 다른 걸로 바꿔야함.
 
 	@Schema(description = "디렉션 프레임")
 	private String directionFrame;
@@ -63,6 +63,9 @@ public class CreateDayRequestDetailRequest {
 
 	@Schema(description = "서브 프레임")
 	private String subFrame;
+
+	@Schema(description = "디렉션 프레임 방향성 유무")
+	private Boolean directionFrameExists;
 
 	@Schema(description = "추세 분석")
 	private String trendAnalysis;
@@ -82,21 +85,7 @@ public class CreateDayRequestDetailRequest {
 	@Schema(description = "2차 진입 타점")
 	private LocalDateTime entryPoint2;
 
-	@Schema(description = "3차 진입 타점")
-	private LocalDateTime entryPoint3;
-
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
-
-	@Schema(description = "피드백 요청 연도")
-	private Integer feedbackYear;
-
-	@Schema(description = "피드백 요청 월")
-	private Integer feedbackMonth;
-
-	@Schema(description = "피드백 요청 주차")
-	private Integer feedbackWeek;
 }

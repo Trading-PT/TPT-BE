@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -24,6 +23,7 @@ import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -49,7 +49,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/day", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponse> createDayRequest(
+	public BaseResponse<DayRequestDetailResponse> createDayRequest(
 		@Valid @ModelAttribute CreateDayRequestDetailRequest request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
