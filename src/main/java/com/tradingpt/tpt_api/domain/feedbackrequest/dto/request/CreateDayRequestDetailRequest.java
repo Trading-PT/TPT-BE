@@ -31,12 +31,6 @@ public class CreateDayRequestDetailRequest {
 	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
 
-	@Schema(description = "포지션 진입 날짜")
-	private LocalDate positionStartDate;
-
-	@Schema(description = "포지션 종료 날짜")
-	private LocalDate positionEndDate;
-
 	@Schema(description = "스크린샷 이미지 파일")
 	private List<MultipartFile> screenshotFiles;
 

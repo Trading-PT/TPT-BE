@@ -43,10 +43,6 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private String positionHoldingTime; // 포지션 홀딩 시간
 
-	private LocalDate positionStartDate; // 포지션 진입 날짜
-
-	private LocalDate positionEndDate; // 포지션 종료 날짜
-
 	private Integer riskTaking; // 리스크 테이킹
 
 	private Integer leverage; // 레버리지
@@ -105,8 +101,6 @@ public class DayRequestDetail extends FeedbackRequest {
 			.requestDate(request.getRequestDate())
 			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
-			.positionStartDate(request.getPositionStartDate())
-			.positionEndDate(request.getPositionEndDate())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.position(request.getPosition())
