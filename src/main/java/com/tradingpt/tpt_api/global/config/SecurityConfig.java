@@ -20,6 +20,7 @@ import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 @Configuration
@@ -64,7 +65,10 @@ public class SecurityConfig {
 
 		http
 				.cors(Customizer.withDefaults())
-				.csrf(csrf -> csrf.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**"))
+				.csrf(csrf -> csrf
+						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**")
+						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+				)
 				.sessionManagement(sm -> sm
 						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 						.sessionFixation(sf -> sf.migrateSession())
