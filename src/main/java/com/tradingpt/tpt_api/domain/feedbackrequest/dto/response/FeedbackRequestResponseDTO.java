@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Schema(description = "피드백 요청 응답 DTO")
-public class FeedbackRequestResponse {
+public class FeedbackRequestResponseDTO {
 
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
@@ -63,8 +63,8 @@ public class FeedbackRequestResponse {
 	@Schema(description = "피드백 응답 존재 여부")
 	private Boolean hasFeedbackResponse;
 
-	public static FeedbackRequestResponse of(FeedbackRequest feedbackRequest) {
-		return FeedbackRequestResponse.builder()
+	public static FeedbackRequestResponseDTO of(FeedbackRequest feedbackRequest) {
+		return FeedbackRequestResponseDTO.builder()
 				.id(feedbackRequest.getId())
 				.customerId(feedbackRequest.getCustomer().getId())
 				.customerName(feedbackRequest.getCustomer().getName())

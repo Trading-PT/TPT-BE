@@ -3,7 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
@@ -80,7 +80,7 @@ public class DayRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
-	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
+	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer) {
 		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
 			.feedbackYear(request.getFeedbackYear())

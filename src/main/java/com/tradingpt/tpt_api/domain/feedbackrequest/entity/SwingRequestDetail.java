@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
@@ -85,7 +85,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
-	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequest request, Customer customer) {
+	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer) {
 		return SwingRequestDetail.builder()
 			.customer(customer)
 			.feedbackRequestedAt(LocalDate.now())

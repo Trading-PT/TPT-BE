@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
@@ -49,8 +49,8 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/day", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<DayRequestDetailResponse> createDayRequest(
-		@Valid @ModelAttribute CreateDayRequestDetailRequest request,
+	public BaseResponse<DayRequestDetailResponseDTO> createDayRequest(
+		@Valid @ModelAttribute CreateDayRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -60,8 +60,8 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/scalping", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponse> createScalpingRequest(
-		@Valid @ModelAttribute CreateScalpingRequestDetailRequest request,
+	public BaseResponse<FeedbackRequestResponseDTO> createScalpingRequest(
+		@Valid @ModelAttribute CreateScalpingRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -71,8 +71,8 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/swing", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponse> createSwingRequest(
-		@Valid @ModelAttribute CreateSwingRequestDetailRequest request,
+	public BaseResponse<FeedbackRequestResponseDTO> createSwingRequest(
+		@Valid @ModelAttribute CreateSwingRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
 		return BaseResponse.onSuccessCreate(
@@ -82,7 +82,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
 	@GetMapping
 	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	public BaseResponse<Page<FeedbackRequestResponse>> getFeedbackRequests(
+	public BaseResponse<Page<FeedbackRequestResponseDTO>> getFeedbackRequests(
 		@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
 		@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
 		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
@@ -95,7 +95,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	public BaseResponse<FeedbackRequestResponse> getFeedbackRequest(
+	public BaseResponse<FeedbackRequestResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -118,7 +118,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
 	@GetMapping("/my")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<List<FeedbackRequestResponse>> getMyFeedbackRequests(
+	public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
 		@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
 		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {

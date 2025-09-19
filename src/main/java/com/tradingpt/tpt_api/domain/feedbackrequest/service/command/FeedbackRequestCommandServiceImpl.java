@@ -4,11 +4,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
@@ -39,7 +39,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private final S3FileService s3FileService;
 
 	@Override
-	public DayRequestDetailResponse createDayRequest(CreateDayRequestDetailRequest request, Long customerId) {
+	public DayRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// DayRequestDetail 생성
@@ -57,11 +57,12 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
-		return DayRequestDetailResponse.of(saved);
+		return DayRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override
-	public FeedbackRequestResponse createScalpingRequest(CreateScalpingRequestDetailRequest request, Long customerId) {
+	public FeedbackRequestResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// ScalpingRequestDetail 생성
@@ -79,11 +80,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
-		return FeedbackRequestResponse.of(saved);
+		return FeedbackRequestResponseDTO.of(saved);
 	}
 
 	@Override
-	public FeedbackRequestResponse createSwingRequest(CreateSwingRequestDetailRequest request, Long customerId) {
+	public FeedbackRequestResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// SwingRequestDetail 생성
@@ -101,7 +102,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
-		return FeedbackRequestResponse.of(saved);
+		return FeedbackRequestResponseDTO.of(saved);
 	}
 
 	@Override

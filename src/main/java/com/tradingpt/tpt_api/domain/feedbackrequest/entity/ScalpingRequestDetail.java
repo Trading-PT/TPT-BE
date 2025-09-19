@@ -2,7 +2,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.time.LocalDate;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -53,7 +53,7 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trendAnalysis; // 15분봉 기준 추세 분석
 
-	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequest request, Customer customer) {
+	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer) {
 		return ScalpingRequestDetail.builder()
 			.customer(customer)
 			.feedbackRequestedAt(LocalDate.now())

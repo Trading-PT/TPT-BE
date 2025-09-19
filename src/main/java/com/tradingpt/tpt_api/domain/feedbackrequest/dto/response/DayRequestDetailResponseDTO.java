@@ -22,7 +22,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 @Schema(description = "데이 트레이딩 피드백 요청 상세 응답 DTO")
-public class DayRequestDetailResponse {
+public class DayRequestDetailResponseDTO {
 
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
@@ -133,8 +133,8 @@ public class DayRequestDetailResponse {
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	public static DayRequestDetailResponse of(DayRequestDetail dayRequest) {
-		return DayRequestDetailResponse.builder()
+	public static DayRequestDetailResponseDTO of(DayRequestDetail dayRequest) {
+		return DayRequestDetailResponseDTO.builder()
 			.id(dayRequest.getId())
 			.customerId(dayRequest.getCustomer().getId())
 			.customerName(dayRequest.getCustomer().getName())

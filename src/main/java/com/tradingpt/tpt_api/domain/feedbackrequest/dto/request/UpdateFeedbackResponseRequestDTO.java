@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "피드백 답변 생성 요청 DTO")
-public class CreateFeedbackResponseRequest {
+@Schema(description = "피드백 답변 수정 요청 DTO")
+public class UpdateFeedbackResponseRequestDTO {
 
     @NotBlank(message = "피드백 답변 내용은 필수입니다.")
-    @Schema(description = "피드백 답변 내용")
+    @Schema(description = "수정할 피드백 답변 내용")
     private String responseContent;
 }

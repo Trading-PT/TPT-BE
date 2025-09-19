@@ -17,7 +17,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Schema(description = "스켈핑 피드백 요청 DTO")
-public class CreateScalpingRequestDetailRequest {
+public class CreateScalpingRequestDetailRequestDTO {
 
     @NotNull
     @Schema(description = "요청 날짜")

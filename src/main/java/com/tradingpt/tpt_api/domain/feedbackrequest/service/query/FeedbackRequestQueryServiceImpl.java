@@ -4,11 +4,12 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -28,7 +29,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	private final FeedbackRequestRepository feedbackRequestRepository;
 
 	@Override
-	public Page<FeedbackRequestResponse> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType,
+	public Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType,
 		Status status, Long customerId) {
 
 		// Repository의 QueryDSL 메서드 사용
@@ -36,11 +37,11 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.findFeedbackRequestsWithFilters(pageable, feedbackType, status, customerId);
 
 		// Entity to DTO 변환
-		return feedbackRequestPage.map(FeedbackRequestResponse::of);
+		return feedbackRequestPage.map(FeedbackRequestResponseDTO::of);
 	}
 
 	@Override
-	public FeedbackRequestResponse getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+	public FeedbackRequestResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
@@ -49,11 +50,11 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
 		}
 
-		return FeedbackRequestResponse.of(feedbackRequest);
+		return FeedbackRequestResponseDTO.of(feedbackRequest);
 	}
 
 	@Override
-	public List<FeedbackRequestResponse> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType,
+	public List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType,
 		Status status) {
 
 		// Repository의 QueryDSL 메서드 사용
@@ -62,7 +63,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 		// Entity to DTO 변환
 		return feedbackRequests.stream()
-			.map(FeedbackRequestResponse::of)
+			.map(FeedbackRequestResponseDTO::of)
 			.toList();
 	}
 
@@ -79,7 +80,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		// 트레이너인 경우 모든 피드백 접근 가능
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return authentication != null &&
-			   authentication.getAuthorities().stream()
-				   .anyMatch(authority -> authority.getAuthority().equals("ROLE_TRAINER"));
+			authentication.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority().equals("ROLE_TRAINER"));
 	}
 }

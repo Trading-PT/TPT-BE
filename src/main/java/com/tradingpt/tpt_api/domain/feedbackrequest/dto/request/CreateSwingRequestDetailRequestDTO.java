@@ -22,7 +22,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @Schema(description = "스윙 피드백 요청 DTO")
-public class CreateSwingRequestDetailRequest {
+public class CreateSwingRequestDetailRequestDTO {
 
     @NotNull
     @Schema(description = "요청 날짜")
