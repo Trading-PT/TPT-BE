@@ -23,8 +23,9 @@ import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
@@ -49,7 +50,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/day", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<DayRequestDetailResponseDTO> createDayRequest(
+	public BaseResponse<DayFeedbackRequestDetailResponseDTO> createDayRequest(
 		@Valid @ModelAttribute CreateDayRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
@@ -71,7 +72,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/swing", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponseDTO> createSwingRequest(
+	public BaseResponse<SwingFeedbackRequestDetailResponseDTO> createSwingRequest(
 		@Valid @ModelAttribute CreateSwingRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 

@@ -5,8 +5,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
@@ -14,21 +14,21 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Schema(description = "데이 트레이딩 피드백 요청 상세 응답 DTO")
-public class DayRequestDetailResponseDTO {
+@Schema(description = "스윙 트레이딩 피드백 요청 상세 응답 DTO")
+public class SwingFeedbackRequestDetailResponseDTO {
 
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
-
-	@Schema(description = "고객 ID")
-	private Long customerId;
 
 	@Schema(description = "생성일시")
 	private LocalDateTime createdAt;
@@ -41,9 +41,6 @@ public class DayRequestDetailResponseDTO {
 
 	@Schema(description = "날짜")
 	private LocalDate feedbackRequestedAt;
-
-	@Schema(description = "고객 이름")
-	private String customerName;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
@@ -63,15 +60,8 @@ public class DayRequestDetailResponseDTO {
 	@Schema(description = "수정일시")
 	private LocalDateTime updatedAt;
 
-	// Day Request Detail specific fields
-	@Schema(description = "요청 날짜")
-	private LocalDate requestDate;
-
 	@Schema(description = "종목")
 	private String category;
-
-	@Schema(description = "포지션 홀딩 시간")
-	private String positionHoldingTime;
 
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
@@ -100,9 +90,6 @@ public class DayRequestDetailResponseDTO {
 	@Schema(description = "담당 트레이너 피드백 요청 사항")
 	private String trainerFeedbackRequestContent;
 
-	@Schema(description = "디렉션 프레임 방향성 유무")
-	private Boolean directionFrameExists;
-
 	@Schema(description = "디렉션 프레임")
 	private String directionFrame;
 
@@ -130,49 +117,51 @@ public class DayRequestDetailResponseDTO {
 	@Schema(description = "2차 진입 타점")
 	private LocalDateTime entryPoint2;
 
+	@Schema(description = "3차 진입 타점")
+	private LocalDateTime entryPoint3;
+
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	public static DayRequestDetailResponseDTO of(DayRequestDetail dayRequest) {
-		return DayRequestDetailResponseDTO.builder()
-			.id(dayRequest.getId())
-			.customerId(dayRequest.getCustomer().getId())
-			.customerName(dayRequest.getCustomer().getName())
-			.feedbackType(dayRequest.getFeedbackType())
-			.status(dayRequest.getStatus())
-			.feedbackRequestedAt(dayRequest.getFeedbackRequestedAt())
-			.isCourseCompleted(dayRequest.getIsCourseCompleted())
-			.feedbackYear(dayRequest.getFeedbackYear())
-			.feedbackMonth(dayRequest.getFeedbackMonth())
-			.feedbackWeek(dayRequest.getFeedbackWeek())
-			.isBestFeedback(dayRequest.getIsBestFeedback())
-			.createdAt(dayRequest.getCreatedAt())
-			.updatedAt(dayRequest.getUpdatedAt())
-			.requestDate(dayRequest.getFeedbackRequestedAt())
-			.category(dayRequest.getCategory())
-			.positionHoldingTime(dayRequest.getPositionHoldingTime())
+	public static SwingFeedbackRequestDetailResponseDTO of(SwingRequestDetail swingRequest) {
+		return SwingFeedbackRequestDetailResponseDTO.builder()
+			.id(swingRequest.getId())
+			.createdAt(swingRequest.getCreatedAt())
+			.feedbackType(swingRequest.getFeedbackType())
+			.isCourseCompleted(swingRequest.getIsCourseCompleted())
+			.feedbackRequestedAt(swingRequest.getFeedbackRequestedAt())
+			.status(swingRequest.getStatus())
+			.feedbackYear(swingRequest.getFeedbackYear())
+			.feedbackMonth(swingRequest.getFeedbackMonth())
+			.feedbackWeek(swingRequest.getFeedbackWeek())
+			.isBestFeedback(swingRequest.getIsBestFeedback())
+			.updatedAt(swingRequest.getUpdatedAt())
+			.category(swingRequest.getCategory())
 			.screenshotImageUrls(
-				dayRequest.getFeedbackRequestAttachments().stream()
+				swingRequest.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)
 					.toList()
 			)
-			.riskTaking(dayRequest.getRiskTaking())
-			.leverage(dayRequest.getLeverage())
-			.position(dayRequest.getPosition())
-			.positionStartReason(dayRequest.getPositionStartReason())
-			.positionEndReason(dayRequest.getPositionEndReason())
-			.trainerFeedbackRequestContent(dayRequest.getTrainerFeedbackRequestContent())
-			.directionFrameExists(dayRequest.getDirectionFrameExists())
-			.directionFrame(dayRequest.getDirectionFrame())
-			.mainFrame(dayRequest.getMainFrame())
-			.subFrame(dayRequest.getSubFrame())
-			.trendAnalysis(dayRequest.getTrendAnalysis())
-			.pnl(dayRequest.getPnl())
-			.winLossRatio(dayRequest.getWinLossRatio())
-			.entryPoint1(dayRequest.getEntryPoint1())
-			.grade(dayRequest.getGrade())
-			.entryPoint2(dayRequest.getEntryPoint2())
-			.tradingReview(dayRequest.getTradingReview())
+			.riskTaking(swingRequest.getRiskTaking())
+			.leverage(swingRequest.getLeverage())
+			.positionStartDate(swingRequest.getPositionStartDate())
+			.positionEndDate(swingRequest.getPositionEndDate())
+			.position(swingRequest.getPosition())
+			.positionStartReason(swingRequest.getPositionStartReason())
+			.positionEndReason(swingRequest.getPositionEndReason())
+			.trainerFeedbackRequestContent(swingRequest.getTrainerFeedbackRequestContent())
+			.directionFrame(swingRequest.getDirectionFrame())
+			.mainFrame(swingRequest.getMainFrame())
+			.subFrame(swingRequest.getSubFrame())
+			.trendAnalysis(swingRequest.getTrendAnalysis())
+			.pnl(swingRequest.getPnl())
+			.winLossRatio(swingRequest.getWinLossRatio())
+			.entryPoint1(swingRequest.getEntryPoint1())
+			.grade(swingRequest.getGrade())
+			.entryPoint2(swingRequest.getEntryPoint2())
+			.entryPoint3(swingRequest.getEntryPoint3())
+			.tradingReview(swingRequest.getTradingReview())
 			.build();
 	}
+
 }

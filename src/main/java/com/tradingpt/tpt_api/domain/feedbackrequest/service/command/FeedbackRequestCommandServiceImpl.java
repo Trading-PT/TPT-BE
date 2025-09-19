@@ -7,8 +7,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
@@ -39,7 +40,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private final S3FileService s3FileService;
 
 	@Override
-	public DayRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request, Long customerId) {
+	public DayFeedbackRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// DayRequestDetail 생성
@@ -57,7 +59,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
-		return DayRequestDetailResponseDTO.of(saved);
+		return DayFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override
@@ -84,7 +86,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	}
 
 	@Override
-	public FeedbackRequestResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request, Long customerId) {
+	public SwingFeedbackRequestDetailResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// SwingRequestDetail 생성
@@ -102,7 +105,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
-		return FeedbackRequestResponseDTO.of(saved);
+		return SwingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override

@@ -3,14 +3,12 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -88,14 +86,11 @@ public class SwingRequestDetail extends FeedbackRequest {
 	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer) {
 		return SwingRequestDetail.builder()
 			.customer(customer)
-			.feedbackRequestedAt(LocalDate.now())
-			.status(Status.NOT_YET)
-			.isCourseCompleted(request.getIsCourseCompleted())
 			.feedbackYear(request.getFeedbackYear())
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())
-			.isBestFeedback(false)
-			.feedbackRequestAttachments(new ArrayList<>())
+			.feedbackRequestedAt(request.getRequestDate())
+			.isCourseCompleted(request.getIsCourseCompleted())
 			.category(request.getCategory())
 			.positionStartDate(request.getPositionStartDate())
 			.positionEndDate(request.getPositionEndDate())
