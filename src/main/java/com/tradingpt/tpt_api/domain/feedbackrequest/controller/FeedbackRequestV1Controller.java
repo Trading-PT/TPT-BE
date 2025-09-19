@@ -25,6 +25,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -61,7 +62,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/scalping", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<FeedbackRequestResponseDTO> createScalpingRequest(
+	public BaseResponse<ScalpingFeedbackRequestDetailResponseDTO> createScalpingRequest(
 		@Valid @ModelAttribute CreateScalpingRequestDetailRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 

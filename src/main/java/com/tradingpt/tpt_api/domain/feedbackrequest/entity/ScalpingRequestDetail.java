@@ -1,10 +1,8 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
-import java.time.LocalDate;
-
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -53,16 +51,15 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trendAnalysis; // 15분봉 기준 추세 분석
 
-	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer) {
+	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer,
+		FeedbackPeriodUtil.FeedbackPeriod period) {
 		return ScalpingRequestDetail.builder()
 			.customer(customer)
-			.feedbackRequestedAt(LocalDate.now())
-			.status(Status.NOT_YET)
+			.feedbackRequestedAt(request.getRequestDate())
 			.isCourseCompleted(request.getIsCourseCompleted())
-			.feedbackYear(request.getFeedbackYear())
-			.feedbackMonth(request.getFeedbackMonth())
-			.feedbackWeek(request.getFeedbackWeek())
-			.isBestFeedback(false)
+			.feedbackYear(period.year())
+			.feedbackMonth(period.month())
+			.feedbackWeek(period.week())
 			.category(request.getCategory())
 			.dailyTradingCount(request.getDailyTradingCount())
 			.riskTaking(request.getRiskTaking())

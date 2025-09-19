@@ -5,6 +5,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 
 public interface FeedbackRequestCommandService {
@@ -17,7 +18,7 @@ public interface FeedbackRequestCommandService {
 	/**
 	 * 스켈핑 피드백 요청 생성
 	 */
-	FeedbackRequestResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request, Long customerId);
+	ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request, Long customerId);
 
 	/**
 	 * 스윙 피드백 요청 생성

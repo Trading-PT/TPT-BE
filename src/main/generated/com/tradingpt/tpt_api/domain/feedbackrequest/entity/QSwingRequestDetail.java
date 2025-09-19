@@ -40,7 +40,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final DateTimePath<java.time.LocalDateTime> entryPoint3 = createDateTime("entryPoint3", java.time.LocalDateTime.class);
 
-    public final NumberPath<Integer> feedbackMonth = createNumber("feedbackMonth", Integer.class);
+    //inherited
+    public final NumberPath<Integer> feedbackMonth;
 
     //inherited
     public final ListPath<FeedbackRequestAttachment, QFeedbackRequestAttachment> feedbackRequestAttachments;
@@ -51,7 +52,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     // inherited
     public final com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse feedbackResponse;
 
-    public final NumberPath<Integer> feedbackWeek = createNumber("feedbackWeek", Integer.class);
+    //inherited
+    public final NumberPath<Integer> feedbackWeek;
 
     //inherited
     public final NumberPath<Integer> feedbackYear;
@@ -125,9 +127,11 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this._super = new QFeedbackRequest(type, metadata, inits);
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
+        this.feedbackMonth = _super.feedbackMonth;
         this.feedbackRequestAttachments = _super.feedbackRequestAttachments;
         this.feedbackRequestedAt = _super.feedbackRequestedAt;
         this.feedbackResponse = _super.feedbackResponse;
+        this.feedbackWeek = _super.feedbackWeek;
         this.feedbackYear = _super.feedbackYear;
         this.id = _super.id;
         this.isBestFeedback = _super.isBestFeedback;

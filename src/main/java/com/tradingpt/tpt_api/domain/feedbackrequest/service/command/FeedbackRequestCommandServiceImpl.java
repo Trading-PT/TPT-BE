@@ -8,7 +8,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
@@ -19,6 +19,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -44,8 +45,10 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+
 		// DayRequestDetail 생성
-		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer);
+		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
@@ -63,12 +66,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	}
 
 	@Override
-	public FeedbackRequestResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
+	public ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+
 		// ScalpingRequestDetail 생성
-		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer);
+		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
@@ -82,7 +87,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
-		return FeedbackRequestResponseDTO.of(saved);
+		return ScalpingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override

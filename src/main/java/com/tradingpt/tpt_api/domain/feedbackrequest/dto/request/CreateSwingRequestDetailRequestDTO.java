@@ -25,14 +25,14 @@ public class CreateSwingRequestDetailRequestDTO {
 	@Schema(description = "완강 여부")
 	private Boolean isCourseCompleted;
 
+	@Schema(description = "피드백 요청 연도")
+	private Integer feedbackYear;
+	
 	@Schema(description = "피드백 요청 월")
 	private Integer feedbackMonth;
 
 	@Schema(description = "피드백 요청 주차")
 	private Integer feedbackWeek;
-
-	@Schema(description = "피드백 요청 연도")
-	private Integer feedbackYear;
 
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;

@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
@@ -80,12 +81,13 @@ public class DayRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
-	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer) {
+	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer,
+		FeedbackPeriodUtil.FeedbackPeriod period) {
 		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
-			.feedbackYear(request.getFeedbackYear())
-			.feedbackMonth(request.getFeedbackMonth())
-			.feedbackWeek(request.getFeedbackWeek())
+			.feedbackYear(period.year())
+			.feedbackMonth(period.month())
+			.feedbackWeek(period.week())
 			.feedbackRequestedAt(request.getRequestDate())
 			.isCourseCompleted(request.getIsCourseCompleted())
 			.category(request.getCategory())

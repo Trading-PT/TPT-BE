@@ -30,9 +30,6 @@ public class DayFeedbackRequestDetailResponseDTO {
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
 
-	@Schema(description = "고객 ID")
-	private Long customerId;
-
 	@Schema(description = "생성일시")
 	private LocalDateTime createdAt;
 
@@ -42,20 +39,20 @@ public class DayFeedbackRequestDetailResponseDTO {
 	@Schema(description = "완강 여부")
 	private Boolean isCourseCompleted;
 
+	@Schema(description = "피드백 요청 연도")
+	private Integer feedbackYear;
+
+	@Schema(description = "피드백 요청 월")
+	private Integer feedbackMonth;
+
+	@Schema(description = "피드백 요청 주차")
+	private Integer feedbackWeek;
+
 	@Schema(description = "날짜")
 	private LocalDate feedbackRequestedAt;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
-
-	@Schema(description = "피드백 연도")
-	private Integer feedbackYear;
-
-	@Schema(description = "피드백 월")
-	private Integer feedbackMonth;
-
-	@Schema(description = "피드백 주차")
-	private Integer feedbackWeek;
 
 	@Schema(description = "베스트 피드백 여부")
 	private Boolean isBestFeedback;
@@ -140,7 +137,6 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.feedbackMonth(dayRequest.getFeedbackMonth())
 			.feedbackWeek(dayRequest.getFeedbackWeek())
 			.isBestFeedback(dayRequest.getIsBestFeedback())
-			.createdAt(dayRequest.getCreatedAt())
 			.updatedAt(dayRequest.getUpdatedAt())
 			.category(dayRequest.getCategory())
 			.positionHoldingTime(dayRequest.getPositionHoldingTime())
