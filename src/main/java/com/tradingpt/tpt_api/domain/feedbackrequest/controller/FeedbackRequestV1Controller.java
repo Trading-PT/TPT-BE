@@ -24,6 +24,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
@@ -97,7 +98,7 @@ public class FeedbackRequestV1Controller {
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	public BaseResponse<FeedbackRequestResponseDTO> getFeedbackRequest(
+	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 

@@ -9,8 +9,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
@@ -41,7 +48,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	}
 
 	@Override
-	public FeedbackRequestResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+	public FeedbackRequestDetailResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
@@ -50,7 +57,21 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
 		}
 
-		return FeedbackRequestResponseDTO.of(feedbackRequest);
+		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
+			FeedbackRequestDetailResponseDTO.builder()
+				.id(feedbackRequest.getId())
+				.feedbackType(feedbackRequest.getFeedbackType())
+				.status(feedbackRequest.getStatus());
+
+		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
+			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
+		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
+			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
+		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
+			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
+		}
+
+		return builder.build();
 	}
 
 	@Override
