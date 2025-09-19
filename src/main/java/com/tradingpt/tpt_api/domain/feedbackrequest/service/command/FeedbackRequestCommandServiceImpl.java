@@ -50,7 +50,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(dayRequest, uploadResult.url()); // 양방향 연관 관계 매핑
+					FeedbackRequestAttachment.createFrom(dayRequest, uploadResult.url()); // 양방향 연관 관계 매핑
 				}
 			}
 		}
@@ -72,7 +72,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(scalpingRequest, uploadResult.url());
+					FeedbackRequestAttachment.createFrom(scalpingRequest, uploadResult.url());
 				}
 			}
 		}
@@ -94,7 +94,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(swingRequest, uploadResult.url());
+					FeedbackRequestAttachment.createFrom(swingRequest, uploadResult.url());
 				}
 			}
 		}

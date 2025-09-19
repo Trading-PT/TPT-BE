@@ -30,20 +30,23 @@ public class DayRequestDetailResponse {
 	@Schema(description = "고객 ID")
 	private Long customerId;
 
-	@Schema(description = "고객 이름")
-	private String customerName;
+	@Schema(description = "생성일시")
+	private LocalDateTime createdAt;
 
 	@Schema(description = "피드백 타입")
 	private FeedbackType feedbackType;
 
-	@Schema(description = "피드백 상태")
-	private Status status;
-
-	@Schema(description = "피드백 요청 일자")
-	private LocalDate feedbackRequestedAt;
-
 	@Schema(description = "완강 여부")
 	private Boolean isCourseCompleted;
+
+	@Schema(description = "날짜")
+	private LocalDate feedbackRequestedAt;
+
+	@Schema(description = "고객 이름")
+	private String customerName;
+
+	@Schema(description = "피드백 상태")
+	private Status status;
 
 	@Schema(description = "피드백 연도")
 	private Integer feedbackYear;
@@ -56,9 +59,6 @@ public class DayRequestDetailResponse {
 
 	@Schema(description = "베스트 피드백 여부")
 	private Boolean isBestFeedback;
-
-	@Schema(description = "생성일시")
-	private LocalDateTime createdAt;
 
 	@Schema(description = "수정일시")
 	private LocalDateTime updatedAt;
@@ -73,12 +73,6 @@ public class DayRequestDetailResponse {
 	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
 
-	@Schema(description = "포지션 진입 날짜")
-	private LocalDate positionStartDate;
-
-	@Schema(description = "포지션 종료 날짜")
-	private LocalDate positionEndDate;
-
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
 
@@ -87,6 +81,12 @@ public class DayRequestDetailResponse {
 
 	@Schema(description = "레버리지")
 	private Integer leverage;
+
+	@Schema(description = "포지션 진입 날짜")
+	private LocalDate positionStartDate;
+
+	@Schema(description = "포지션 종료 날짜")
+	private LocalDate positionEndDate;
 
 	@Schema(description = "포지션")
 	private Position position;

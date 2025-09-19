@@ -37,10 +37,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private Integer feedbackMonth; // 몇 월
-
-	private Integer feedbackWeek; // 몇 주차
-
 	private String category; // 종목
 
 	private LocalDate positionStartDate; // 포지션 진입 날짜

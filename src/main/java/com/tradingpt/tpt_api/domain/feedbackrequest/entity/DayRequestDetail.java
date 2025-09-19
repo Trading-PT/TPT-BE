@@ -83,6 +83,9 @@ public class DayRequestDetail extends FeedbackRequest {
 	public static DayRequestDetail createFrom(CreateDayRequestDetailRequest request, Customer customer) {
 		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
+			.feedbackYear(request.getFeedbackYear())
+			.feedbackMonth(request.getFeedbackMonth())
+			.feedbackWeek(request.getFeedbackWeek())
 			.feedbackRequestedAt(request.getRequestDate())
 			.isCourseCompleted(request.getIsCourseCompleted())
 			.category(request.getCategory())
