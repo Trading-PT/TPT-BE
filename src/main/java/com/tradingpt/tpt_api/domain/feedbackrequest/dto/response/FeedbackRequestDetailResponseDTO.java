@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -38,5 +39,8 @@ public class FeedbackRequestDetailResponseDTO {
 	@JsonInclude(JsonInclude.Include.NON_NULL)
 	@Schema(description = "스윙 상세", nullable = true)
 	private SwingFeedbackRequestDetailResponseDTO swingDetail;
+
+	@Schema(description = "피드백 응답")
+	private FeedbackResponseDTO feedbackResponse;
 }
 

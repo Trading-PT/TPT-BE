@@ -23,6 +23,9 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,6 +72,13 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
 		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
 			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
+		}
+
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse(); // 피드백 응답 조회
+
+		if (feedbackResponse != null) {
+			Trainer trainer = feedbackResponse.getTrainer();
+			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
 		}
 
 		return builder.build();

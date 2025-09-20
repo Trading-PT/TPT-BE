@@ -37,6 +37,8 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
 
     public final DateTimePath<java.time.LocalDateTime> submittedAt = createDateTime("submittedAt", java.time.LocalDateTime.class);
 
+    public final StringPath title = createString("title");
+
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
 
     //inherited

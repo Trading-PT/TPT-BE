@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.feedbackrequest.dto.request;
+package com.tradingpt.tpt_api.domain.feedbackresponse.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "피드백 답변 수정 요청 DTO")
 public class UpdateFeedbackResponseRequestDTO {
 
-    @NotBlank(message = "피드백 답변 내용은 필수입니다.")
-    @Schema(description = "수정할 피드백 답변 내용")
-    private String responseContent;
+	@NotBlank(message = "피드백 답변 내용은 필수입니다.")
+	@Schema(description = "수정할 피드백 답변 내용")
+	private String responseContent;
 }
