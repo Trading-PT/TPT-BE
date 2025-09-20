@@ -59,23 +59,31 @@ public class FeedbackResponse extends BaseEntity {
 	/**
 	 * 필드
 	 */
+	private String title; // 피드백 제목
 
 	@Lob
 	private String responseContent; // 피드백 내용
 
 	private LocalDateTime submittedAt; // 피드백 제공 시각
 
-	public void updateContent(String newContent) {
-		this.responseContent = newContent;
+	public static FeedbackResponse createFrom(FeedbackRequest feedbackRequest, Trainer trainer,
+		String title, String responseContent) {
+		FeedbackResponse newFeedbackResponse = FeedbackResponse.builder()
+			.feedbackRequest(feedbackRequest)
+			.trainer(trainer)
+			.title(title)
+			.responseContent(responseContent)
+			.submittedAt(LocalDateTime.now())
+			.build();
+
+		feedbackRequest.setFeedbackResponse(newFeedbackResponse);
+
+		return newFeedbackResponse;
+
 	}
 
-	public static FeedbackResponse createResponse(FeedbackRequest feedbackRequest, Trainer trainer, String responseContent) {
-		return FeedbackResponse.builder()
-				.feedbackRequest(feedbackRequest)
-				.trainer(trainer)
-				.responseContent(responseContent)
-				.submittedAt(java.time.LocalDateTime.now())
-				.build();
+	public void updateContent(String newContent) {
+		this.responseContent = newContent;
 	}
 
 }

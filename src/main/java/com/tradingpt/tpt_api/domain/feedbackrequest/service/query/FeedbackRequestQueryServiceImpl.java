@@ -4,17 +4,28 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +39,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	private final FeedbackRequestRepository feedbackRequestRepository;
 
 	@Override
-	public Page<FeedbackRequestResponse> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType,
+	public Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType,
 		Status status, Long customerId) {
 
 		// Repository의 QueryDSL 메서드 사용
@@ -36,11 +47,11 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.findFeedbackRequestsWithFilters(pageable, feedbackType, status, customerId);
 
 		// Entity to DTO 변환
-		return feedbackRequestPage.map(FeedbackRequestResponse::of);
+		return feedbackRequestPage.map(FeedbackRequestResponseDTO::of);
 	}
 
 	@Override
-	public FeedbackRequestResponse getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+	public FeedbackRequestDetailResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
@@ -49,11 +60,32 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
 		}
 
-		return FeedbackRequestResponse.of(feedbackRequest);
+		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
+			FeedbackRequestDetailResponseDTO.builder()
+				.id(feedbackRequest.getId())
+				.feedbackType(feedbackRequest.getFeedbackType())
+				.status(feedbackRequest.getStatus());
+
+		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
+			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
+		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
+			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
+		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
+			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
+		}
+
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse(); // 피드백 응답 조회
+
+		if (feedbackResponse != null) {
+			Trainer trainer = feedbackResponse.getTrainer();
+			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
+		}
+
+		return builder.build();
 	}
 
 	@Override
-	public List<FeedbackRequestResponse> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType,
+	public List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType,
 		Status status) {
 
 		// Repository의 QueryDSL 메서드 사용
@@ -62,7 +94,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 		// Entity to DTO 변환
 		return feedbackRequests.stream()
-			.map(FeedbackRequestResponse::of)
+			.map(FeedbackRequestResponseDTO::of)
 			.toList();
 	}
 
@@ -79,7 +111,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		// 트레이너인 경우 모든 피드백 접근 가능
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		return authentication != null &&
-			   authentication.getAuthorities().stream()
-				   .anyMatch(authority -> authority.getAuthority().equals("ROLE_TRAINER"));
+			authentication.getAuthorities().stream()
+				.anyMatch(authority -> authority.getAuthority().equals("ROLE_TRAINER"));
 	}
 }

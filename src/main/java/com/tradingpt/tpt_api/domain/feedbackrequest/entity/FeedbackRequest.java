@@ -97,4 +97,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 		this.status = status;
 	}
 
+	public void setFeedbackResponse(FeedbackResponse feedbackResponse) {
+		this.feedbackResponse = feedbackResponse;
+	}
+
 }

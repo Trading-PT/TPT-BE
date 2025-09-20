@@ -20,7 +20,7 @@ import lombok.Setter;
 @Setter // @ModelAttribute 를 사용하려면 Setter가 필요함.
 @NoArgsConstructor
 @Schema(description = "데이 트레이딩 피드백 요청 DTO")
-public class CreateDayRequestDetailRequest {
+public class CreateDayRequestDetailRequestDTO {
 
 	@Schema(description = "완강 여부")
 	private Boolean isCourseCompleted;

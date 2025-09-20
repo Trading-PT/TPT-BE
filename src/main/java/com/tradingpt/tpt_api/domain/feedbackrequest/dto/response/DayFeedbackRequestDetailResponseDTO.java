@@ -14,70 +14,57 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Schema(description = "데이 트레이딩 피드백 요청 상세 응답 DTO")
-public class DayRequestDetailResponse {
+public class DayFeedbackRequestDetailResponseDTO {
 
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
 
-	@Schema(description = "고객 ID")
-	private Long customerId;
-
-	@Schema(description = "고객 이름")
-	private String customerName;
+	@Schema(description = "생성일시")
+	private LocalDateTime createdAt;
 
 	@Schema(description = "피드백 타입")
 	private FeedbackType feedbackType;
 
-	@Schema(description = "피드백 상태")
-	private Status status;
-
-	@Schema(description = "피드백 요청 일자")
-	private LocalDate feedbackRequestedAt;
-
 	@Schema(description = "완강 여부")
 	private Boolean isCourseCompleted;
 
-	@Schema(description = "피드백 연도")
+	@Schema(description = "피드백 요청 연도")
 	private Integer feedbackYear;
 
-	@Schema(description = "피드백 월")
+	@Schema(description = "피드백 요청 월")
 	private Integer feedbackMonth;
 
-	@Schema(description = "피드백 주차")
+	@Schema(description = "피드백 요청 주차")
 	private Integer feedbackWeek;
+
+	@Schema(description = "날짜")
+	private LocalDate feedbackRequestedAt;
+
+	@Schema(description = "피드백 상태")
+	private Status status;
 
 	@Schema(description = "베스트 피드백 여부")
 	private Boolean isBestFeedback;
 
-	@Schema(description = "생성일시")
-	private LocalDateTime createdAt;
-
 	@Schema(description = "수정일시")
 	private LocalDateTime updatedAt;
-
-	// Day Request Detail specific fields
-	@Schema(description = "요청 날짜")
-	private LocalDate requestDate;
 
 	@Schema(description = "종목")
 	private String category;
 
 	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
-
-	@Schema(description = "포지션 진입 날짜")
-	private LocalDate positionStartDate;
-
-	@Schema(description = "포지션 종료 날짜")
-	private LocalDate positionEndDate;
 
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
@@ -87,6 +74,12 @@ public class DayRequestDetailResponse {
 
 	@Schema(description = "레버리지")
 	private Integer leverage;
+
+	@Schema(description = "포지션 진입 날짜")
+	private LocalDate positionStartDate;
+
+	@Schema(description = "포지션 종료 날짜")
+	private LocalDate positionEndDate;
 
 	@Schema(description = "포지션")
 	private Position position;
@@ -133,11 +126,9 @@ public class DayRequestDetailResponse {
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	public static DayRequestDetailResponse of(DayRequestDetail dayRequest) {
-		return DayRequestDetailResponse.builder()
+	public static DayFeedbackRequestDetailResponseDTO of(DayRequestDetail dayRequest) {
+		return DayFeedbackRequestDetailResponseDTO.builder()
 			.id(dayRequest.getId())
-			.customerId(dayRequest.getCustomer().getId())
-			.customerName(dayRequest.getCustomer().getName())
 			.feedbackType(dayRequest.getFeedbackType())
 			.status(dayRequest.getStatus())
 			.feedbackRequestedAt(dayRequest.getFeedbackRequestedAt())
@@ -146,9 +137,7 @@ public class DayRequestDetailResponse {
 			.feedbackMonth(dayRequest.getFeedbackMonth())
 			.feedbackWeek(dayRequest.getFeedbackWeek())
 			.isBestFeedback(dayRequest.getIsBestFeedback())
-			.createdAt(dayRequest.getCreatedAt())
 			.updatedAt(dayRequest.getUpdatedAt())
-			.requestDate(dayRequest.getFeedbackRequestedAt())
 			.category(dayRequest.getCategory())
 			.positionHoldingTime(dayRequest.getPositionHoldingTime())
 			.screenshotImageUrls(

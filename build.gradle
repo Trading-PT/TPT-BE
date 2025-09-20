@@ -38,6 +38,8 @@ dependencies {
     // 외부 라이브러리들
     implementation 'net.nurigo:sdk:4.2.7'                                        // Solapi(CoolSMS) SMS 발송 서비스
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'     // Swagger/OpenAPI 문서화 및 UI
+    implementation 'org.jsoup:jsoup:1.17.2'                                      // HTML 파싱 및 Sanitizing
+    implementation 'org.apache.tika:tika-core:2.9.2'                             // MIME 타입 판별
 
     // QueryDSL dependencies
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'                     // QueryDSL JPA support for Jakarta EE

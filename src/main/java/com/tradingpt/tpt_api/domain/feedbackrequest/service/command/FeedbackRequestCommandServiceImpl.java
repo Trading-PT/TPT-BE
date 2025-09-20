@@ -4,11 +4,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayRequestDetailResponse;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponse;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
@@ -18,6 +19,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -39,51 +41,58 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private final S3FileService s3FileService;
 
 	@Override
-	public DayRequestDetailResponse createDayRequest(CreateDayRequestDetailRequest request, Long customerId) {
+	public DayFeedbackRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+
 		// DayRequestDetail 생성
-		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer);
+		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(dayRequest, uploadResult.url()); // 양방향 연관 관계 매핑
+					FeedbackRequestAttachment.createFrom(dayRequest, uploadResult.url()); // 양방향 연관 관계 매핑
 				}
 			}
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
-		return DayRequestDetailResponse.of(saved);
+		return DayFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override
-	public FeedbackRequestResponse createScalpingRequest(CreateScalpingRequestDetailRequest request, Long customerId) {
+	public ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+
 		// ScalpingRequestDetail 생성
-		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer);
+		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(scalpingRequest, uploadResult.url());
+					FeedbackRequestAttachment.createFrom(scalpingRequest, uploadResult.url());
 				}
 			}
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
-		return FeedbackRequestResponse.of(saved);
+		return ScalpingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override
-	public FeedbackRequestResponse createSwingRequest(CreateSwingRequestDetailRequest request, Long customerId) {
+	public SwingFeedbackRequestDetailResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request,
+		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
 		// SwingRequestDetail 생성
@@ -94,14 +103,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
 				if (screenshotFile != null && !screenshotFile.isEmpty()) {
 					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createScreenshot(swingRequest, uploadResult.url());
+					FeedbackRequestAttachment.createFrom(swingRequest, uploadResult.url());
 				}
 			}
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
-		return FeedbackRequestResponse.of(saved);
+		return SwingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
 	@Override
