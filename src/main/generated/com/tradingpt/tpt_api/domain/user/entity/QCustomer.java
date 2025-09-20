@@ -42,6 +42,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final StringPath name = _super.name;
 
+    public final NumberPath<Integer> openChapterNumber = createNumber("openChapterNumber", Integer.class);
+
     //inherited
     public final StringPath password = _super.password;
 

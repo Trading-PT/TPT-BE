@@ -71,6 +71,9 @@ public class Customer extends User {
 	@Column(name = "is_course_completed")
 	private Boolean isCourseCompleted = Boolean.FALSE;
 
+	@Column(name = "open_chapter_number")
+	private Integer openChapterNumber;
+
 	// ⭐ getRole() 구현
 	@Override
 	public Role getRole() {
@@ -106,6 +109,10 @@ public class Customer extends User {
 	public void setMembershipLevel(MembershipLevel membershipLevel) {
 		this.membershipLevel = membershipLevel;
 	}
+
+	public void setMembershipExpiredAt(LocalDateTime time){this.membershipExpiredAt = membershipExpiredAt;}
+
+	public void setOpenChapterNumber(Integer chapterNumber){this.openChapterNumber = openChapterNumber;}
 
 	public void setPrimaryInvestmentType(InvestmentType investmentType) {
 		this.primaryInvestmentType = investmentType;

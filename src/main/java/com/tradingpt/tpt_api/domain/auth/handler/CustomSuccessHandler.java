@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.auth.handler;
 
+import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2User;
 import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -11,9 +12,13 @@ import java.io.IOException;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,6 +27,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
 	private final RememberMeServices rememberMeServices;
 	private final UserRepository userRepository;
+	private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
 	@Value("${app.frontend.base-url:http://localhost:3000}")
 	private String frontendBaseUrl;
@@ -33,31 +39,45 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
 		Object principal = authentication.getPrincipal();
 
-		// 로컬(JSON) 로그인은 200으로 종료
-		if (principal instanceof CustomUserDetails) {
+		// 로컬(JSON) 로그인
+		if (principal instanceof AuthSessionUser sessionUser) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			return;
 		}
-
-		// 소셜 로그인: remember-me 발급 후 휴대폰 번호만으로 분기
+		// 소셜 로그인
 		if (principal instanceof CustomOAuth2User oAuth2User) {
 			rememberMeServices.loginSuccess(request, response, authentication);
 
-			Long userId = oAuth2User.getUserId();
-			// userId 없거나 조회 실패면 번호 확인 불가 → 추가정보 필요로 간주
-			if (userId == null) {
-				response.sendRedirect(frontendBaseUrl + "/signup");
-				return;
-			}
+			// 1) OAuth2User → AuthSessionUser 변환
+			AuthSessionUser sessionUser = new AuthSessionUser(
+					oAuth2User.getUserId(),
+					oAuth2User.getUsername(),
+					oAuth2User.getRole()
+			);
 
-			Optional<User> userOpt = userRepository.findById(userId);
+			// 2) safe Authentication
+			Authentication safeAuth = new UsernamePasswordAuthenticationToken(
+					sessionUser,
+					null,
+					oAuth2User.getAuthorities()
+			);
+
+			// 3) SecurityContext 저장
+			SecurityContext context = SecurityContextHolder.createEmptyContext();
+			context.setAuthentication(safeAuth);
+			securityContextRepository.saveContext(context, request, response);
+
+			// 4) 추가 정보 필요 여부 확인
 			boolean needExtra = true;
-
-			if (userOpt.isPresent() && userOpt.get() instanceof Customer c) {
-				String phone = c.getPhoneNumber();
-				needExtra = (phone == null || phone.trim().isEmpty());
+			if (oAuth2User.getUserId() != null) {
+				Optional<User> userOpt = userRepository.findById(oAuth2User.getUserId());
+				if (userOpt.isPresent() && userOpt.get() instanceof Customer c) {
+					String phone = c.getPhoneNumber();
+					needExtra = (phone == null || phone.trim().isEmpty());
+				}
 			}
 
+			// 5) 리다이렉트
 			response.sendRedirect(frontendBaseUrl + (needExtra ? "/signup" : "/login"));
 			return;
 		}
