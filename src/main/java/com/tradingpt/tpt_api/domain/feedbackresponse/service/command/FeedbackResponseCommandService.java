@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackresponse.service.command;
 
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.CreateFeedbackResponseRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.UpdateFeedbackResponseRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 
 /**
@@ -24,8 +25,10 @@ public interface FeedbackResponseCommandService {
 	 * 피드백 답변 수정
 	 *
 	 * @param feedbackRequestId 피드백 요청 ID
-	 * @param responseContent 수정할 답변 내용
-	 * @param trainerId 트레이너 ID
+	 * @param request
+	 * @param trainerId         트레이너 ID
+	 * @return
 	 */
-	void updateFeedbackResponse(Long feedbackRequestId, String responseContent, Long trainerId);
+	FeedbackResponseDTO updateFeedbackResponse(Long feedbackRequestId, UpdateFeedbackResponseRequestDTO request,
+		Long trainerId);
 }

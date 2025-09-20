@@ -40,7 +40,7 @@ public class FeedbackResponseV1Controller {
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@Valid @RequestBody CreateFeedbackResponseRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
-		
+
 		return BaseResponse.onSuccessCreate(feedbackResponseCommandService.createFeedbackResponse(
 			feedbackRequestId, request, userDetails.getId()));
 	}
@@ -48,15 +48,13 @@ public class FeedbackResponseV1Controller {
 	@Operation(summary = "피드백 답변 수정", description = "피드백 답변을 수정합니다. (답변 작성자만 가능)")
 	@PutMapping("/{feedbackRequestId}")
 	@PreAuthorize("hasRole('ROLE_TRAINER')")
-	public BaseResponse<Void> updateFeedbackResponse(
+	public BaseResponse<FeedbackResponseDTO> updateFeedbackResponse(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@Valid @RequestBody UpdateFeedbackResponseRequestDTO request,
 		@AuthenticationPrincipal CustomUserDetails userDetails) {
 
-		feedbackResponseCommandService.updateFeedbackResponse(
-			feedbackRequestId, request.getResponseContent(), userDetails.getId());
-
-		return BaseResponse.onSuccess(null);
+		return BaseResponse.onSuccess(feedbackResponseCommandService.updateFeedbackResponse(
+			feedbackRequestId, request, userDetails.getId()));
 	}
 }
 

@@ -20,6 +20,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErr
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.CreateFeedbackResponseRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.UpdateFeedbackResponseRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.feedbackresponse.exception.FeedbackResponseErrorStatus;
@@ -81,7 +82,8 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 	}
 
 	@Override
-	public void updateFeedbackResponse(Long feedbackRequestId, String responseContent, Long trainerId) {
+	public FeedbackResponseDTO updateFeedbackResponse(Long feedbackRequestId, UpdateFeedbackResponseRequestDTO request,
+		Long trainerId) {
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
@@ -95,9 +97,12 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.RESPONSE_UPDATE_PERMISSION_DENIED);
 		}
 
-		String sanitizedContent = normalizeContent(feedbackRequestId, responseContent);
+		Trainer trainer = getTrainerById(trainerId);
+
+		String sanitizedContent = normalizeContent(feedbackRequestId, request.getContent());
 		feedbackResponse.updateContent(sanitizedContent);
-		feedbackRequestRepository.save(feedbackRequest);
+
+		return FeedbackResponseDTO.of(feedbackResponse, trainer);
 	}
 
 	private Trainer getTrainerById(Long trainerId) {
