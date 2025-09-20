@@ -27,7 +27,7 @@ public class RememberMeConfig {
     public PersistentTokenRepository persistentTokenRepository() {
         JdbcTokenRepositoryImpl repo = new JdbcTokenRepositoryImpl();
         repo.setDataSource(dataSource);
-        repo.setCreateTableOnStartup(true); // 최초 1회만 사용
+//        repo.setCreateTableOnStartup(true); // 최초 1회만 사용
         return repo;
     }
 
