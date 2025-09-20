@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
 import com.tradingpt.tpt_api.global.filter.CsrfCookieFilter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -25,6 +27,9 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.session.FindByIndexNameSessionRepository;
+import org.springframework.session.Session;
+import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
 @Configuration
 @EnableWebSecurity
@@ -36,15 +41,26 @@ public class SecurityConfig {
 	private final CustomFailureHandler customFailureHandler;
 	private final RememberMeServices rememberMeServices;
 
-	/** AuthenticationManager는 AuthenticationConfiguration에서 주입받아 노출 */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
 		return cfg.getAuthenticationManager();
 	}
 
-	/** 동시 세션 제어에 필요한 빈들 */
-	@Bean public SessionRegistry sessionRegistry() { return new SessionRegistryImpl(); }
-	@Bean public static HttpSessionEventPublisher httpSessionEventPublisher() { return new HttpSessionEventPublisher(); }
+	/** 동시 세션 제어 */
+	@Bean
+	public SessionRegistry sessionRegistry(FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
+		return new SpringSessionBackedSessionRegistry<>(sessionRepository);
+	}
+	@Bean
+	public static HttpSessionEventPublisher httpSessionEventPublisher() {
+		return new HttpSessionEventPublisher();
+	}
+
+	/** OAuth2 AuthorizationRequest 를 세션 대신 쿠키에 저장 */
+	@Bean
+	public AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository() {
+		return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper);
+	}
 
 	/** JSON 로그인 필터 */
 	@Bean
@@ -54,7 +70,7 @@ public class SecurityConfig {
 		filter.setAuthenticationManager(authManager);
 		filter.setAuthenticationSuccessHandler(customSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
-		filter.setRememberMeServices(rememberMeServices); // 로컬(JSON) 로그인 remember-me 처리
+		filter.setRememberMeServices(rememberMeServices);
 		return filter;
 	}
 
@@ -63,7 +79,8 @@ public class SecurityConfig {
 			HttpSecurity http,
 			SessionRegistry sessionRegistry,
 			JsonUsernamePasswordAuthFilter jsonLoginFilter,
-			CustomOAuth2UserService customOAuth2UserService   // 메서드 파라미터로 주입(순환참조 방지)
+			CustomOAuth2UserService customOAuth2UserService,
+			AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository
 	) throws Exception {
 
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
@@ -72,7 +89,7 @@ public class SecurityConfig {
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**")
+						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/oauth2/**")
 						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 						.csrfTokenRequestHandler(requestHandler)
 				)
@@ -87,27 +104,30 @@ public class SecurityConfig {
 				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
-								"/api/v1/auth/**", "/oauth2/**",
+								"/api/v1/auth/**",
+								"/oauth2/**", "/login/oauth2/**",
 								"/swagger-ui.html", "/swagger-ui/**",
 								"/swagger-resources/**", "/webjars/**",
-								"/v3/api-docs/**"
+								"/v3/api-docs/**",
+								"/actuator/**"
 						).permitAll()
-						.requestMatchers("/actuator/health").permitAll()
-						.requestMatchers("/actuator/**").permitAll()
 						.anyRequest().authenticated()
 				)
 				.formLogin(AbstractHttpConfigurer::disable)
 				.httpBasic(AbstractHttpConfigurer::disable)
 				.oauth2Login(o -> o
+						.authorizationEndpoint(ae -> ae
+								.authorizationRequestRepository(cookieAuthRequestRepository) // ✅ 세션 대신 쿠키 저장소 사용
+						)
 						.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-						.successHandler(customSuccessHandler)   // 소셜 성공 시: 핸들러에서 remember-me + 리다이렉트
+						.successHandler(customSuccessHandler)
 						.failureHandler(customFailureHandler)
 				)
 				.rememberMe(rm -> rm
 						.rememberMeServices(rememberMeServices)
-						.rememberMeParameter("remember-me")
+						.rememberMeParameter("rememberMe")
 						.alwaysRemember(false)
-						.useSecureCookie(true) // 배포 HTTPS에서 Secure 쿠키
+						.useSecureCookie(true)
 				)
 				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class);
