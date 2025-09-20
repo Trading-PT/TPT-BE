@@ -1,15 +1,23 @@
 package com.tradingpt.tpt_api.domain.auth.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
+import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2User;
+import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.RememberMeServices;
@@ -18,13 +26,13 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 public class JsonUsernamePasswordAuthFilter extends UsernamePasswordAuthenticationFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JsonUsernamePasswordAuthFilter.class);
     private static final String REMEMBER_ME_ATTR = "REMEMBER_ME_JSON";
     private final ObjectMapper objectMapper;
 
     public JsonUsernamePasswordAuthFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        // 이 URL로 들어온 JSON 로그인 요청을 필터가 처리
-        setFilterProcessesUrl("/api/auth/login");
+        setFilterProcessesUrl("/api/v1/auth/login");
     }
 
     @Override
@@ -41,7 +49,6 @@ public class JsonUsernamePasswordAuthFilter extends UsernamePasswordAuthenticati
                 String password = String.valueOf(body.getOrDefault("password", ""));
                 boolean rememberMe = Boolean.TRUE.equals(body.get("rememberMe"));
 
-                // 성공 시점에 사용할 플래그를 요청 속성에 저장
                 request.setAttribute(REMEMBER_ME_ATTR, rememberMe);
 
                 UsernamePasswordAuthenticationToken authRequest =
@@ -54,7 +61,6 @@ public class JsonUsernamePasswordAuthFilter extends UsernamePasswordAuthenticati
             }
         }
 
-        // JSON이 아니면 부모 동작(폼 파라미터) 사용
         return super.attemptAuthentication(request, response);
     }
 
@@ -65,24 +71,38 @@ public class JsonUsernamePasswordAuthFilter extends UsernamePasswordAuthenticati
                                             Authentication authResult)
             throws IOException, ServletException {
 
-        // 1) 세션 생성 후 ID 교체 (세션 고정 방지)
-        request.getSession(true);
-        request.changeSessionId();
+        boolean rememberMe = Boolean.TRUE.equals(request.getAttribute(REMEMBER_ME_ATTR));
+        RememberMeServices remember = getRememberMeServices();
 
-        // 2) SecurityContext 생성 및 세션에 저장
+        // 1) UserDetails → AuthSessionUser 변환
+        Object principal = authResult.getPrincipal();
+        AuthSessionUser sessionUser;
+        if (principal instanceof CustomUserDetails cud) {
+            sessionUser = new AuthSessionUser(cud.getId(), cud.getUsername(), cud.getRole().name());
+        } else {
+            sessionUser = new AuthSessionUser(null, authResult.getName(), "ROLE_CUSTOMER");
+        }
+
+        // 2) safe Authentication (세션에 최소 정보만 넣음)
+        Authentication safeAuth = new UsernamePasswordAuthenticationToken(
+                sessionUser,
+                null,
+                authResult.getAuthorities()
+        );
+
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authResult);
+        context.setAuthentication(safeAuth);
         SecurityContextHolder.setContext(context);
+
+        // 3) 세션 저장
         new HttpSessionSecurityContextRepository().saveContext(context, request, response);
 
-        // 3) remember-me 처리
-        boolean rememberMe = Boolean.TRUE.equals(request.getAttribute("REMEMBER_ME_JSON"));
-        RememberMeServices remember = getRememberMeServices();
+        // 4) remember-me 처리
         if (remember != null && rememberMe) {
             remember.loginSuccess(request, response, authResult);
         }
 
-        // 4) 성공 핸들러 호출
-        getSuccessHandler().onAuthenticationSuccess(request, response, authResult);
+        // 5) SuccessHandler 호출
+        getSuccessHandler().onAuthenticationSuccess(request, response, safeAuth);
     }
 }

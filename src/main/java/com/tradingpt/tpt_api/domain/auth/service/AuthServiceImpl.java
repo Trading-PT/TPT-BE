@@ -97,6 +97,8 @@ public class AuthServiceImpl implements AuthService {
 				.provider(Provider.LOCAL)
 				.phoneNumber(phone)
 				.membershipLevel(MembershipLevel.BASIC)
+				.membershipExpiredAt(null)
+				.openChapterNumber(null)
 				.status(AccountStatus.ACTIVE)
 				.primaryInvestmentType(req.getInvestmentType())
 				.build();
@@ -125,6 +127,8 @@ public class AuthServiceImpl implements AuthService {
 		if (customer.getMembershipLevel() == null) {
 			customer.setMembershipLevel(MembershipLevel.BASIC);
 		}
+		customer.setMembershipExpiredAt(null);
+		customer.setOpenChapterNumber(null);
 		customer.setPrimaryInvestmentType(req.getInvestmentType());
 
 		// UID 병합/설정

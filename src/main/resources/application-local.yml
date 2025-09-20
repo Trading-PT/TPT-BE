@@ -22,7 +22,15 @@ spring:
           max-idle: 8
           min-idle: 0
 
-  # JPA 설정 (로컬 개발)
+  # Spring Session (Redis) 설정
+  session:
+    store-type: redis
+    timeout: 7d
+    redis:
+      namespace: tpt
+      flush-mode: on-save
+      repository-type: indexed
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -34,7 +42,6 @@ spring:
         use_sql_comments: true
     open-in-view: false
 
-# 로깅 설정 (로컬 개발)
 logging:
   level:
     org.hibernate.SQL: debug
@@ -46,3 +53,13 @@ aws:
     secret-key: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
     bucket-name: ${S3_BUCKET_NAME}
+
+server:
+  servlet:
+    session:
+      cookie:
+        name: JSESSIONID
+        http-only: true
+        secure: false
+        same-site: Lax
+        path: /
