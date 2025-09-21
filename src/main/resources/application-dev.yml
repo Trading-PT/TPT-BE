@@ -15,8 +15,6 @@ spring:
     redis:
       host: ${DEV_REDIS_HOST}
       port: 6379
-      username: default
-      password: ${DEV_REDIS_PASSWORD}
       ssl:
         enabled: false
       timeout: 2000ms
@@ -30,7 +28,7 @@ spring:
     store-type: redis
     timeout: 7d
     redis:
-      configure-action: none
+      configure-action: NONE
       namespace: tpt
       flush-mode: on-save
       repository-type: indexed
