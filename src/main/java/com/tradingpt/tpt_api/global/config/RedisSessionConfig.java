@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
@@ -61,5 +62,11 @@ public class RedisSessionConfig {
         s.setSameSite("Lax");      // 크로스 도메인이면 "None" + Secure=true
         s.setUseSecureCookie(false); // 운영은 true
         return s;
+    }
+
+    @Bean
+    public ConfigureRedisAction configureRedisAction() {
+        // Spring Session이 CONFIG GET/SET을 전혀 시도하지 않게 함
+        return ConfigureRedisAction.NO_OP;
     }
 }
