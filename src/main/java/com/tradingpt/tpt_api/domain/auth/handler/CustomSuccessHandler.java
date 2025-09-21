@@ -1,16 +1,8 @@
 package com.tradingpt.tpt_api.domain.auth.handler;
 
-import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
-import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2User;
-import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
-import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -21,6 +13,16 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Component;
 
+import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
+import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2User;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+
 @Component
 @RequiredArgsConstructor
 public class CustomSuccessHandler implements AuthenticationSuccessHandler {
@@ -29,13 +31,13 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 	private final UserRepository userRepository;
 	private final HttpSessionSecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
-	@Value("${app.frontend.base-url:http://localhost:3000}")
+	@Value("${app.frontend.base-url}")
 	private String frontendBaseUrl;
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request,
-										HttpServletResponse response,
-										Authentication authentication) throws IOException {
+		HttpServletResponse response,
+		Authentication authentication) throws IOException {
 
 		Object principal = authentication.getPrincipal();
 
@@ -50,16 +52,16 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
 			// 1) OAuth2User → AuthSessionUser 변환
 			AuthSessionUser sessionUser = new AuthSessionUser(
-					oAuth2User.getUserId(),
-					oAuth2User.getUsername(),
-					oAuth2User.getRole()
+				oAuth2User.getUserId(),
+				oAuth2User.getUsername(),
+				oAuth2User.getRole()
 			);
 
 			// 2) safe Authentication
 			Authentication safeAuth = new UsernamePasswordAuthenticationToken(
-					sessionUser,
-					null,
-					oAuth2User.getAuthorities()
+				sessionUser,
+				null,
+				oAuth2User.getAuthorities()
 			);
 
 			// 3) SecurityContext 저장

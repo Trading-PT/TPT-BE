@@ -148,6 +148,11 @@ app:
     from: ${MAIL_NAME}
   frontend:
     base-url: http://localhost:3000
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8080
 
 # SMS 설정
 solapi:

@@ -69,3 +69,12 @@ server:
         secure: true          # 운영/Dev에서 HTTPS면 true
         same-site: None       # 다른 도메인에서 쿠키 전송이 필요하면 None
         path: /
+
+app:
+  frontend:
+    base-url: http://localhost:3000
+  cors:
+    allowed-origins:
+      - https://dev.tradingpt.shop
+      - http://localhost:3000
+      - http://localhost:5173
