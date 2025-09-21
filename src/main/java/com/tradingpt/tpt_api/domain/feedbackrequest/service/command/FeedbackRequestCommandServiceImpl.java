@@ -15,7 +15,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
@@ -121,11 +120,6 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 권한 확인: 자신의 피드백 요청만 삭제 가능
 		if (!feedbackRequest.getCustomer().getId().equals(customerId)) {
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.DELETE_PERMISSION_DENIED);
-		}
-
-		// 완료된 피드백은 삭제 불가
-		if (feedbackRequest.getStatus() == Status.DONE) {
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.COMPLETED_FEEDBACK_DELETE_NOT_ALLOWED);
 		}
 
 		feedbackRequestRepository.delete(feedbackRequest);

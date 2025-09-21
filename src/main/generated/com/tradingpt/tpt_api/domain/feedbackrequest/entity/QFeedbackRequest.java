@@ -47,6 +47,10 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isCourseCompleted = createBoolean("isCourseCompleted");
 
+    public final BooleanPath isRead = createBoolean("isRead");
+
+    public final BooleanPath isResponded = createBoolean("isResponded");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
 
     //inherited

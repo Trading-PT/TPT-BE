@@ -65,20 +65,20 @@ public class FeedbackRequestResponseDTO {
 
 	public static FeedbackRequestResponseDTO of(FeedbackRequest feedbackRequest) {
 		return FeedbackRequestResponseDTO.builder()
-				.id(feedbackRequest.getId())
-				.customerId(feedbackRequest.getCustomer().getId())
-				.customerName(feedbackRequest.getCustomer().getName())
-				.feedbackType(feedbackRequest.getFeedbackType())
-				.status(feedbackRequest.getStatus())
-				.feedbackRequestedAt(feedbackRequest.getFeedbackRequestedAt())
-				.isCourseCompleted(feedbackRequest.getIsCourseCompleted())
-				.feedbackYear(feedbackRequest.getFeedbackYear())
-				.feedbackMonth(feedbackRequest.getFeedbackMonth())
-				.feedbackWeek(feedbackRequest.getFeedbackWeek())
-				.isBestFeedback(feedbackRequest.getIsBestFeedback())
-				.createdAt(feedbackRequest.getCreatedAt())
-				.updatedAt(feedbackRequest.getUpdatedAt())
-				.hasFeedbackResponse(feedbackRequest.getFeedbackResponse() != null)
-				.build();
+			.id(feedbackRequest.getId())
+			.customerId(feedbackRequest.getCustomer().getId())
+			.customerName(feedbackRequest.getCustomer().getName())
+			.feedbackType(feedbackRequest.getFeedbackType())
+			.status(feedbackRequest.getStatus())
+			.feedbackRequestedAt(feedbackRequest.getFeedbackRequestedAt())
+			.isCourseCompleted(feedbackRequest.getIsCourseCompleted())
+			.feedbackYear(feedbackRequest.getFeedbackYear())
+			.feedbackMonth(feedbackRequest.getFeedbackMonth())
+			.feedbackWeek(feedbackRequest.getFeedbackWeek())
+			.isBestFeedback(feedbackRequest.getIsBestFeedback())
+			.createdAt(feedbackRequest.getCreatedAt())
+			.updatedAt(feedbackRequest.getUpdatedAt())
+			.hasFeedbackResponse(feedbackRequest.getFeedbackResponse() != null)
+			.build();
 	}
 }

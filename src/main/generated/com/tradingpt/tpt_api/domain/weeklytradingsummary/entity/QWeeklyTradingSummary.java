@@ -68,7 +68,7 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
 
     public QWeeklyTradingSummary(Class<? extends WeeklyTradingSummary> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.monthlyTradingSummary = inits.isInitialized("monthlyTradingSummary") ? new com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.QMonthlyTradingSummary(forProperty("monthlyTradingSummary")) : null;
+        this.monthlyTradingSummary = inits.isInitialized("monthlyTradingSummary") ? new com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.QMonthlyTradingSummary(forProperty("monthlyTradingSummary"), inits.get("monthlyTradingSummary")) : null;
     }
 
 }
