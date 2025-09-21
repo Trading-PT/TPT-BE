@@ -20,9 +20,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
+@EnableRedisIndexedHttpSession
 public class RedisSessionConfig {
 
     @Bean
