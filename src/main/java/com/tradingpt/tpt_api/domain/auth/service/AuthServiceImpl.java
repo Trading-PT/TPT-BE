@@ -71,17 +71,21 @@ public class AuthServiceImpl implements AuthService {
 
 		final String phone = AuthUtil.normalizePhone(req.getPhone());
 		final String email = AuthUtil.normalizeEmail(req.getEmail());
-		verificationService.requireVerified(phone, email, session);
 
 		// 소셜 임시계정 여부
 		boolean isSocialUsername =
 				req.getUsername() != null &&
 						(req.getUsername().startsWith("KAKAO_") || req.getUsername().startsWith("NAVER_"));
 
-		if (isSocialUsername) {
+		if (isSocialUsername) { //소셜일 경우
 			updateSocialCustomer(req, session, phone, email);
 			return;
 		}
+
+
+		verificationService.requireVerified(phone, email, session);
+
+
 
 		// 일반 회원가입
 		if (!req.getPassword().equals(req.getPasswordCheck())) {

@@ -5,12 +5,20 @@ import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
+import com.tradingpt.tpt_api.domain.auth.dto.response.SocialInfoResponse;
+import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
+import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.auth.service.AuthService;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
+import com.tradingpt.tpt_api.global.exception.AuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
 	private final AuthService authService;
+	private final UserRepository userRepository;
 
 	@Operation(summary = "휴대폰 인증코드 발송", description = "휴대폰 번호로 6자리 인증코드를 발송하고 세션에 OTP/만료시각을 저장합니다.")
 	@PostMapping("/phone/code")
@@ -76,4 +85,25 @@ public class AuthController {
 		MeResponse response = new MeResponse(principal.getId(), principal.getUsername(), principal.getRole().name());
 		return BaseResponse.onSuccess(response);
 	}
+
+	@Operation(summary = "소셜 로그인 기본 정보 조회", description = "소셜 로그인 시 자동 채워질 사용자 기본 정보를 반환합니다.")
+	@GetMapping("/social-info")
+	public BaseResponse<SocialInfoResponse> getSocialInfo(Authentication authentication) {
+
+		AuthSessionUser principal = (AuthSessionUser) authentication.getPrincipal();
+
+		User user = userRepository.findById(principal.id())
+				.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
+
+		SocialInfoResponse dto = new SocialInfoResponse(
+				user.getId(),
+				user.getUsername(),
+				user.getName(),
+				user.getEmail(),
+				user.getPassword() // 해시 그대로
+		);
+
+		return BaseResponse.onSuccess(dto);
+	}
+
 }

@@ -80,10 +80,11 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 			}
 
 			// 5) 리다이렉트
-			response.sendRedirect(frontendBaseUrl + (needExtra ? "/signup" : "/login"));
+			response.sendRedirect(frontendBaseUrl + (needExtra ? "/signup?social=true" : "/"));
 			return;
 		}
 
 		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "알 수 없는 사용자 타입");
 	}
+
 }
