@@ -28,6 +28,7 @@ spring:
     store-type: redis
     timeout: 7d
     redis:
+      configure-action: none
       namespace: tpt
       flush-mode: on-save
       repository-type: indexed
