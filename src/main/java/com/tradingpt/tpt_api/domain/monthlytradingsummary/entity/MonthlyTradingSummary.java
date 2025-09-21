@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
@@ -13,10 +15,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -42,6 +47,14 @@ public class MonthlyTradingSummary extends BaseEntity {
 	/**
 	 * 연관 관계 매핑
 	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "customer_id")
+	private Customer customer;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "trainer_id")
+	private Trainer trainer;
+
 	@Builder.Default
 	@OneToMany(mappedBy = "monthlyTradingSummary", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<WeeklyTradingSummary> weeklyTradingSummaries = new ArrayList<>();

@@ -73,7 +73,7 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		FeedbackResponse feedbackResponse = FeedbackResponse.createFrom(feedbackRequest, trainer, request.getTitle(),
 			sanitizedContent);
 
-		feedbackRequest.setStatus(Status.DONE);
+		feedbackRequest.setStatus(Status.FN); // 피드백 답변 완료, 피드백 아직 읽지 않음 처리
 
 		// FeedbackResponse는 cascade로 저장됨
 		FeedbackRequest saved = feedbackRequestRepository.save(feedbackRequest);

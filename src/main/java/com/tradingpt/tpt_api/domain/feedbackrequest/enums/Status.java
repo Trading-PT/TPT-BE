@@ -7,8 +7,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum Status {
 
-	DONE("피드백 답변 완료"),
-	NOT_YET("피드백 답변 미완료");
+	FR("피드백 답변 완료, 피드백 읽음"),
+	FN("피드백 답변 완료, 피드백 읽지 않음"),
+	N("피드백 답변 미완료");
 
 	private final String description;
 }

@@ -63,6 +63,12 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final BooleanPath isCourseCompleted;
 
+    //inherited
+    public final BooleanPath isRead;
+
+    //inherited
+    public final BooleanPath isResponded;
+
     public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
 
     public final StringPath positionEndReason = createString("positionEndReason");
@@ -118,6 +124,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.id = _super.id;
         this.isBestFeedback = _super.isBestFeedback;
         this.isCourseCompleted = _super.isCourseCompleted;
+        this.isRead = _super.isRead;
+        this.isResponded = _super.isResponded;
         this.status = _super.status;
         this.updatedAt = _super.updatedAt;
         this.weeklyTradingSummary = _super.weeklyTradingSummary;

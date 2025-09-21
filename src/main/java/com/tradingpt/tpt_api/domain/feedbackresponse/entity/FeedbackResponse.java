@@ -62,7 +62,7 @@ public class FeedbackResponse extends BaseEntity {
 	private String title; // 피드백 제목
 
 	@Lob
-	private String responseContent; // 피드백 내용
+	private String content; // 피드백 내용
 
 	private LocalDateTime submittedAt; // 피드백 제공 시각
 
@@ -72,7 +72,7 @@ public class FeedbackResponse extends BaseEntity {
 			.feedbackRequest(feedbackRequest)
 			.trainer(trainer)
 			.title(title)
-			.responseContent(responseContent)
+			.content(responseContent)
 			.submittedAt(LocalDateTime.now())
 			.build();
 
@@ -83,7 +83,7 @@ public class FeedbackResponse extends BaseEntity {
 	}
 
 	public void updateContent(String newContent) {
-		this.responseContent = newContent;
+		this.content = newContent;
 	}
 
 }

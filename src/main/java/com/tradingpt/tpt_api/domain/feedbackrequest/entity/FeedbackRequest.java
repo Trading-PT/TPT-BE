@@ -85,7 +85,13 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
-	private Status status = Status.NOT_YET; // 피드백 답변 여뷰
+	private Status status = Status.N; // 피드백 답변 여부
+
+	@Builder.Default
+	private Boolean isRead = false;
+
+	@Builder.Default
+	private Boolean isResponded = false;
 
 	@Builder.Default
 	private Boolean isBestFeedback = false; // 베스트 피드백 여부

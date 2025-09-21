@@ -24,6 +24,8 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final StringPath content = createString("content");
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
@@ -32,8 +34,6 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
     public final ListPath<FeedbackResponseAttachment, QFeedbackResponseAttachment> feedbackResponseAttachments = this.<FeedbackResponseAttachment, QFeedbackResponseAttachment>createList("feedbackResponseAttachments", FeedbackResponseAttachment.class, QFeedbackResponseAttachment.class, PathInits.DIRECT2);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
-
-    public final StringPath responseContent = createString("responseContent");
 
     public final DateTimePath<java.time.LocalDateTime> submittedAt = createDateTime("submittedAt", java.time.LocalDateTime.class);
 

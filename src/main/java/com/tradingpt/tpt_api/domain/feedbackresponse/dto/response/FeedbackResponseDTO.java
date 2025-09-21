@@ -41,7 +41,7 @@ public class FeedbackResponseDTO {
 			.title(feedbackResponse.getTitle())
 			.submittedAt(feedbackResponse.getSubmittedAt())
 			.trainer(TrainerDTO.from(trainer))
-			.content(feedbackResponse.getResponseContent())
+			.content(feedbackResponse.getContent())
 			.build();
 
 	}
