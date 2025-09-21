@@ -78,3 +78,7 @@ app:
       - https://dev.tradingpt.shop
       - http://localhost:3000
       - http://localhost:5173
+  swagger:
+    servers:
+      - url: https://dev.tradingpt.shop
+        description: Dev API 서버

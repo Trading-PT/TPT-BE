@@ -153,6 +153,13 @@ app:
       - http://localhost:3000
       - http://localhost:5173
       - http://localhost:8080
+  swagger:
+    title: Trading PT API
+    description: Trading Platform API 문서
+    version: "1.0"
+    servers:
+      - url: http://localhost:8080
+        description: 로컬 API 서버
 
 # SMS 설정
 solapi:
