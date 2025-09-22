@@ -29,6 +29,8 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    public final DateTimePath<java.time.LocalDateTime> evaluatedAt = createDateTime("evaluatedAt", java.time.LocalDateTime.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType.class);
@@ -48,6 +50,8 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
     public final NumberPath<Integer> summary_year = createNumber("summary_year", Integer.class);
 
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
+
+    public final StringPath trainerEvaluation = createString("trainerEvaluation");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

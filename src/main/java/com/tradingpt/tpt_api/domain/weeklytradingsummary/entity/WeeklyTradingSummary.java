@@ -2,11 +2,16 @@ package com.tradingpt.tpt_api.domain.weeklytradingsummary.entity;
 
 import java.math.BigDecimal;
 
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -37,17 +42,21 @@ public class WeeklyTradingSummary extends BaseEntity {
 	 * 연관 관계 매핑
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "monthly_trading_summary_id")
-	private MonthlyTradingSummary monthlyTradingSummary;
+	@JoinColumn(name = "customer_id", nullable = false)
+	private Customer customer;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "trainer_id", nullable = false)
+	private Trainer trainer;
 
 	/**
 	 * 필드
 	 */
-	private Integer summaryYear; // 요약 연도
+	@Enumerated(EnumType.STRING)
+	private InvestmentType investmentType; // 투자 유형 (DAY 전용)
 
-	private Integer summaryMonth; // 요약 월
-
-	private Integer summaryWeek; // 요약 주차
+	@Embedded
+	private WeeklyPeriod period; // 요약 연/월/주
 
 	private Integer tradingCount; // 매매 횟수
 

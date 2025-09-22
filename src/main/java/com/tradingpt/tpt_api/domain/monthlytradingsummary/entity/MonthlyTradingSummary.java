@@ -2,17 +2,14 @@ package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
-import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -23,7 +20,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -56,16 +52,11 @@ public class MonthlyTradingSummary extends BaseEntity {
 	@JoinColumn(name = "trainer_id")
 	private Trainer trainer;
 
-	@Builder.Default
-	@OneToMany(mappedBy = "monthlyTradingSummary", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<WeeklyTradingSummary> weeklyTradingSummaries = new ArrayList<>();
-
 	/**
 	 * 필드
 	 */
-	private Integer summary_year; // 요약 연도
-
-	private Integer summary_month; // 요약 월
+	@Embedded
+	private MonthlyPeriod period; // 요약 연/월
 
 	@Enumerated(EnumType.STRING)
 	private InvestmentType investmentType;
