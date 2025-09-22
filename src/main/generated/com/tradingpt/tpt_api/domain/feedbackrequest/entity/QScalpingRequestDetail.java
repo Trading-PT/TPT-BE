@@ -91,9 +91,6 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
 
-    // inherited
-    public final com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary weeklyTradingSummary;
-
     public QScalpingRequestDetail(String variable) {
         this(ScalpingRequestDetail.class, forVariable(variable), INITS);
     }
@@ -128,7 +125,6 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isResponded = _super.isResponded;
         this.status = _super.status;
         this.updatedAt = _super.updatedAt;
-        this.weeklyTradingSummary = _super.weeklyTradingSummary;
     }
 
 }

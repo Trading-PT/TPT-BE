@@ -21,6 +21,9 @@ import lombok.experimental.SuperBuilder;
 @DiscriminatorValue(value = "ROLE_TRAINER")
 public class Trainer extends User {
 
+	/**
+	 * 필드
+	 */
 	@Column(name = "profile_image_url")
 	private String profileImageUrl;
 

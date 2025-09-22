@@ -56,8 +56,6 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public final com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary weeklyTradingSummary;
-
     public QFeedbackRequest(String variable) {
         this(FeedbackRequest.class, forVariable(variable), INITS);
     }
@@ -76,9 +74,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public QFeedbackRequest(Class<? extends FeedbackRequest> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer")) : null;
+        this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
         this.feedbackResponse = inits.isInitialized("feedbackResponse") ? new com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse(forProperty("feedbackResponse"), inits.get("feedbackResponse")) : null;
-        this.weeklyTradingSummary = inits.isInitialized("weeklyTradingSummary") ? new com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary(forProperty("weeklyTradingSummary"), inits.get("weeklyTradingSummary")) : null;
     }
 
 }

@@ -105,9 +105,6 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
 
-    // inherited
-    public final com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary weeklyTradingSummary;
-
     public final StringPath winLossRatio = createString("winLossRatio");
 
     public QDayRequestDetail(String variable) {
@@ -144,7 +141,6 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isResponded = _super.isResponded;
         this.status = _super.status;
         this.updatedAt = _super.updatedAt;
-        this.weeklyTradingSummary = _super.weeklyTradingSummary;
     }
 
 }

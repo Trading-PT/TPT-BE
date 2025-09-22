@@ -18,6 +18,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     private static final long serialVersionUID = -1185606753L;
 
+    private static final PathInits INITS = PathInits.DIRECT2;
+
     public static final QCustomer customer = new QCustomer("customer");
 
     public final QUser _super = new QUser(this);
@@ -59,6 +61,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.AccountStatus> status = createEnum("status", com.tradingpt.tpt_api.domain.user.enums.AccountStatus.class);
 
+    public final QTrainer trainer;
+
     public final ListPath<Uid, QUid> uids = this.<Uid, QUid>createList("uids", Uid.class, QUid.class, PathInits.DIRECT2);
 
     //inherited
@@ -68,15 +72,24 @@ public class QCustomer extends EntityPathBase<Customer> {
     public final StringPath username = _super.username;
 
     public QCustomer(String variable) {
-        super(Customer.class, forVariable(variable));
+        this(Customer.class, forVariable(variable), INITS);
     }
 
     public QCustomer(Path<? extends Customer> path) {
-        super(path.getType(), path.getMetadata());
+        this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
     public QCustomer(PathMetadata metadata) {
-        super(Customer.class, metadata);
+        this(metadata, PathInits.getFor(metadata, INITS));
+    }
+
+    public QCustomer(PathMetadata metadata, PathInits inits) {
+        this(Customer.class, metadata, inits);
+    }
+
+    public QCustomer(Class<? extends Customer> type, PathMetadata metadata, PathInits inits) {
+        super(type, metadata, inits);
+        this.trainer = inits.isInitialized("trainer") ? new QTrainer(forProperty("trainer")) : null;
     }
 
 }

@@ -45,9 +45,7 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final StringPath nextMonthGoal = createString("nextMonthGoal");
 
-    public final NumberPath<Integer> summary_month = createNumber("summary_month", Integer.class);
-
-    public final NumberPath<Integer> summary_year = createNumber("summary_year", Integer.class);
+    public final QMonthlyPeriod period;
 
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
 
@@ -55,8 +53,6 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
-
-    public final ListPath<com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary, com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary> weeklyTradingSummaries = this.<com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary, com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary>createList("weeklyTradingSummaries", com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary.class, com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary.class, PathInits.DIRECT2);
 
     public QMonthlyTradingSummary(String variable) {
         this(MonthlyTradingSummary.class, forVariable(variable), INITS);
@@ -76,7 +72,8 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public QMonthlyTradingSummary(Class<? extends MonthlyTradingSummary> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer")) : null;
+        this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
+        this.period = inits.isInitialized("period") ? new QMonthlyPeriod(forProperty("period")) : null;
         this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QTrainer(forProperty("trainer")) : null;
     }
 

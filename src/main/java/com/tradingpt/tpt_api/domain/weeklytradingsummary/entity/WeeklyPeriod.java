@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode
+@EqualsAndHashCode // 필드 값이 같으면 동등
 public class WeeklyPeriod {
 
 	@Column(name = "summary_year", nullable = false)
