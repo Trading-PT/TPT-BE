@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,5 +81,11 @@ public class MonthlyTradingSummary extends BaseEntity {
 
 	@Lob
 	private String nextMonthGoal; // 다음달 회원 목표
+
+	@Lob
+	private String trainerEvaluation; // 트레이너 최종 평가
+
+	@Builder.Default
+	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가 시각
 
 }
