@@ -40,6 +40,7 @@ public class DailyFeedbackRequestsResponseDTO {
 	@Schema(description = "해당 날짜의 피드백 요청 리스트")
 	private List<DailyFeedbackRequestSummaryDTO> feedbackRequests;
 
+	// 팩토리 메서드
 	public static DailyFeedbackRequestsResponseDTO of(
 		LocalDate feedbackDate,
 		Integer feedbackYear,

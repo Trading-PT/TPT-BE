@@ -2,9 +2,9 @@ package com.tradingpt.tpt_api.domain.weeklytradingsummary.entity;
 
 import java.math.BigDecimal;
 
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
