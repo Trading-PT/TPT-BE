@@ -36,55 +36,60 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest request,
-		HttpServletResponse response,
-		Authentication authentication) throws IOException {
+										HttpServletResponse response,
+										Authentication authentication) throws IOException {
 
 		Object principal = authentication.getPrincipal();
 
-		// 로컬(JSON) 로그인
-		if (principal instanceof AuthSessionUser sessionUser) {
+		// 1) 로컬(JSON) 로그인
+		if (principal instanceof AuthSessionUser) {
 			response.setStatus(HttpServletResponse.SC_OK);
 			return;
 		}
-		// 소셜 로그인
+
+		// 2) 소셜 로그인
 		if (principal instanceof CustomOAuth2User oAuth2User) {
-			rememberMeServices.loginSuccess(request, response, authentication);
 
-			// 1) OAuth2User → AuthSessionUser 변환
+			// 서비스에서 이미 매핑/생성을 끝냈다는 전제: userId가 반드시 존재해야 정상
+			if (oAuth2User.getUserId() == null) {
+				// 비정상 흐름 방어
+				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "SOCIAL_NOT_MAPPED");
+				return;
+			}
+
+			// 정상 로그인 처리
 			AuthSessionUser sessionUser = new AuthSessionUser(
-				oAuth2User.getUserId(),
-				oAuth2User.getUsername(),
-				oAuth2User.getRole()
+					oAuth2User.getUserId(),
+					oAuth2User.getUsername(),
+					oAuth2User.getRole()
 			);
 
-			// 2) safe Authentication
 			Authentication safeAuth = new UsernamePasswordAuthenticationToken(
-				sessionUser,
-				null,
-				oAuth2User.getAuthorities()
+					sessionUser,
+					null,
+					oAuth2User.getAuthorities()
 			);
 
-			// 3) SecurityContext 저장
+			// remember-me는 최종 인증 객체(safeAuth)로 호출
+			rememberMeServices.loginSuccess(request, response, safeAuth);
+
+			// SecurityContext 저장
 			SecurityContext context = SecurityContextHolder.createEmptyContext();
 			context.setAuthentication(safeAuth);
 			securityContextRepository.saveContext(context, request, response);
 
-			// 4) 추가 정보 필요 여부 확인
+			// 추가 정보 필요 여부(전화번호 등) 체크 후 리다이렉트
 			boolean needExtra = true;
-			if (oAuth2User.getUserId() != null) {
-				Optional<User> userOpt = userRepository.findById(oAuth2User.getUserId());
-				if (userOpt.isPresent() && userOpt.get() instanceof Customer c) {
-					String phone = c.getPhoneNumber();
-					needExtra = (phone == null || phone.trim().isEmpty());
-				}
+			Optional<User> userOpt = userRepository.findById(oAuth2User.getUserId());
+			if (userOpt.isPresent() && userOpt.get() instanceof Customer c) {
+				String phone = c.getPhoneNumber();
+				needExtra = (phone == null || phone.trim().isEmpty());
 			}
 
-			// 5) 리다이렉트
 			response.sendRedirect(frontendBaseUrl + (needExtra ? "/signup?social=true" : "/"));
 			return;
 		}
 
-		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "알 수 없는 사용자 타입");
+		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "UNKNOWN_PRINCIPAL_TYPE");
 	}
-
 }
