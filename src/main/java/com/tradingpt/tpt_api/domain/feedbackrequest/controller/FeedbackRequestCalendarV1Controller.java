@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestCalendarQueryService;
@@ -29,10 +28,10 @@ public class FeedbackRequestCalendarV1Controller {
 	@GetMapping("/years/{year}")
 	public BaseResponse<MonthlySummaryResponseDTO> getMonthlySummaryResponse(
 		@PathVariable Integer year,
-		@AuthenticationPrincipal CustomUserDetails userDetails
+		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestCalendarQueryService.getMonthlySummaryResponse(year, userDetails.getId()));
+			feedbackRequestCalendarQueryService.getMonthlySummaryResponse(year, customerId));
 	}
 
 	@Operation(summary = "해당 날짜에 대한 일별 피드백 요청 리스트"
@@ -42,10 +41,10 @@ public class FeedbackRequestCalendarV1Controller {
 		@PathVariable Integer year,
 		@PathVariable Integer month,
 		@PathVariable Integer day,
-		@AuthenticationPrincipal CustomUserDetails userDetails
+		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestCalendarQueryService.getDailyFeedbackRequestsResponse(year, month, day, userDetails.getId())
+			feedbackRequestCalendarQueryService.getDailyFeedbackRequestsResponse(year, month, day, customerId)
 		);
 	}
 }
