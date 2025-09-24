@@ -33,7 +33,7 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.monthlytradingsummary.enums.InvestmentType.class);
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
     public final NumberPath<Integer> monthlyAvgRatio = createNumber("monthlyAvgRatio", Integer.class);
 
