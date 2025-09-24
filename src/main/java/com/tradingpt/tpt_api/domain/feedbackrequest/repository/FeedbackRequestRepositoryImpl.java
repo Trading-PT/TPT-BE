@@ -1,5 +1,10 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
 
+import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QDayRequestDetail.*;
+import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest.*;
+import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail.*;
+import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QSwingRequestDetail.*;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +38,10 @@ import lombok.RequiredArgsConstructor;
 public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
-	private final QFeedbackRequest qFeedbackRequest = QFeedbackRequest.feedbackRequest;
+	private final QFeedbackRequest qFeedbackRequest = feedbackRequest;
+	private final QDayRequestDetail qDayRequestDetail = dayRequestDetail;
+	private final QScalpingRequestDetail qScalpingRequestDetail = scalpingRequestDetail;
+	private final QSwingRequestDetail qSwingRequestDetail = swingRequestDetail;
 
 	@Override
 	public Page<FeedbackRequest> findFeedbackRequestsWithFilters(
@@ -48,31 +56,28 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		// FeedbackType에 따라 해당하는 서브타입만 조회
 		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
-			QDayRequestDetail qDay = QDayRequestDetail.dayRequestDetail;
 			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(qDay)
+				.selectFrom(qDayRequestDetail)
 				.where(predicate)
-				.orderBy(qDay.createdAt.desc())
+				.orderBy(qDayRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(dayRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
-			QScalpingRequestDetail qScalping = QScalpingRequestDetail.scalpingRequestDetail;
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(qScalping)
+				.selectFrom(qScalpingRequestDetail)
 				.where(predicate)
-				.orderBy(qScalping.createdAt.desc())
+				.orderBy(qScalpingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(scalpingRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
-			QSwingRequestDetail qSwing = QSwingRequestDetail.swingRequestDetail;
 			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(qSwing)
+				.selectFrom(qSwingRequestDetail)
 				.where(predicate)
-				.orderBy(qSwing.createdAt.desc())
+				.orderBy(qSwingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(swingRequests);
 		}
@@ -104,31 +109,28 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		// FeedbackType에 따라 해당하는 서브타입만 조회
 		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
-			QDayRequestDetail qDay = QDayRequestDetail.dayRequestDetail;
 			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(qDay)
+				.selectFrom(qDayRequestDetail)
 				.where(predicate)
-				.orderBy(qDay.createdAt.desc())
+				.orderBy(qDayRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(dayRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
-			QScalpingRequestDetail qScalping = QScalpingRequestDetail.scalpingRequestDetail;
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(qScalping)
+				.selectFrom(qScalpingRequestDetail)
 				.where(predicate)
-				.orderBy(qScalping.createdAt.desc())
+				.orderBy(qScalpingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(scalpingRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
-			QSwingRequestDetail qSwing = QSwingRequestDetail.swingRequestDetail;
 			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(qSwing)
+				.selectFrom(qSwingRequestDetail)
 				.where(predicate)
-				.orderBy(qSwing.createdAt.desc())
+				.orderBy(qSwingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(swingRequests);
 		}
@@ -167,35 +169,32 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		switch (feedbackType) {
 			case DAY -> {
-				QDayRequestDetail qDay = QDayRequestDetail.dayRequestDetail;
 				count = queryFactory
-					.select(qDay.count())
-					.from(qDay)
+					.select(qDayRequestDetail.count())
+					.from(qDayRequestDetail)
 					.where(
-						qDay.customer.id.eq(customerId)
-							.and(qDay.feedbackRequestedAt.eq(feedbackDate))
+						qDayRequestDetail.customer.id.eq(customerId)
+							.and(qDayRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
 			case SCALPING -> {
-				QScalpingRequestDetail qScalping = QScalpingRequestDetail.scalpingRequestDetail;
 				count = queryFactory
-					.select(qScalping.count())
-					.from(qScalping)
+					.select(qScalpingRequestDetail.count())
+					.from(qScalpingRequestDetail)
 					.where(
-						qScalping.customer.id.eq(customerId)
-							.and(qScalping.feedbackRequestedAt.eq(feedbackDate))
+						qScalpingRequestDetail.customer.id.eq(customerId)
+							.and(qScalpingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
 			case SWING -> {
-				QSwingRequestDetail qSwing = QSwingRequestDetail.swingRequestDetail;
 				count = queryFactory
-					.select(qSwing.count())
-					.from(qSwing)
+					.select(qSwingRequestDetail.count())
+					.from(qSwingRequestDetail)
 					.where(
-						qSwing.customer.id.eq(customerId)
-							.and(qSwing.feedbackRequestedAt.eq(feedbackDate))
+						qSwingRequestDetail.customer.id.eq(customerId)
+							.and(qSwingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
