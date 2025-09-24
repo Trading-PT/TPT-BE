@@ -80,6 +80,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
 
+    //inherited
+    public final StringPath title;
+
     public final NumberPath<Integer> totalPositionTakingCount = createNumber("totalPositionTakingCount", Integer.class);
 
     public final NumberPath<Integer> totalProfitMarginPerTrades = createNumber("totalProfitMarginPerTrades", Integer.class);
@@ -90,9 +93,6 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
-
-    // inherited
-    public final com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary weeklyTradingSummary;
 
     public QScalpingRequestDetail(String variable) {
         this(ScalpingRequestDetail.class, forVariable(variable), INITS);
@@ -127,8 +127,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
         this.status = _super.status;
+        this.title = _super.title;
         this.updatedAt = _super.updatedAt;
-        this.weeklyTradingSummary = _super.weeklyTradingSummary;
     }
 
 }

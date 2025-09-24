@@ -16,6 +16,9 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
@@ -39,6 +42,10 @@ public class Customer extends User {
 	/**
 	 * 연관 관계 매핑
 	 */
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "trainer_id")
+	private Trainer trainer;
+
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<Uid> uids = new ArrayList<>();
@@ -110,9 +117,13 @@ public class Customer extends User {
 		this.membershipLevel = membershipLevel;
 	}
 
-	public void setMembershipExpiredAt(LocalDateTime time){this.membershipExpiredAt = membershipExpiredAt;}
+	public void setMembershipExpiredAt(LocalDateTime time) {
+		this.membershipExpiredAt = membershipExpiredAt;
+	}
 
-	public void setOpenChapterNumber(Integer chapterNumber){this.openChapterNumber = openChapterNumber;}
+	public void setOpenChapterNumber(Integer chapterNumber) {
+		this.openChapterNumber = openChapterNumber;
+	}
 
 	public void setPrimaryInvestmentType(InvestmentType investmentType) {
 		this.primaryInvestmentType = investmentType;
