@@ -1,6 +1,6 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.entity;
 
-import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
@@ -21,6 +21,7 @@ import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -58,10 +59,6 @@ public class WeeklyTradingSummary extends BaseEntity {
 	@Embedded
 	private WeeklyPeriod period; // 요약 연/월/주
 
-	private Integer tradingCount; // 매매 횟수
-
-	private BigDecimal weeklyPnl; // 주간 P&L
-
 	@Lob
 	private String weeklyEvaluation; // 주간 회원 매매평가
 
@@ -70,5 +67,8 @@ public class WeeklyTradingSummary extends BaseEntity {
 
 	@Lob
 	private String weeklyLossTradingAnalysis; // 손실난 매매분석
+
+	@Builder.Default
+	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가 시각
 
 }

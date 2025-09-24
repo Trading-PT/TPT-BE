@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -60,12 +59,6 @@ public class MonthlyTradingSummary extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	private InvestmentType investmentType;
-
-	private Integer monthlyWinRate; // 월간 최종 승률
-
-	private Integer monthlyAvgRatio; // 월간 평균 손익비
-
-	private BigDecimal monthlyFinalPnl; // 월간 최종 P&L
 
 	@Lob
 	private String monthlyEvaluation; // 한달 회원 매매 평가
