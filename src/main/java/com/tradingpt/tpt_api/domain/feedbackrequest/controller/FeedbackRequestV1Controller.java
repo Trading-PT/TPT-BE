@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
@@ -54,10 +53,10 @@ public class FeedbackRequestV1Controller {
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<DayFeedbackRequestDetailResponseDTO> createDayRequest(
 		@Valid @ModelAttribute CreateDayRequestDetailRequestDTO request,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createDayRequest(request, userDetails.getId()));
+			feedbackRequestCommandService.createDayRequest(request, customerId));
 	}
 
 	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
@@ -65,10 +64,10 @@ public class FeedbackRequestV1Controller {
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<ScalpingFeedbackRequestDetailResponseDTO> createScalpingRequest(
 		@Valid @ModelAttribute CreateScalpingRequestDetailRequestDTO request,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createScalpingRequest(request, userDetails.getId()));
+			feedbackRequestCommandService.createScalpingRequest(request, customerId));
 	}
 
 	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
@@ -76,10 +75,10 @@ public class FeedbackRequestV1Controller {
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<SwingFeedbackRequestDetailResponseDTO> createSwingRequest(
 		@Valid @ModelAttribute CreateSwingRequestDetailRequestDTO request,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createSwingRequest(request, userDetails.getId()));
+			feedbackRequestCommandService.createSwingRequest(request, customerId));
 	}
 
 	@Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
@@ -100,10 +99,10 @@ public class FeedbackRequestV1Controller {
 	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequestById(
-			feedbackRequestId, userDetails.getId()));
+			feedbackRequestId, customerId));
 	}
 
 	@Operation(summary = "피드백 요청 삭제", description = "피드백 요청을 삭제합니다. (고객만 가능)")
@@ -112,10 +111,10 @@ public class FeedbackRequestV1Controller {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public BaseResponse<Void> deleteFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccessDelete(
-			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, userDetails.getId()));
+			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
 	}
 
 	@Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
@@ -124,10 +123,10 @@ public class FeedbackRequestV1Controller {
 	public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
 		@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
 		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
-			userDetails.getId(), feedbackType, status));
+			customerId, feedbackType, status));
 	}
 
 }

@@ -98,6 +98,9 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final StringPath subFrame = createString("subFrame");
 
+    //inherited
+    public final StringPath title;
+
     public final StringPath tradingReview = createString("tradingReview");
 
     public final StringPath trainerFeedbackRequestContent = createString("trainerFeedbackRequestContent");
@@ -106,9 +109,6 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
-
-    // inherited
-    public final com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.QWeeklyTradingSummary weeklyTradingSummary;
 
     public final StringPath winLossRatio = createString("winLossRatio");
 
@@ -145,8 +145,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
         this.status = _super.status;
+        this.title = _super.title;
         this.updatedAt = _super.updatedAt;
-        this.weeklyTradingSummary = _super.weeklyTradingSummary;
     }
 
 }

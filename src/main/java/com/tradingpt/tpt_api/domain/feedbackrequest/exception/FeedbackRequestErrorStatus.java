@@ -24,7 +24,8 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	FEEDBACK_RESPONSE_ALREADY_EXISTS(HttpStatus.CONFLICT, "FEEDBACK4005", "이미 답변이 작성된 피드백 요청입니다."),
 	FEEDBACK_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK4006", "피드백 답변이 존재하지 않습니다."),
 	RESPONSE_UPDATE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK4007", "답변 작성자만 수정할 수 있습니다."),
-	REQUEST_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "FEEDBACK4008", "요청 날짜가 필수입니다.");
+	REQUEST_DATE_REQUIRED(HttpStatus.BAD_REQUEST, "FEEDBACK4008", "요청 날짜가 필수입니다."),
+	UNSUPPORTED_REQUEST_FEEDBACK_TYPE(HttpStatus.BAD_REQUEST, "FEEDBACK4009", "지원하지 않는 피드백 타입입니다.");
 
 	private final HttpStatus httpStatus;
 	private final boolean isSuccess = false;

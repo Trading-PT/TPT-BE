@@ -8,7 +8,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -59,10 +58,6 @@ public abstract class FeedbackRequest extends BaseEntity {
 	@JoinColumn(name = "customer_id")
 	private Customer customer;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "weekly_trading_summary_id")
-	private WeeklyTradingSummary weeklyTradingSummary;
-
 	@Builder.Default
 	@OneToMany(mappedBy = "feedbackRequest", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FeedbackRequestAttachment> feedbackRequestAttachments = new ArrayList<>();
@@ -73,6 +68,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 	/**
 	 * 필드
 	 */
+	private String title;
+
 	private LocalDate feedbackRequestedAt; // 피드백 요청 일자
 
 	private Boolean isCourseCompleted; // 완강 여부

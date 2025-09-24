@@ -83,9 +83,11 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String tradingReview; // 매매 복기
 
-	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer) {
+	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer,
+		String title) {
 		return SwingRequestDetail.builder()
 			.customer(customer)
+			.title(title)
 			.feedbackYear(request.getFeedbackYear())
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())

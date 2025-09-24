@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.CreateFeedbackResponseRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.UpdateFeedbackResponseRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
@@ -39,10 +38,10 @@ public class FeedbackResponseV1Controller {
 	public BaseResponse<FeedbackResponseDTO> createFeedbackResponse(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@Valid @RequestBody CreateFeedbackResponseRequestDTO request,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long trainerId) {
 
 		return BaseResponse.onSuccessCreate(feedbackResponseCommandService.createFeedbackResponse(
-			feedbackRequestId, request, userDetails.getId()));
+			feedbackRequestId, request, trainerId));
 	}
 
 	@Operation(summary = "피드백 답변 수정", description = "피드백 답변을 수정합니다. (답변 작성자만 가능)")
@@ -51,10 +50,9 @@ public class FeedbackResponseV1Controller {
 	public BaseResponse<FeedbackResponseDTO> updateFeedbackResponse(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@Valid @RequestBody UpdateFeedbackResponseRequestDTO request,
-		@AuthenticationPrincipal CustomUserDetails userDetails) {
+		@AuthenticationPrincipal(expression = "id") Long trainerId) {
 
 		return BaseResponse.onSuccess(feedbackResponseCommandService.updateFeedbackResponse(
-			feedbackRequestId, request, userDetails.getId()));
+			feedbackRequestId, request, trainerId));
 	}
 }
-
