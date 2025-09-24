@@ -20,6 +20,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -156,17 +158,49 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
-	public long countDayRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate) {
-		QDayRequestDetail qDay = QDayRequestDetail.dayRequestDetail;
+	public long countRequestsByCustomerAndDateAndType(
+		Long customerId,
+		LocalDate feedbackDate,
+		FeedbackType feedbackType
+	) {
+		Long count;
 
-		Long count = queryFactory
-			.select(qDay.count())
-			.from(qDay)
-			.where(
-				qDay.customer.id.eq(customerId)
-					.and(qDay.feedbackRequestedAt.eq(feedbackDate))
-			)
-			.fetchOne();
+		switch (feedbackType) {
+			case DAY -> {
+				QDayRequestDetail qDay = QDayRequestDetail.dayRequestDetail;
+				count = queryFactory
+					.select(qDay.count())
+					.from(qDay)
+					.where(
+						qDay.customer.id.eq(customerId)
+							.and(qDay.feedbackRequestedAt.eq(feedbackDate))
+					)
+					.fetchOne();
+			}
+			case SCALPING -> {
+				QScalpingRequestDetail qScalping = QScalpingRequestDetail.scalpingRequestDetail;
+				count = queryFactory
+					.select(qScalping.count())
+					.from(qScalping)
+					.where(
+						qScalping.customer.id.eq(customerId)
+							.and(qScalping.feedbackRequestedAt.eq(feedbackDate))
+					)
+					.fetchOne();
+			}
+			case SWING -> {
+				QSwingRequestDetail qSwing = QSwingRequestDetail.swingRequestDetail;
+				count = queryFactory
+					.select(qSwing.count())
+					.from(qSwing)
+					.where(
+						qSwing.customer.id.eq(customerId)
+							.and(qSwing.feedbackRequestedAt.eq(feedbackDate))
+					)
+					.fetchOne();
+			}
+			default -> throw new FeedbackRequestException(FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
+		}
 
 		return count != null ? count : 0L;
 	}

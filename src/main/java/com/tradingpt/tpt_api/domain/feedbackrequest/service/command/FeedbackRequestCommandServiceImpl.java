@@ -17,6 +17,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
@@ -49,8 +50,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
-		String title = buildDayRequestTitle(request.getRequestDate(),
-			feedbackRequestRepository.countDayRequestsByCustomerAndDate(customerId, request.getRequestDate()) + 1);
+		String title = buildFeedbackTitle(request.getRequestDate(),
+			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
+				customerId, request.getRequestDate(), FeedbackType.DAY) + 1);
 
 		// DayRequestDetail 생성
 		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
@@ -77,8 +79,12 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
+		String title = buildFeedbackTitle(request.getRequestDate(),
+			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
+				customerId, request.getRequestDate(), FeedbackType.SCALPING) + 1);
+
 		// ScalpingRequestDetail 생성
-		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period);
+		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
@@ -100,8 +106,12 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		String title = buildFeedbackTitle(request.getRequestDate(),
+			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
+				customerId, request.getRequestDate(), FeedbackType.SWING) + 1);
+
 		// SwingRequestDetail 생성
-		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer);
+		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer, title);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
@@ -138,7 +148,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 	}
 
-	private String buildDayRequestTitle(LocalDate requestDate, long order) {
+	private String buildFeedbackTitle(LocalDate requestDate, long order) {
 		int month = requestDate.getMonthValue();
 		int day = requestDate.getDayOfMonth();
 		return String.format("%d/%d (%d) 작성완료", month, day, order);

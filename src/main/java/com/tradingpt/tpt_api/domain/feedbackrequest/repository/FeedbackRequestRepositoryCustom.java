@@ -53,5 +53,9 @@ public interface FeedbackRequestRepositoryCustom {
 	 * @param feedbackDate 피드백 요청 날짜
 	 * @return 해당 날짜의 요청 수
 	 */
-	long countDayRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate);
+	long countRequestsByCustomerAndDateAndType(
+		Long customerId,
+		LocalDate feedbackDate,
+		FeedbackType feedbackType
+	);
 }

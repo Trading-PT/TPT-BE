@@ -52,9 +52,10 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	private String trendAnalysis; // 15분봉 기준 추세 분석
 
 	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer,
-		FeedbackPeriodUtil.FeedbackPeriod period) {
+		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
 		return ScalpingRequestDetail.builder()
 			.customer(customer)
+			.title(title)
 			.feedbackRequestedAt(request.getRequestDate())
 			.isCourseCompleted(request.getIsCourseCompleted())
 			.feedbackYear(period.year())
