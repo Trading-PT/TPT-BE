@@ -31,7 +31,7 @@ public class KakaoResponse implements OAuth2Response {
     }
 
     /**
-     * 카카오 계정 이메일 반환 (없을 수도도 있음)
+     * 카카오 계정 이메일 반환 (없을 수도 있음)
      */
     @Override
     public String getEmail() {

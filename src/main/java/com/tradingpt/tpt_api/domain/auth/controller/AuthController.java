@@ -1,24 +1,25 @@
 package com.tradingpt.tpt_api.domain.auth.controller;
 
+import com.tradingpt.tpt_api.domain.auth.dto.request.FindIdRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.SendEmailCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequest;
 import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
+import com.tradingpt.tpt_api.domain.auth.dto.response.FindIdResponse;
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
 import com.tradingpt.tpt_api.domain.auth.dto.response.SocialInfoResponse;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetails;
 import com.tradingpt.tpt_api.domain.auth.service.AuthService;
-import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import com.tradingpt.tpt_api.global.exception.AuthException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +33,7 @@ public class AuthController {
 
 	private final AuthService authService;
 	private final UserRepository userRepository;
+	private final UserService userService;
 
 	@Operation(summary = "휴대폰 인증코드 발송", description = "휴대폰 번호로 6자리 인증코드를 발송하고 세션에 OTP/만료시각을 저장합니다.")
 	@PostMapping("/phone/code")
@@ -82,7 +84,7 @@ public class AuthController {
 	@GetMapping("/me")
 	public BaseResponse<MeResponse> me(Authentication authentication) {
 		CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
-		MeResponse response = new MeResponse(principal.getId(), principal.getUsername(), principal.getRole().name());
+		MeResponse response = userService.getMe(principal.getId());
 		return BaseResponse.onSuccess(response);
 	}
 
@@ -104,6 +106,13 @@ public class AuthController {
 		);
 
 		return BaseResponse.onSuccess(dto);
+	}
+
+	@Operation(summary = "이메일로 유저 ID 찾기", description = "email을 입력하면 해당 유저의 내부 PK(ID)를 반환합니다.")
+	@PostMapping("/id/find")
+	public BaseResponse<FindIdResponse> findIdByEmail(@Valid @RequestBody FindIdRequest req) {
+		FindIdResponse response = userService.findUserId(req.getEmail());
+		return BaseResponse.onSuccess(response);
 	}
 
 }
