@@ -96,6 +96,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final StringPath subFrame = createString("subFrame");
 
+    //inherited
+    public final StringPath title;
+
     public final StringPath tradingReview = createString("tradingReview");
 
     public final StringPath trainerFeedbackRequestContent = createString("trainerFeedbackRequestContent");
@@ -140,6 +143,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
         this.status = _super.status;
+        this.title = _super.title;
         this.updatedAt = _super.updatedAt;
     }
 

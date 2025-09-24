@@ -53,6 +53,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
 
+    public final StringPath title = createString("title");
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 

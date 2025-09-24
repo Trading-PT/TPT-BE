@@ -47,6 +47,15 @@ public interface FeedbackRequestRepositoryCustom {
 	);
 
 	/**
+	 * 특정 고객이 특정 날짜에 생성한 모든 피드백 요청을 조회한다.
+	 *
+	 * @param customerId 고객 ID
+	 * @param feedbackDate 피드백 요청 날짜
+	 * @return 해당 날짜의 피드백 요청 목록 (생성 시간 오름차순)
+	 */
+	List<FeedbackRequest> findFeedbackRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate);
+
+	/**
 	 * 특정 고객이 해당 날짜에 작성한 데이 피드백 요청 개수를 반환한다.
 	 *
 	 * @param customerId 고객 ID

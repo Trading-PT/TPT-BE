@@ -140,6 +140,18 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		return allResults;
 	}
 
+	@Override
+	public List<FeedbackRequest> findFeedbackRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate) {
+		return queryFactory
+			.selectFrom(qFeedbackRequest)
+			.where(
+				qFeedbackRequest.customer.id.eq(customerId)
+					.and(qFeedbackRequest.feedbackRequestedAt.eq(feedbackDate))
+			)
+			.orderBy(qFeedbackRequest.createdAt.asc())
+			.fetch();
+	}
+
 	/**
 	 * 기본 조건을 위한 Predicate 빌드 (상태 및 고객 ID만)
 	 */
