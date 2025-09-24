@@ -14,6 +14,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
@@ -149,6 +152,36 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.and(qFeedbackRequest.feedbackRequestedAt.eq(feedbackDate))
 			)
 			.orderBy(qFeedbackRequest.createdAt.asc())
+			.fetch();
+	}
+
+	@Override
+	public List<MonthlyFeedbackSummaryResult> findMonthlySummaryByYear(Long customerId, Integer year) {
+		NumberExpression<Integer> unreadCase = new CaseBuilder()
+			.when(qFeedbackRequest.status.eq(Status.FN))
+			.then(1)
+			.otherwise(0);
+
+		NumberExpression<Integer> pendingCase = new CaseBuilder()
+			.when(qFeedbackRequest.status.eq(Status.N))
+			.then(1)
+			.otherwise(0);
+
+		return queryFactory
+			.select(Projections.constructor(
+				MonthlyFeedbackSummaryResult.class,
+				qFeedbackRequest.feedbackMonth,
+				qFeedbackRequest.count(),
+				unreadCase.sum().coalesce(0),
+				pendingCase.sum().coalesce(0)
+			))
+			.from(qFeedbackRequest)
+			.where(
+				qFeedbackRequest.customer.id.eq(customerId),
+				qFeedbackRequest.feedbackYear.eq(year)
+			)
+			.groupBy(qFeedbackRequest.feedbackMonth)
+			.orderBy(qFeedbackRequest.feedbackMonth.asc())
 			.fetch();
 	}
 

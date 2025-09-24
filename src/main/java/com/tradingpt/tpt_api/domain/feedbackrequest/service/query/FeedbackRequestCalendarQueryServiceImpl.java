@@ -8,9 +8,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.repository.MonthlyFeedbackSummaryResult;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -25,21 +26,36 @@ public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestC
 	private final FeedbackRequestRepository feedbackRequestRepository;
 
 	@Override
-	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Long customerId) {
-		return null;
+	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
+		List<MonthlyFeedbackSummaryResult> monthlySummaries = feedbackRequestRepository
+			.findMonthlySummaryByYear(customerId, year);
+
+		List<YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO> months = monthlySummaries.stream()
+			.map(summary -> YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO.builder()
+				.month(summary.month())
+				.totalCount(summary.totalCount().intValue())
+				.hasUnreadFeedbackResponse(summary.unreadCount() != null && summary.unreadCount() > 0)
+				.hasPendingTrainerResponse(summary.pendingCount() != null && summary.pendingCount() > 0)
+				.build())
+			.toList();
+
+		return YearlySummaryResponseDTO.of(year, months);
 	}
 
 	@Override
-	public DailyFeedbackRequestsResponseDTO getDailyFeedbackRequestsResponse(Integer year, Integer month, Integer day, Long customerId) {
+	public DailyFeedbackRequestsResponseDTO getDailyFeedbackRequestsResponse(Integer year, Integer month, Integer day,
+		Long customerId) {
 		LocalDate feedbackDate = LocalDate.of(year, month, day);
 
 		List<FeedbackRequest> feedbackRequests = feedbackRequestRepository
 			.findFeedbackRequestsByCustomerAndDate(customerId, feedbackDate);
 
-		List<DailyFeedbackRequestsResponseDTO.DailyFeedbackRequestSummaryDTO> summaries = new ArrayList<>(feedbackRequests.size());
+		List<DailyFeedbackRequestsResponseDTO.DailyFeedbackRequestSummaryDTO> summaries = new ArrayList<>(
+			feedbackRequests.size());
 		int dailySequence = 1;
 		for (FeedbackRequest feedbackRequest : feedbackRequests) {
-			summaries.add(DailyFeedbackRequestsResponseDTO.DailyFeedbackRequestSummaryDTO.of(feedbackRequest, dailySequence++));
+			summaries.add(
+				DailyFeedbackRequestsResponseDTO.DailyFeedbackRequestSummaryDTO.of(feedbackRequest, dailySequence++));
 		}
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(feedbackDate);
