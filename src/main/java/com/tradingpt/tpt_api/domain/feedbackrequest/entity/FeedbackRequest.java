@@ -68,6 +68,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 	/**
 	 * 필드
 	 */
+	private String title;
+
 	private LocalDate feedbackRequestedAt; // 피드백 요청 일자
 
 	private Boolean isCourseCompleted; // 완강 여부

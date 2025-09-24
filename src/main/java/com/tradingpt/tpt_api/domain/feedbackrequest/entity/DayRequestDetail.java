@@ -82,9 +82,10 @@ public class DayRequestDetail extends FeedbackRequest {
 	private String tradingReview; // 매매 복기
 
 	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer,
-		FeedbackPeriodUtil.FeedbackPeriod period) {
+		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
 		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
+			.title(title)
 			.feedbackYear(period.year())
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())

@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,10 +46,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
+		String title = buildDayRequestTitle(request.getRequestDate(),
+			feedbackRequestRepository.countDayRequestsByCustomerAndDate(customerId, request.getRequestDate()) + 1);
+
 		// DayRequestDetail 생성
-		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period);
+		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
 
 		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
 		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
@@ -130,6 +136,12 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private Customer getCustomerById(Long customerId) {
 		return (Customer)userRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+	}
+
+	private String buildDayRequestTitle(LocalDate requestDate, long order) {
+		int month = requestDate.getMonthValue();
+		int day = requestDate.getDayOfMonth();
+		return String.format("%d/%d (%d) 작성완료", month, day, order);
 	}
 
 }
