@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.auth.service;
 
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -94,18 +95,19 @@ public class AuthServiceImpl implements AuthService {
 		userService.ensureUnique(req.getUsername(), email, phone);
 
 		Customer customer = Customer.builder()
-				.username(req.getUsername())
-				.password(passwordEncoder.encode(req.getPassword()))
-				.email(email)
-				.name(req.getName())
-				.provider(Provider.LOCAL)
-				.phoneNumber(phone)
-				.membershipLevel(MembershipLevel.BASIC)
-				.membershipExpiredAt(null)
-				.openChapterNumber(null)
-				.status(AccountStatus.ACTIVE)
-				.primaryInvestmentType(req.getInvestmentType())
-				.build();
+			.username(req.getUsername())
+			.password(passwordEncoder.encode(req.getPassword()))
+			.email(email)
+			.name(req.getName())
+			.provider(Provider.LOCAL)
+			.phoneNumber(phone)
+			.membershipLevel(MembershipLevel.BASIC)
+			.membershipExpiredAt(null)
+			.openChapterNumber(null)
+			.status(AccountStatus.ACTIVE)
+			.build();
+
+		customer.changeInvestmentType(req.getInvestmentType(), LocalDate.now());
 
 		attachUids(customer, req);     // 자식 먼저 붙이고
 		userRepository.save(customer); // 저장은 한 번 (cascade로 Uid 함께 INSERT)
@@ -133,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
 		}
 		customer.setMembershipExpiredAt(null);
 		customer.setOpenChapterNumber(null);
-		customer.setPrimaryInvestmentType(req.getInvestmentType());
+		customer.changeInvestmentType(req.getInvestmentType(), LocalDate.now());
 
 		// UID 병합/설정
 		attachUids(customer, req);

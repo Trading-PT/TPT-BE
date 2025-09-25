@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.investmenthistory.entity;
 
+import java.time.LocalDate;
+
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
@@ -45,5 +47,40 @@ public class InvestmentHistory extends BaseEntity {
 	 * 필드
 	 */
 	@Enumerated(EnumType.STRING)
+	@Column(name = "investment_type", nullable = false)
 	private InvestmentType investmentType;
+	
+	@Column(name = "started_at", nullable = false)
+	private LocalDate startedAt;
+
+	@Column(name = "ended_at")
+	private LocalDate endedAt;
+
+	public void assignCustomer(Customer customer) {
+		this.customer = customer;
+	}
+
+	public void closeAt(LocalDate endDate) {
+		if (endDate == null) {
+			return;
+		}
+		if (startedAt != null && endDate.isBefore(startedAt)) {
+			this.endedAt = startedAt;
+			return;
+		}
+		this.endedAt = endDate;
+	}
+
+	public boolean isActiveOn(LocalDate targetDate) {
+		if (targetDate == null) {
+			return false;
+		}
+		boolean startsBeforeOrEquals = startedAt == null || !startedAt.isAfter(targetDate);
+		boolean endsAfterOrEquals = endedAt == null || !endedAt.isBefore(targetDate);
+		return startsBeforeOrEquals && endsAfterOrEquals;
+	}
+
+	public boolean isOngoing() {
+		return endedAt == null;
+	}
 }

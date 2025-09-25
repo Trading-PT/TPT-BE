@@ -29,9 +29,13 @@ public class QInvestmentHistory extends EntityPathBase<InvestmentHistory> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    public final DatePath<java.time.LocalDate> endedAt = createDate("endedAt", java.time.LocalDate.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
+
+    public final DatePath<java.time.LocalDate> startedAt = createDate("startedAt", java.time.LocalDate.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
