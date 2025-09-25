@@ -35,13 +35,7 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
-    public final NumberPath<Integer> monthlyAvgRatio = createNumber("monthlyAvgRatio", Integer.class);
-
     public final StringPath monthlyEvaluation = createString("monthlyEvaluation");
-
-    public final NumberPath<java.math.BigDecimal> monthlyFinalPnl = createNumber("monthlyFinalPnl", java.math.BigDecimal.class);
-
-    public final NumberPath<Integer> monthlyWinRate = createNumber("monthlyWinRate", Integer.class);
 
     public final StringPath nextMonthGoal = createString("nextMonthGoal");
 
