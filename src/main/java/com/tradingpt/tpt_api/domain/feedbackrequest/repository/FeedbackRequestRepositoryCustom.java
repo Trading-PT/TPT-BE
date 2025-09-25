@@ -56,6 +56,15 @@ public interface FeedbackRequestRepositoryCustom {
 	List<FeedbackRequest> findFeedbackRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate);
 
 	/**
+	 * 특정 연도에 대해 고객의 월별 피드백 요약 정보를 조회한다.
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 조회 연도
+	 * @return 월별 요청 수/읽지 않은 답변/답변 대기 여부를 포함한 요약 결과
+	 */
+	List<MonthlyFeedbackSummaryResult> findMonthlySummaryByYear(Long customerId, Integer year);
+
+	/**
 	 * 특정 고객이 해당 날짜에 작성한 데이 피드백 요청 개수를 반환한다.
 	 *
 	 * @param customerId 고객 ID
