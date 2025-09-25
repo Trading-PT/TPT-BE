@@ -24,8 +24,8 @@ public class RedisSessionConfig {
         s.setCookieName("SESSION");
         s.setCookiePath("/");
         s.setUseBase64Encoding(true);
-        s.setSameSite("Lax");      // 크로스 도메인이면 "None" + Secure=true
-        s.setUseSecureCookie(false); // 운영은 true 권장
+        s.setSameSite("None");      // ★ 리다이렉트/크로스-사이트 대응
+        s.setUseSecureCookie(true);
         return s;
     }
 
