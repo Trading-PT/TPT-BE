@@ -23,8 +23,8 @@ public class FeedbackRequestCalendarV1Controller {
 
 	private final FeedbackRequestCalendarQueryService feedbackRequestCalendarQueryService;
 
-	@Operation(summary = "해당 연도에 대한 월별 피드백 요청 리스트"
-		, description = "해당 연도에 대한 피드백 요청이 존재하는 월을 리스트업 합니다.")
+	@Operation(summary = "해당 연도에 대한 월별 피드백 요청 리스트",
+		description = "해당 연도에 대한 피드백 요청이 존재하는 월을 리스트업 합니다.")
 	@GetMapping("/years/{year}")
 	public BaseResponse<YearlySummaryResponseDTO> getYearlySummaryResponse(
 		@PathVariable Integer year,
@@ -34,8 +34,8 @@ public class FeedbackRequestCalendarV1Controller {
 			feedbackRequestCalendarQueryService.getYearlySummaryResponse(year, customerId));
 	}
 
-	@Operation(summary = "해당 연/월/일에 대한 일별 피드백 요청 리스트"
-		, description = "해당 날짜에 대한 피드백 요청을 리스트업 합니다.")
+	@Operation(summary = "해당 연/월/일에 대한 일별 피드백 요청 리스트",
+		description = "해당 날짜에 대한 피드백 요청을 리스트업 합니다.")
 	@GetMapping("/years/{year}/months/{month}/days/{day}")
 	public BaseResponse<DailyFeedbackRequestsResponseDTO> getDailyFeedbackRequestsResponse(
 		@PathVariable Integer year,
