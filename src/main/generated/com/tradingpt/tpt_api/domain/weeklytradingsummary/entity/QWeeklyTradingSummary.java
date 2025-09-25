@@ -29,13 +29,13 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    public final DateTimePath<java.time.LocalDateTime> evaluatedAt = createDateTime("evaluatedAt", java.time.LocalDateTime.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
     public final QWeeklyPeriod period;
-
-    public final NumberPath<Integer> tradingCount = createNumber("tradingCount", Integer.class);
 
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
 
@@ -45,8 +45,6 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
     public final StringPath weeklyEvaluation = createString("weeklyEvaluation");
 
     public final StringPath weeklyLossTradingAnalysis = createString("weeklyLossTradingAnalysis");
-
-    public final NumberPath<java.math.BigDecimal> weeklyPnl = createNumber("weeklyPnl", java.math.BigDecimal.class);
 
     public final StringPath weeklyProfitableTradingAnalysis = createString("weeklyProfitableTradingAnalysis");
 
