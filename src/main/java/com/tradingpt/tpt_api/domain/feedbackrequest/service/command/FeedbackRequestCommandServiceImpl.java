@@ -51,6 +51,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.DAY);
 
+		// 사용자의 멤버쉽 체크
+
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
@@ -114,7 +116,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Customer customer = getCustomerById(customerId);
 
 		customer.checkTradingType(InvestmentType.SWING);
-		
+
 		String title = buildFeedbackTitle(request.getRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
 				customerId, request.getRequestDate(), FeedbackType.SWING) + 1);
