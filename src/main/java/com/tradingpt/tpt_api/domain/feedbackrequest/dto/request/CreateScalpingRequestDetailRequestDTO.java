@@ -28,6 +28,9 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
 
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
+
 	@Schema(description = "종목")
 	private String category;
 

@@ -74,6 +74,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private LocalDate feedbackRequestedAt; // 피드백 요청 일자
 
+	private String positionHoldingTime; // 포지션 홀딩 시간
+
 	// private Boolean isCourseCompleted; // 완강 여부
 
 	@Enumerated(EnumType.STRING)

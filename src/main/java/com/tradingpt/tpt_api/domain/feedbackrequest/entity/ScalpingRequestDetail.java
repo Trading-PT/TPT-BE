@@ -53,6 +53,7 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 			.customer(customer)
 			.title(title)
 			.feedbackRequestedAt(request.getRequestDate())
+			.positionHoldingTime(request.getPositionHoldingTime())
 			.courseStatus(request.getCourseStatus())
 			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.feedbackYear(period.year())

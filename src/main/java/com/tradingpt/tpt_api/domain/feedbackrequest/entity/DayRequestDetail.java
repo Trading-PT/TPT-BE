@@ -37,8 +37,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	 */
 	private String category; // 종목
 
-	private String positionHoldingTime; // 포지션 홀딩 시간
-
 	private Integer riskTaking; // 리스크 테이킹
 
 	private Integer leverage; // 레버리지
@@ -86,6 +84,7 @@ public class DayRequestDetail extends FeedbackRequest {
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
 			.feedbackRequestedAt(request.getRequestDate())
+			.positionHoldingTime(request.getPositionHoldingTime())
 			.courseStatus(request.getCourseStatus())
 			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())

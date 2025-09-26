@@ -88,6 +88,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())
 			.feedbackRequestedAt(request.getRequestDate())
+			.positionHoldingTime(request.getPositionHoldingTime())
 			.courseStatus(request.getCourseStatus())
 			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())

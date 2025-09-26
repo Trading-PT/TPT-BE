@@ -140,7 +140,6 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.isBestFeedback(dayRequest.getIsBestFeedback())
 			.updatedAt(dayRequest.getUpdatedAt())
 			.category(dayRequest.getCategory())
-			.positionHoldingTime(dayRequest.getPositionHoldingTime())
 			.screenshotImageUrls(
 				dayRequest.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)
