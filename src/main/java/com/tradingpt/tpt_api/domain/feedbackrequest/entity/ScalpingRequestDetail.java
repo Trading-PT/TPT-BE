@@ -40,12 +40,6 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	private Integer totalProfitMarginPerTrades; // 총 매매 횟수 대비 수익 매매횟수
 
 	@Lob
-	private String positionStartReason; // 스켈핑 시 포지션을 진입하는 근거
-
-	@Lob
-	private String positionEndReason; // 스켈핑 시 포지션을 종료하는 근거
-
-	@Lob
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	@Lob
@@ -53,11 +47,15 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 
 	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer,
 		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
+		PreCourseFeedbackDetail preCourseFeedbackDetail = request.toPreCourseFeedbackDetail();
+
 		return ScalpingRequestDetail.builder()
 			.customer(customer)
 			.title(title)
 			.feedbackRequestedAt(request.getRequestDate())
-			.isCourseCompleted(request.getIsCourseCompleted())
+			.positionHoldingTime(request.getPositionHoldingTime())
+			.courseStatus(request.getCourseStatus())
+			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.feedbackYear(period.year())
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
@@ -67,8 +65,6 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 			.leverage(request.getLeverage())
 			.totalPositionTakingCount(request.getTotalPositionTakingCount())
 			.totalProfitMarginPerTrades(request.getTotalProfitMarginPerTrades())
-			.positionStartReason(request.getPositionStartReason())
-			.positionEndReason(request.getPositionEndReason())
 			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
 			.trendAnalysis(request.getTrendAnalysis())
 			.build();

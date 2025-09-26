@@ -24,6 +24,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final QUser _super = new QUser(this);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
@@ -35,7 +37,7 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final NumberPath<Long> id = _super.id;
 
-    public final BooleanPath isCourseCompleted = createBoolean("isCourseCompleted");
+    public final ListPath<com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory, com.tradingpt.tpt_api.domain.investmenthistory.entity.QInvestmentHistory> investmentHistories = this.<com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory, com.tradingpt.tpt_api.domain.investmenthistory.entity.QInvestmentHistory>createList("investmentHistories", com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory.class, com.tradingpt.tpt_api.domain.investmenthistory.entity.QInvestmentHistory.class, PathInits.DIRECT2);
 
     public final DateTimePath<java.time.LocalDateTime> membershipExpiredAt = createDateTime("membershipExpiredAt", java.time.LocalDateTime.class);
 

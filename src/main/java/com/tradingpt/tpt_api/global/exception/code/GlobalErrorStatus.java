@@ -35,7 +35,8 @@ public enum GlobalErrorStatus implements BaseCodeInterface {
 	// Common 5000번대 에러
 	DATABASE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5001", "데이터베이스 오류가 발생했습니다."),
 	EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON5002", "외부 API 호출 중 오류가 발생했습니다."),
-	SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON5003", "서비스를 일시적으로 사용할 수 없습니다.");
+	SERVICE_UNAVAILABLE(HttpStatus.SERVICE_UNAVAILABLE, "COMMON5003", "서비스를 일시적으로 사용할 수 없습니다."),
+	;
 
 	private final HttpStatus httpStatus;
 	private final boolean isSuccess = false;

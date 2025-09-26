@@ -2,6 +2,8 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
 import java.util.List;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.repository.MonthlyFeedbackSummaryResult;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -47,5 +49,14 @@ public class YearlySummaryResponseDTO {
 
 		@Schema(description = "해당 월에 트레이너 답변 대기 상태의 요청이 존재하는지 여부")
 		private Boolean hasPendingTrainerResponse;
+
+		public static MonthlyFeedbackSummaryDTO of(MonthlyFeedbackSummaryResult summary) {
+			return YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO.builder()
+				.month(summary.month())
+				.totalCount(summary.totalCount().intValue())
+				.hasUnreadFeedbackResponse(summary.unreadCount() != null && summary.unreadCount() > 0)
+				.hasPendingTrainerResponse(summary.pendingCount() != null && summary.pendingCount() > 0)
+				.build();
+		}
 	}
 }

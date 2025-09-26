@@ -27,6 +27,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final StringPath category = createString("category");
 
     //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus;
+
+    //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt;
 
     // inherited
@@ -67,9 +70,6 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final BooleanPath isBestFeedback;
 
     //inherited
-    public final BooleanPath isCourseCompleted;
-
-    //inherited
     public final BooleanPath isRead;
 
     //inherited
@@ -83,11 +83,11 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
-    public final StringPath positionEndReason = createString("positionEndReason");
+    //inherited
+    public final StringPath positionHoldingTime;
 
-    public final StringPath positionHoldingTime = createString("positionHoldingTime");
-
-    public final StringPath positionStartReason = createString("positionStartReason");
+    // inherited
+    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
@@ -129,6 +129,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public QDayRequestDetail(Class<? extends DayRequestDetail> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this._super = new QFeedbackRequest(type, metadata, inits);
+        this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
         this.feedbackMonth = _super.feedbackMonth;
@@ -139,9 +140,10 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.feedbackYear = _super.feedbackYear;
         this.id = _super.id;
         this.isBestFeedback = _super.isBestFeedback;
-        this.isCourseCompleted = _super.isCourseCompleted;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.positionHoldingTime = _super.positionHoldingTime;
+        this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;
         this.updatedAt = _super.updatedAt;

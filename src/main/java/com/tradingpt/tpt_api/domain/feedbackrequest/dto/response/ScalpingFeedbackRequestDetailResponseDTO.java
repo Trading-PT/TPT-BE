@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttach
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -33,7 +34,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	private FeedbackType feedbackType;
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "피드백 요청 연도")
 	private Integer feedbackYear;
@@ -58,6 +59,9 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 
 	@Schema(description = "종목")
 	private String category;
+
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
 
 	@Schema(description = "하루 매매 횟수")
 	private Integer dailyTradingCount;
@@ -94,7 +98,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.id(scalpingRequest.getId())
 			.createdAt(scalpingRequest.getCreatedAt())
 			.feedbackType(scalpingRequest.getFeedbackType())
-			.isCourseCompleted(scalpingRequest.getIsCourseCompleted())
+			.courseStatus(scalpingRequest.getCourseStatus())
 			.feedbackYear(scalpingRequest.getFeedbackYear())
 			.feedbackMonth(scalpingRequest.getFeedbackMonth())
 			.feedbackWeek(scalpingRequest.getFeedbackWeek())
@@ -103,6 +107,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.isBestFeedback(scalpingRequest.getIsBestFeedback())
 			.updatedAt(scalpingRequest.getUpdatedAt())
 			.category(scalpingRequest.getCategory())
+			.positionHoldingTime(scalpingRequest.getPositionHoldingTime())
 			.dailyTradingCount(scalpingRequest.getDailyTradingCount())
 			.screenshotImageUrls(
 				scalpingRequest.getFeedbackRequestAttachments().stream()

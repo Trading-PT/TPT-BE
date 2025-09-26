@@ -27,6 +27,9 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     public final StringPath category = createString("category");
 
     //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus;
+
+    //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt;
 
     // inherited
@@ -67,9 +70,6 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     public final BooleanPath isBestFeedback;
 
     //inherited
-    public final BooleanPath isCourseCompleted;
-
-    //inherited
     public final BooleanPath isRead;
 
     //inherited
@@ -85,11 +85,13 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final DatePath<java.time.LocalDate> positionEndDate = createDate("positionEndDate", java.time.LocalDate.class);
 
-    public final StringPath positionEndReason = createString("positionEndReason");
+    //inherited
+    public final StringPath positionHoldingTime;
 
     public final DatePath<java.time.LocalDate> positionStartDate = createDate("positionStartDate", java.time.LocalDate.class);
 
-    public final StringPath positionStartReason = createString("positionStartReason");
+    // inherited
+    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
@@ -131,6 +133,7 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     public QSwingRequestDetail(Class<? extends SwingRequestDetail> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this._super = new QFeedbackRequest(type, metadata, inits);
+        this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
         this.feedbackMonth = _super.feedbackMonth;
@@ -141,9 +144,10 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this.feedbackYear = _super.feedbackYear;
         this.id = _super.id;
         this.isBestFeedback = _super.isBestFeedback;
-        this.isCourseCompleted = _super.isCourseCompleted;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.positionHoldingTime = _super.positionHoldingTime;
+        this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;
         this.updatedAt = _super.updatedAt;

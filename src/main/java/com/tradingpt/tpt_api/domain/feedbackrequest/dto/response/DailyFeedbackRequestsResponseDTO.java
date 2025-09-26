@@ -7,6 +7,7 @@ import java.util.List;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -34,6 +35,9 @@ public class DailyFeedbackRequestsResponseDTO {
 	@Schema(description = "피드백 요청 일자")
 	private LocalDate feedbackDate;
 
+	@Schema(description = "해당 날짜의 투자 유형")
+	private InvestmentType investmentType;
+
 	@Schema(description = "해당 날짜의 피드백 요청 개수")
 	private Integer totalCount;
 
@@ -46,6 +50,7 @@ public class DailyFeedbackRequestsResponseDTO {
 		Integer feedbackYear,
 		Integer feedbackMonth,
 		Integer feedbackWeek,
+		InvestmentType investmentType,
 		List<DailyFeedbackRequestSummaryDTO> feedbackRequests
 	) {
 		return DailyFeedbackRequestsResponseDTO.builder()
@@ -53,6 +58,7 @@ public class DailyFeedbackRequestsResponseDTO {
 			.feedbackYear(feedbackYear)
 			.feedbackMonth(feedbackMonth)
 			.feedbackWeek(feedbackWeek)
+			.investmentType(investmentType)
 			.totalCount(feedbackRequests.size())
 			.feedbackRequests(feedbackRequests)
 			.build();

@@ -5,7 +5,13 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.PreCourseFeedbackDetail;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -17,10 +23,13 @@ import lombok.Setter;
 public class CreateScalpingRequestDetailRequestDTO {
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
+
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
 
 	@Schema(description = "종목")
 	private String category;
@@ -43,16 +52,34 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@Schema(description = "총 매매 횟수 대비 수익 매매횟수")
 	private Integer totalProfitMarginPerTrades;
 
-	@Schema(description = "스켈핑 시 포지션을 진입하는 근거")
-	private String positionStartReason;
-
-	@Schema(description = "스켈핑 시 포지션을 종료하는 근거")
-	private String positionEndReason;
-
 	@Schema(description = "담당 트레이너 피드백 요청 사항")
 	private String trainerFeedbackRequestContent;
 
 	@Schema(description = "15분봉 기준 추세 분석")
 	private String trendAnalysis;
+
+	@Valid
+	@Schema(description = "완강 전 고객이 입력하는 상세 정보")
+	private PreCourseFeedbackDetailRequestDTO preCourseFeedbackDetail;
+
+	@JsonIgnore
+	public PreCourseFeedbackDetail toPreCourseFeedbackDetail() {
+		if (courseStatus == null) {
+			return null;
+		}
+
+		return courseStatus == CourseStatus.BEFORE_COMPLETION && preCourseFeedbackDetail != null
+			? preCourseFeedbackDetail.toEntity()
+			: null;
+	}
+
+	@AssertTrue(message = "완강 전 요청은 preCourseFeedbackDetail 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isPreCourseDetailValid() {
+		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
+			return preCourseFeedbackDetail != null && !preCourseFeedbackDetail.isEmpty();
+		}
+		return true;
+	}
 
 }

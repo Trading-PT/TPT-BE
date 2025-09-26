@@ -12,6 +12,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -37,7 +38,7 @@ public class DayFeedbackRequestDetailResponseDTO {
 	private FeedbackType feedbackType;
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "피드백 요청 연도")
 	private Integer feedbackYear;
@@ -132,7 +133,7 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.feedbackType(dayRequest.getFeedbackType())
 			.status(dayRequest.getStatus())
 			.feedbackRequestedAt(dayRequest.getFeedbackRequestedAt())
-			.isCourseCompleted(dayRequest.getIsCourseCompleted())
+			.courseStatus(dayRequest.getCourseStatus())
 			.feedbackYear(dayRequest.getFeedbackYear())
 			.feedbackMonth(dayRequest.getFeedbackMonth())
 			.feedbackWeek(dayRequest.getFeedbackWeek())

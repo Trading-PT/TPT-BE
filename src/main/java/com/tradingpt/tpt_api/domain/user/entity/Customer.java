@@ -1,14 +1,22 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
+import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
+import com.tradingpt.tpt_api.domain.user.exception.UserException;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -54,6 +62,10 @@ public class Customer extends User {
 	@Builder.Default
 	private List<FeedbackRequest> feedbackRequests = new ArrayList<>();
 
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<InvestmentHistory> investmentHistories = new ArrayList<>();
+
 	/**
 	 * 필드
 	 */
@@ -75,8 +87,8 @@ public class Customer extends User {
 	@Column(name = "membership_expired_at")
 	private LocalDateTime membershipExpiredAt;
 
-	@Column(name = "is_course_completed")
-	private Boolean isCourseCompleted = Boolean.FALSE;
+	@Builder.Default
+	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
 
 	@Column(name = "open_chapter_number")
 	private Integer openChapterNumber;
@@ -125,8 +137,68 @@ public class Customer extends User {
 		this.openChapterNumber = openChapterNumber;
 	}
 
-	public void setPrimaryInvestmentType(InvestmentType investmentType) {
+	public void changeInvestmentType(InvestmentType investmentType, LocalDate effectiveDate) {
+		// 변경 일자가 비어 있으면 잘못된 요청으로 간주
+		if (effectiveDate == null) {
+			throw new UserException(UserErrorStatus.INVALID_INVESTMENT_HISTORY_REQUEST);
+		}
+
+		// 과거 데이터 대비 컬렉션이 비어있을 수 있으므로 방어적으로 초기화
+		if (investmentHistories == null) {
+			investmentHistories = new ArrayList<>();
+		}
+
+		// 현재 진행 중인 마지막 투자 유형 이력을 찾음
+		InvestmentHistory latestOngoing = investmentHistories.stream()
+			.filter(InvestmentHistory::isOngoing)
+			.max(Comparator.comparing(InvestmentHistory::getStartedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+			.orElse(null);
+
+		// 동일한 유형으로 변경 요청이 오면 새 이력 없이 현재 상태만 동기화
+		if (latestOngoing != null && latestOngoing.getInvestmentType() == investmentType) {
+			this.primaryInvestmentType = investmentType;
+			return;
+		}
+
+		// 기존에 열려 있던 이력은 종료일을 변경 전날로 설정
+		if (latestOngoing != null) {
+			latestOngoing.closeAt(effectiveDate.minusDays(1));
+		}
+
+		// 새로운 투자 유형이 지정되면 해당 일자부터 시작하는 이력을 추가
+		if (investmentType != null) {
+			InvestmentHistory history = InvestmentHistory.builder()
+				.customer(this)
+				.investmentType(investmentType)
+				.startedAt(effectiveDate)
+				.build();
+			history.assignCustomer(this);
+			investmentHistories.add(history);
+		}
+
+		// 현재 고객의 주 투자 유형 값을 최신 상태로 반영
 		this.primaryInvestmentType = investmentType;
+	}
+
+	public InvestmentType getInvestmentTypeOn(LocalDate date) {
+		// 조회 날짜가 없으면 현재 저장된 주 투자 유형으로 응답
+		if (date == null) {
+			return primaryInvestmentType;
+		}
+
+		// 해당 날짜에 유효한 이력 중 가장 최근 시작분을 찾아 투자 유형을 결정
+		return investmentHistories.stream()
+			.filter(history -> history.isActiveOn(date))
+			.max(Comparator.comparing(InvestmentHistory::getStartedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+			.map(InvestmentHistory::getInvestmentType)
+			.orElse(primaryInvestmentType);
+	}
+
+	// 사용자의 트레이딩 타입이 일치하지 않을 경우
+	public void checkTradingType(InvestmentType tradingType) {
+		if (primaryInvestmentType != null && !primaryInvestmentType.equals(tradingType)) {
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH);
+		}
 	}
 
 }

@@ -12,6 +12,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -37,7 +38,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	private FeedbackType feedbackType;
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "날짜")
 	private LocalDate feedbackRequestedAt;
@@ -62,6 +63,9 @@ public class SwingFeedbackRequestDetailResponseDTO {
 
 	@Schema(description = "종목")
 	private String category;
+
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
 
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
@@ -128,7 +132,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.id(swingRequest.getId())
 			.createdAt(swingRequest.getCreatedAt())
 			.feedbackType(swingRequest.getFeedbackType())
-			.isCourseCompleted(swingRequest.getIsCourseCompleted())
+			.courseStatus(swingRequest.getCourseStatus())
 			.feedbackRequestedAt(swingRequest.getFeedbackRequestedAt())
 			.status(swingRequest.getStatus())
 			.feedbackYear(swingRequest.getFeedbackYear())
@@ -137,6 +141,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.isBestFeedback(swingRequest.getIsBestFeedback())
 			.updatedAt(swingRequest.getUpdatedAt())
 			.category(swingRequest.getCategory())
+			.positionHoldingTime(swingRequest.getPositionHoldingTime())
 			.screenshotImageUrls(
 				swingRequest.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)

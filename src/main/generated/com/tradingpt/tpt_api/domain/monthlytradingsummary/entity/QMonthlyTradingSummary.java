@@ -43,8 +43,6 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
 
-    public final StringPath trainerEvaluation = createString("trainerEvaluation");
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 

@@ -8,11 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.MonthlyFeedbackSummaryResult;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
+import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
+import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentHistoryRepository;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestCalendarQueryService {
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
+	private final InvestmentHistoryRepository investmentHistoryRepository;
 
 	@Override
 	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
@@ -31,12 +36,7 @@ public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestC
 			.findMonthlySummaryByYear(customerId, year);
 
 		List<YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO> months = monthlySummaries.stream()
-			.map(summary -> YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO.builder()
-				.month(summary.month())
-				.totalCount(summary.totalCount().intValue())
-				.hasUnreadFeedbackResponse(summary.unreadCount() != null && summary.unreadCount() > 0)
-				.hasPendingTrainerResponse(summary.pendingCount() != null && summary.pendingCount() > 0)
-				.build())
+			.map(YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO::of)
 			.toList();
 
 		return YearlySummaryResponseDTO.of(year, months);
@@ -59,13 +59,24 @@ public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestC
 		}
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(feedbackDate);
+		InvestmentType investmentType = investmentHistoryRepository
+			.findActiveHistory(customerId, feedbackDate)
+			.map(InvestmentHistory::getInvestmentType)
+			.orElseGet(() -> feedbackRequests.isEmpty() ? null :
+				feedbackRequests.get(0).getCustomer().getInvestmentTypeOn(feedbackDate));
 
 		return DailyFeedbackRequestsResponseDTO.of(
 			feedbackDate,
 			period.year(),
 			period.month(),
 			period.week(),
+			investmentType,
 			summaries
 		);
+	}
+
+	@Override
+	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
+		return null;
 	}
 }
