@@ -9,6 +9,7 @@ import java.util.List;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
@@ -84,8 +85,8 @@ public class Customer extends User {
 	@Column(name = "membership_expired_at")
 	private LocalDateTime membershipExpiredAt;
 
-	@Column(name = "is_course_completed")
-	private Boolean isCourseCompleted = Boolean.FALSE;
+	@Builder.Default
+	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
 
 	@Column(name = "open_chapter_number")
 	private Integer openChapterNumber;
@@ -189,6 +190,13 @@ public class Customer extends User {
 			.max(Comparator.comparing(InvestmentHistory::getStartedAt, Comparator.nullsLast(Comparator.naturalOrder())))
 			.map(InvestmentHistory::getInvestmentType)
 			.orElse(primaryInvestmentType);
+	}
+
+	// 사용자의 트레이딩 타입이 일치하지 않을 경우
+	public void checkTradingType(InvestmentType tradingType) {
+		if (primaryInvestmentType != null && !primaryInvestmentType.equals(tradingType)) {
+			throw new UserException(UserErrorStatus.INVALID_INVESTMENT_HISTORY_REQUEST);
+		}
 	}
 
 }

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
@@ -35,12 +36,7 @@ public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestC
 			.findMonthlySummaryByYear(customerId, year);
 
 		List<YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO> months = monthlySummaries.stream()
-			.map(summary -> YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO.builder()
-				.month(summary.month())
-				.totalCount(summary.totalCount().intValue())
-				.hasUnreadFeedbackResponse(summary.unreadCount() != null && summary.unreadCount() > 0)
-				.hasPendingTrainerResponse(summary.pendingCount() != null && summary.pendingCount() > 0)
-				.build())
+			.map(YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO::of)
 			.toList();
 
 		return YearlySummaryResponseDTO.of(year, months);
@@ -77,5 +73,10 @@ public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestC
 			investmentType,
 			summaries
 		);
+	}
+
+	@Override
+	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
+		return null;
 	}
 }

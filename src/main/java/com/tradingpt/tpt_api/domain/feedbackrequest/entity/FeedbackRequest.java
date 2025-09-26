@@ -8,12 +8,14 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -72,7 +74,13 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private LocalDate feedbackRequestedAt; // 피드백 요청 일자
 
-	private Boolean isCourseCompleted; // 완강 여부
+	// private Boolean isCourseCompleted; // 완강 여부
+
+	@Enumerated(EnumType.STRING)
+	private CourseStatus courseStatus; // 완강 여부
+
+	@Embedded
+	private PreCourseFeedbackDetail preCourseFeedbackDetail;
 
 	private Integer feedbackYear; // 피드백 연도
 
@@ -102,6 +110,25 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	public void setFeedbackResponse(FeedbackResponse feedbackResponse) {
 		this.feedbackResponse = feedbackResponse;
+	}
+
+	public Boolean getIsCourseCompleted() {
+		if (courseStatus == null) {
+			return null;
+		}
+
+		return switch (courseStatus) {
+			case AFTER_COMPLETION -> Boolean.TRUE;
+			case BEFORE_COMPLETION -> Boolean.FALSE;
+		};
+	}
+
+	public String getPositionStartReason() {
+		return preCourseFeedbackDetail != null ? preCourseFeedbackDetail.getPositionStartReason() : null;
+	}
+
+	public String getPositionEndReason() {
+		return preCourseFeedbackDetail != null ? preCourseFeedbackDetail.getPositionEndReason() : null;
 	}
 
 }

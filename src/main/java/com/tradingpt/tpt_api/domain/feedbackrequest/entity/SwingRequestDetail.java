@@ -49,12 +49,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 	private Position position; // 숏, 롱
 
 	@Lob
-	private String positionStartReason; // 포지션 진입 근거
-
-	@Lob
-	private String positionEndReason; // 포지션 탈출 근거
-
-	@Lob
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	private String directionFrame; // 디렉션 프레임
@@ -85,6 +79,8 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer,
 		String title) {
+		PreCourseFeedbackDetail preCourseFeedbackDetail = request.toPreCourseFeedbackDetail();
+
 		return SwingRequestDetail.builder()
 			.customer(customer)
 			.title(title)
@@ -92,15 +88,14 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())
 			.feedbackRequestedAt(request.getRequestDate())
-			.isCourseCompleted(request.getIsCourseCompleted())
+			.courseStatus(request.getCourseStatus())
+			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())
 			.positionStartDate(request.getPositionStartDate())
 			.positionEndDate(request.getPositionEndDate())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.position(request.getPosition())
-			.positionStartReason(request.getPositionStartReason())
-			.positionEndReason(request.getPositionEndReason())
 			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
 			.directionFrame(request.getDirectionFrame())
 			.mainFrame(request.getMainFrame())

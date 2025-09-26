@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 
@@ -34,7 +35,7 @@ public class CustomerEvaluationResponseDTO {
 	private InvestmentType primaryInvestmentType;
 
 	@Schema(description = "강의 완강 여부")
-	private Boolean courseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "월간 평가 상태")
 	private EvaluationStatus monthlyEvaluation;
@@ -52,12 +53,12 @@ public class CustomerEvaluationResponseDTO {
 			.name(customer.getName())
 			.phoneNumber(customer.getPhoneNumber())
 			.primaryInvestmentType(customer.getPrimaryInvestmentType())
-			.courseCompleted(Boolean.TRUE.equals(customer.getIsCourseCompleted()))
+			.courseStatus(customer.getCourseStatus())
 			.monthlyEvaluation(EvaluationStatus.fromMonthly(monthlyTradingSummary))
 			.weeklyEvaluation(EvaluationStatus.fromWeekly(weeklyTradingSummary))
 			.build();
 	}
-
+	
 	@Getter
 	@Builder
 	@NoArgsConstructor(access = AccessLevel.PROTECTED)

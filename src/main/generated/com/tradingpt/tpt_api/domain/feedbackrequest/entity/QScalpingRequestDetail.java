@@ -27,6 +27,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final StringPath category = createString("category");
 
     //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus;
+
+    //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt;
 
     // inherited
@@ -61,9 +64,6 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final BooleanPath isBestFeedback;
 
     //inherited
-    public final BooleanPath isCourseCompleted;
-
-    //inherited
     public final BooleanPath isRead;
 
     //inherited
@@ -71,9 +71,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
 
-    public final StringPath positionEndReason = createString("positionEndReason");
-
-    public final StringPath positionStartReason = createString("positionStartReason");
+    // inherited
+    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
@@ -113,6 +112,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public QScalpingRequestDetail(Class<? extends ScalpingRequestDetail> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this._super = new QFeedbackRequest(type, metadata, inits);
+        this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
         this.feedbackMonth = _super.feedbackMonth;
@@ -123,9 +123,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.feedbackYear = _super.feedbackYear;
         this.id = _super.id;
         this.isBestFeedback = _super.isBestFeedback;
-        this.isCourseCompleted = _super.isCourseCompleted;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;
         this.updatedAt = _super.updatedAt;

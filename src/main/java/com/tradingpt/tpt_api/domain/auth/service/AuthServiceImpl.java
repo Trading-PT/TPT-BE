@@ -1,7 +1,5 @@
 package com.tradingpt.tpt_api.domain.auth.service;
 
-import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
-import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,7 +17,9 @@ import com.tradingpt.tpt_api.domain.auth.infrastructure.VerificationService;
 import com.tradingpt.tpt_api.domain.auth.util.AuthUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Uid;
+import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.exception.AuthException;
@@ -75,18 +75,15 @@ public class AuthServiceImpl implements AuthService {
 
 		// 소셜 임시계정 여부
 		boolean isSocialUsername =
-				req.getUsername() != null &&
-						(req.getUsername().startsWith("KAKAO_") || req.getUsername().startsWith("NAVER_"));
+			req.getUsername() != null &&
+				(req.getUsername().startsWith("KAKAO_") || req.getUsername().startsWith("NAVER_"));
 
 		if (isSocialUsername) { //소셜일 경우
 			updateSocialCustomer(req, session, phone, email);
 			return;
 		}
 
-
 		verificationService.requireVerified(phone, email, session);
-
-
 
 		// 일반 회원가입
 		if (!req.getPassword().equals(req.getPasswordCheck())) {
@@ -121,7 +118,7 @@ public class AuthServiceImpl implements AuthService {
 		if (userOpt.isEmpty() || !(userOpt.get() instanceof Customer)) {
 			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
 		}
-		Customer customer = (Customer) userOpt.get();
+		Customer customer = (Customer)userOpt.get();
 
 		// 이메일/휴대폰 변경 시에만 중복 체크
 		if (!email.equalsIgnoreCase(customer.getEmail()) || !phone.equals(customer.getPhoneNumber())) {
@@ -148,7 +145,8 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	private void attachUids(Customer customer, SignUpRequest req) {
-		if (req.getUids() == null || req.getUids().isEmpty()) return;
+		if (req.getUids() == null || req.getUids().isEmpty())
+			return;
 
 		int existing = customer.getUids() == null ? 0 : customer.getUids().size();
 		if (existing + req.getUids().size() > 5) {
@@ -157,7 +155,8 @@ public class AuthServiceImpl implements AuthService {
 
 		Set<String> seen = new HashSet<>();
 		if (customer.getUids() != null) {
-			for (Uid u : customer.getUids()) seen.add(u.getUid());
+			for (Uid u : customer.getUids())
+				seen.add(u.getUid());
 		}
 
 		for (SignUpRequest.UidRequest ur : req.getUids()) {
@@ -170,12 +169,11 @@ public class AuthServiceImpl implements AuthService {
 				throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
 			}
 			customer.addUid(Uid.builder()
-					.exchangeName(exchange)
-					.uid(uidValue)
-					.build());
+				.exchangeName(exchange)
+				.uid(uidValue)
+				.build());
 		}
 	}
-
 
 	@Override
 	public boolean isUsernameAvailable(String username) {

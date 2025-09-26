@@ -7,11 +7,16 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.PreCourseFeedbackDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,7 +28,7 @@ import lombok.Setter;
 public class CreateDayRequestDetailRequestDTO {
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
@@ -46,14 +51,8 @@ public class CreateDayRequestDetailRequestDTO {
 	@Schema(description = "포지션 (LONG/SHORT)")
 	private Position position;
 
-	@Schema(description = "포지션 진입 근거")
-	private String positionStartReason;
-
-	@Schema(description = "포지션 탈출 근거")
-	private String positionEndReason;
-
 	@Schema(description = "담당 트레이너 피드백 요청 사항")
-	private String trainerFeedbackRequestContent; // 구독 하지 않았거나 완강 전인 고객의 경우 이 필드를 다른 걸로 바꿔야함.
+	private String trainerFeedbackRequestContent;
 
 	@Schema(description = "디렉션 프레임")
 	private String directionFrame;
@@ -87,5 +86,29 @@ public class CreateDayRequestDetailRequestDTO {
 
 	@Schema(description = "매매 복기")
 	private String tradingReview;
+
+	@Valid
+	@Schema(description = "완강 전 고객이 입력하는 상세 정보")
+	private PreCourseFeedbackDetailRequestDTO preCourseFeedbackDetail;
+
+	@JsonIgnore
+	public PreCourseFeedbackDetail toPreCourseFeedbackDetail() {
+		if (courseStatus == null) {
+			return null;
+		}
+
+		return courseStatus == CourseStatus.BEFORE_COMPLETION && preCourseFeedbackDetail != null
+			? preCourseFeedbackDetail.toEntity()
+			: null;
+	}
+
+	@AssertTrue(message = "완강 전 요청은 preCourseFeedbackDetail 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isPreCourseDetailValid() {
+		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
+			return preCourseFeedbackDetail != null && !preCourseFeedbackDetail.isEmpty();
+		}
+		return true;
+	}
 
 }

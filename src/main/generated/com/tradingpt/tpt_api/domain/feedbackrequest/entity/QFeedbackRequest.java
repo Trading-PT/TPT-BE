@@ -24,6 +24,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
@@ -45,11 +47,11 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isBestFeedback = createBoolean("isBestFeedback");
 
-    public final BooleanPath isCourseCompleted = createBoolean("isCourseCompleted");
-
     public final BooleanPath isRead = createBoolean("isRead");
 
     public final BooleanPath isResponded = createBoolean("isResponded");
+
+    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
 
@@ -78,6 +80,7 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
         this.feedbackResponse = inits.isInitialized("feedbackResponse") ? new com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse(forProperty("feedbackResponse"), inits.get("feedbackResponse")) : null;
+        this.preCourseFeedbackDetail = inits.isInitialized("preCourseFeedbackDetail") ? new QPreCourseFeedbackDetail(forProperty("preCourseFeedbackDetail")) : null;
     }
 
 }

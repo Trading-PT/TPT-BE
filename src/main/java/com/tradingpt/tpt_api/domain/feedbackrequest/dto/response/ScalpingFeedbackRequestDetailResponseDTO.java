@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttach
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -33,7 +34,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	private FeedbackType feedbackType;
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "피드백 요청 연도")
 	private Integer feedbackYear;
@@ -94,7 +95,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.id(scalpingRequest.getId())
 			.createdAt(scalpingRequest.getCreatedAt())
 			.feedbackType(scalpingRequest.getFeedbackType())
-			.isCourseCompleted(scalpingRequest.getIsCourseCompleted())
+			.courseStatus(scalpingRequest.getCourseStatus())
 			.feedbackYear(scalpingRequest.getFeedbackYear())
 			.feedbackMonth(scalpingRequest.getFeedbackMonth())
 			.feedbackWeek(scalpingRequest.getFeedbackWeek())

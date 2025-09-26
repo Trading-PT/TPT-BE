@@ -23,6 +23,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestExc
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
@@ -47,9 +48,13 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		// 사용자의 트레이딩 타입 체크 ( throw exception )
+		customer.checkTradingType(InvestmentType.DAY);
+
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
+		// 거래 날짜를 기반으로 제목을 자동 생성함.
 		String title = buildFeedbackTitle(request.getRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
 				customerId, request.getRequestDate(), FeedbackType.DAY) + 1);
@@ -76,6 +81,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	public ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
+
+		customer.checkTradingType(InvestmentType.SCALPING);
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
 
@@ -106,6 +113,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		customer.checkTradingType(InvestmentType.SWING);
+		
 		String title = buildFeedbackTitle(request.getRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
 				customerId, request.getRequestDate(), FeedbackType.SWING) + 1);

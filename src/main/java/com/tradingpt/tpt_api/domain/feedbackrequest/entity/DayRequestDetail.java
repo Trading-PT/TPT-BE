@@ -47,12 +47,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	private Position position; // 포지션
 
 	@Lob
-	private String positionStartReason; // 포지션 진입 근거
-
-	@Lob
-	private String positionEndReason; // 포지션 탈출 근거
-
-	@Lob
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	private Boolean directionFrameExists; // 디렉션 프레임 방향성 유무
@@ -83,6 +77,8 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer,
 		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
+		PreCourseFeedbackDetail preCourseFeedbackDetail = request.toPreCourseFeedbackDetail();
+
 		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
 			.customer(customer)
 			.title(title)
@@ -90,14 +86,13 @@ public class DayRequestDetail extends FeedbackRequest {
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
 			.feedbackRequestedAt(request.getRequestDate())
-			.isCourseCompleted(request.getIsCourseCompleted())
+			.courseStatus(request.getCourseStatus())
+			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.position(request.getPosition())
-			.positionStartReason(request.getPositionStartReason())
-			.positionEndReason(request.getPositionEndReason())
 			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
 			.directionFrame(request.getDirectionFrame())
 			.mainFrame(request.getMainFrame())
