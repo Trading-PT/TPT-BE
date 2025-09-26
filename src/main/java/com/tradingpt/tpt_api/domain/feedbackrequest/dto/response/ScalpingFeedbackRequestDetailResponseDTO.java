@@ -60,6 +60,9 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "종목")
 	private String category;
 
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
+
 	@Schema(description = "하루 매매 횟수")
 	private Integer dailyTradingCount;
 
@@ -104,6 +107,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.isBestFeedback(scalpingRequest.getIsBestFeedback())
 			.updatedAt(scalpingRequest.getUpdatedAt())
 			.category(scalpingRequest.getCategory())
+			.positionHoldingTime(scalpingRequest.getPositionHoldingTime())
 			.dailyTradingCount(scalpingRequest.getDailyTradingCount())
 			.screenshotImageUrls(
 				scalpingRequest.getFeedbackRequestAttachments().stream()

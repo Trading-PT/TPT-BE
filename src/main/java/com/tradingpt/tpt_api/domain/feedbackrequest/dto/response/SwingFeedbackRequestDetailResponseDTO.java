@@ -64,6 +64,9 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "종목")
 	private String category;
 
+	@Schema(description = "포지션 홀딩 시간")
+	private String positionHoldingTime;
+
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
 
@@ -138,6 +141,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.isBestFeedback(swingRequest.getIsBestFeedback())
 			.updatedAt(swingRequest.getUpdatedAt())
 			.category(swingRequest.getCategory())
+			.positionHoldingTime(swingRequest.getPositionHoldingTime())
 			.screenshotImageUrls(
 				swingRequest.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)

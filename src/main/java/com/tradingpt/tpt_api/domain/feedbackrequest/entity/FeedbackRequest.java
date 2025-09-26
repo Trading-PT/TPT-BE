@@ -9,6 +9,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -80,6 +81,9 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus; // 완강 여부
+
+	@Enumerated(EnumType.STRING)
+	private MembershipLevel membershipLevel;
 
 	@Embedded
 	private PreCourseFeedbackDetail preCourseFeedbackDetail;
