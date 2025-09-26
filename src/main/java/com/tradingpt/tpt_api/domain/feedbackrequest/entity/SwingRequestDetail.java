@@ -90,6 +90,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.feedbackRequestedAt(request.getRequestDate())
 			.positionHoldingTime(request.getPositionHoldingTime())
 			.courseStatus(request.getCourseStatus())
+			.membershipLevel(request.getMembershipLevel())
 			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())
 			.positionStartDate(request.getPositionStartDate())

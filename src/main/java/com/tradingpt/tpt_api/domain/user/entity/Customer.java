@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -65,6 +66,10 @@ public class Customer extends User {
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<InvestmentHistory> investmentHistories = new ArrayList<>();
+
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<CustomerMembershipHistory> customerMembershipHistories = new ArrayList<>();
 
 	/**
 	 * 필드
@@ -199,6 +204,10 @@ public class Customer extends User {
 		if (primaryInvestmentType != null && !primaryInvestmentType.equals(tradingType)) {
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH);
 		}
+	}
+
+	// 사용자의 멤버쉽 여부에 대해서 일치 여부 확인
+	public void checkMembership() {
 	}
 
 }
