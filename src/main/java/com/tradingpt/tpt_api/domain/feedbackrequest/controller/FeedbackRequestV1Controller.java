@@ -34,6 +34,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbac
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -151,7 +153,8 @@ public class FeedbackRequestV1Controller {
 			try {
 				setValue(objectMapper.readValue(text, PreCourseFeedbackDetailRequestDTO.class));
 			} catch (JsonProcessingException e) {
-				throw new IllegalArgumentException("preCourseFeedbackDetail JSON 파싱 실패", e);
+				throw new FeedbackRequestException(
+					FeedbackRequestErrorStatus.PRECOURSE_FEEDBACK_DETAIL_JSON_PARSE_ERROR);
 			}
 		}
 
