@@ -197,7 +197,7 @@ public class Customer extends User {
 	// 사용자의 트레이딩 타입이 일치하지 않을 경우
 	public void checkTradingType(InvestmentType tradingType) {
 		if (primaryInvestmentType != null && !primaryInvestmentType.equals(tradingType)) {
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_INVESTMENT_HISTORY_REQUEST);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH);
 		}
 	}
 
