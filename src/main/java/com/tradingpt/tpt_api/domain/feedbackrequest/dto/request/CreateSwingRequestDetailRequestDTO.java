@@ -13,6 +13,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -29,6 +30,9 @@ public class CreateSwingRequestDetailRequestDTO {
 
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
+
+	@Schema(description = "멤버쉽")
+	private MembershipLevel membershipLevel;
 
 	@Schema(description = "피드백 요청 연도")
 	private Integer feedbackYear;

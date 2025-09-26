@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.PreCourseFeedbackDetail;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
@@ -24,6 +25,9 @@ public class CreateScalpingRequestDetailRequestDTO {
 
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
+
+	@Schema(description = "멤버쉽")
+	private MembershipLevel membershipLevel;
 
 	@Schema(description = "요청 날짜")
 	private LocalDate requestDate;
