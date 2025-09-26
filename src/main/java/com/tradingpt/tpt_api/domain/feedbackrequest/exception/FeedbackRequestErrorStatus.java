@@ -28,6 +28,7 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	UNSUPPORTED_REQUEST_FEEDBACK_TYPE(HttpStatus.BAD_REQUEST, "FEEDBACK4009", "지원하지 않는 피드백 타입입니다."),
 	PRECOURSE_FEEDBACK_DETAIL_JSON_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "FEEDBACK4010",
 		"preCourseFeedbackDetail JSON 파싱 실패"),
+	FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH(HttpStatus.CONFLICT, "FEEDBACK4011", "사용자의 투자 타입과 피드백 요청 타입이 일치하지 않습니다."),
 	;
 
 	private final HttpStatus httpStatus;

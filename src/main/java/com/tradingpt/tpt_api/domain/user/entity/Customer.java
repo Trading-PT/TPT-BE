@@ -7,6 +7,8 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -195,7 +197,7 @@ public class Customer extends User {
 	// 사용자의 트레이딩 타입이 일치하지 않을 경우
 	public void checkTradingType(InvestmentType tradingType) {
 		if (primaryInvestmentType != null && !primaryInvestmentType.equals(tradingType)) {
-			throw new UserException(UserErrorStatus.INVALID_INVESTMENT_HISTORY_REQUEST);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_INVESTMENT_HISTORY_REQUEST);
 		}
 	}
 
