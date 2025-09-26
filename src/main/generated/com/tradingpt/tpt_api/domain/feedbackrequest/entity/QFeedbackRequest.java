@@ -51,6 +51,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isResponded = createBoolean("isResponded");
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);
+
     public final StringPath positionHoldingTime = createString("positionHoldingTime");
 
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;

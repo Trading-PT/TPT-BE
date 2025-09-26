@@ -29,6 +29,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    public final ListPath<com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory> customerMembershipHistories = this.<com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory>createList("customerMembershipHistories", com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory.class, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory.class, PathInits.DIRECT2);
+
     //inherited
     public final StringPath email = _super.email;
 

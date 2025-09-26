@@ -79,6 +79,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final StringPath mainFrame = createString("mainFrame");
 
+    //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
+
     public final NumberPath<java.math.BigDecimal> pnl = createNumber("pnl", java.math.BigDecimal.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
@@ -142,6 +145,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.membershipLevel = _super.membershipLevel;
         this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
