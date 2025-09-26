@@ -71,6 +71,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
 
+    //inherited
+    public final StringPath positionHoldingTime;
+
     // inherited
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
@@ -125,6 +128,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;

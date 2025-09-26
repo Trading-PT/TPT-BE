@@ -85,6 +85,9 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final DatePath<java.time.LocalDate> positionEndDate = createDate("positionEndDate", java.time.LocalDate.class);
 
+    //inherited
+    public final StringPath positionHoldingTime;
+
     public final DatePath<java.time.LocalDate> positionStartDate = createDate("positionStartDate", java.time.LocalDate.class);
 
     // inherited
@@ -143,6 +146,7 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;

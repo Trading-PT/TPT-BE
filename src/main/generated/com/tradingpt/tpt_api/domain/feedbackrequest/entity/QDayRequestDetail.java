@@ -83,7 +83,8 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
-    public final StringPath positionHoldingTime = createString("positionHoldingTime");
+    //inherited
+    public final StringPath positionHoldingTime;
 
     // inherited
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
@@ -141,6 +142,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
         this.status = _super.status;
         this.title = _super.title;

@@ -27,9 +27,6 @@ import lombok.Setter;
 @Schema(description = "데이 트레이딩 피드백 요청 DTO")
 public class CreateDayRequestDetailRequestDTO {
 
-	@Schema(description = "포지션 홀딩 시간")
-	private String positionHoldingTime;
-	
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
 
