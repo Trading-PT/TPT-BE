@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -31,6 +32,8 @@ public class QUser extends EntityPathBase<User> {
     public final StringPath name = createString("name");
 
     public final StringPath password = createString("password");
+
+    public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = this.<PasswordHistory, QPasswordHistory>createList("passwordHistories", PasswordHistory.class, QPasswordHistory.class, PathInits.DIRECT2);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.Provider> provider = createEnum("provider", com.tradingpt.tpt_api.domain.user.enums.Provider.class);
 
