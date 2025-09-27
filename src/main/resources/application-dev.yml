@@ -79,6 +79,10 @@ app:
       - https://localhost:3000
       - http://localhost:5173
       - https://localhost:5173
+    
+    exposed-headers:
+      - XSRF-TOKEN
+      
   swagger:
     servers:
       - url: https://dev.tradingpt.shop

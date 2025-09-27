@@ -153,6 +153,8 @@ app:
       - http://localhost:3000
       - http://localhost:5173
       - http://localhost:8080
+    exposed-headers:
+      - XSRF-TOKEN
   swagger:
     title: Trading PT API
     description: Trading Platform API 문서
