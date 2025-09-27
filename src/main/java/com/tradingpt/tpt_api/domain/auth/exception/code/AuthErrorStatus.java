@@ -80,6 +80,7 @@ public enum AuthErrorStatus implements BaseCodeInterface {
     REQUIRED_FIELD_MISSING(HttpStatus.BAD_REQUEST, "AUTH4081", "필수 필드가 누락되었습니다."),
     INVALID_INPUT_FORMAT(HttpStatus.BAD_REQUEST, "AUTH4082", "입력 형식이 올바르지 않습니다."),
     PASSWORD_CONFIRMATION_FAILED(HttpStatus.BAD_REQUEST, "AUTH4083", "비밀번호 확인이 일치하지 않습니다."),
+    PASSWORD_REUSED(HttpStatus.BAD_REQUEST, "AUTH4084", "현재 비밀번호와 동일한 비밀번호는 사용할 수 없습니다."),
 
     // ========== 트레이딩 특화 인증 에러 ==========
     TRADING_ACCOUNT_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "AUTH4090", "트레이딩 계정 인증이 필요합니다."),
