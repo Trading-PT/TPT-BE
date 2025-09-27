@@ -4,12 +4,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.session.FlushMode;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisIndexedHttpSession;
 import org.springframework.session.web.http.DefaultCookieSerializer;
 
 @Configuration
-@EnableRedisIndexedHttpSession
+@EnableRedisIndexedHttpSession(flushMode = FlushMode.IMMEDIATE)
 public class RedisSessionConfig {
 
     /** Spring Session 전용: JDK 직렬화 사용 (DefaultSavedRequest 등 Jackson 이슈 방지) */
