@@ -27,6 +27,9 @@ public class CorsConfig {
         cfg.setAllowedHeaders(Arrays.asList("*"));
         // 세션 쿠키(JSESSIONID) 주고받기
         cfg.setAllowCredentials(true);
+        if (corsProperties.exposedHeaders() != null) {
+            cfg.setExposedHeaders(corsProperties.exposedHeaders());
+        }
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cfg);

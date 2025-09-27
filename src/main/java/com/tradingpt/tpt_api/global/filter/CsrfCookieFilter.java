@@ -24,7 +24,8 @@ public class CsrfCookieFilter extends OncePerRequestFilter {
 		}
 
 		if (csrfToken != null) {
-			csrfToken.getToken(); // DeferredCsrfToken 초기화를 트리거
+			String token = csrfToken.getToken(); // DeferredCsrfToken 초기화를 트리거
+			response.setHeader("XSRF-TOKEN", token);
 		}
 
 		filterChain.doFilter(request, response);
