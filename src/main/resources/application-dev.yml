@@ -29,8 +29,7 @@ spring:
     timeout: 7d
     redis:
       configure-action: NONE
-      namespace: tpt
-      flush-mode: on-save
+      flush-mode: immediate
       repository-type: indexed
 
   # JPA 설정 (개발 환경)
