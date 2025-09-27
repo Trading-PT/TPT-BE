@@ -53,6 +53,9 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final StringPath password = _super.password;
 
+    //inherited
+    public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = _super.passwordHistories;
+
     public final StringPath phoneNumber = createString("phoneNumber");
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> primaryInvestmentType = createEnum("primaryInvestmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
@@ -74,6 +77,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     //inherited
     public final StringPath username = _super.username;
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.UserStatus> userStatus = createEnum("userStatus", com.tradingpt.tpt_api.domain.user.enums.UserStatus.class);
 
     public QCustomer(String variable) {
         this(Customer.class, forVariable(variable), INITS);

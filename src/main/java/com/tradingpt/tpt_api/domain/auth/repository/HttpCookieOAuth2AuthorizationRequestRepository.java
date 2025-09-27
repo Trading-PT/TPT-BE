@@ -2,6 +2,8 @@
 package com.tradingpt.tpt_api.domain.auth.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.global.web.cookie.CookieProps;
+import com.tradingpt.tpt_api.global.web.cookie.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -9,9 +11,11 @@ import java.net.URLEncoder;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
@@ -19,6 +23,7 @@ import org.springframework.util.StringUtils;
  * - 장점: Redis 세션에 복잡한 객체가 안 들어감
  * - 주의: 쿠키 사이즈 제한(보통 4KB) 내에서 동작
  */
+@Component
 public class HttpCookieOAuth2AuthorizationRequestRepository
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
 
@@ -71,14 +76,11 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         return req;
     }
 
+    /** 인가요청 관련 쿠키 일괄 제거 (CookieUtils 사용) */
     public void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {
-        Cookie cookie = getCookie(request, OAUTH2_AUTH_REQUEST_COOKIE_NAME);
-        if (cookie != null) {
-            cookie.setValue("");
-            cookie.setPath("/");
-            cookie.setMaxAge(0);
-            response.addCookie(cookie);
-        }
+        // 이 프로젝트의 기본 쿠키 속성으로 만료
+        CookieProps props = CookieProps.defaults();
+        CookieUtils.expire(response, OAUTH2_AUTH_REQUEST_COOKIE_NAME, true, props);
     }
 
     private Cookie getCookie(HttpServletRequest request, String name) {

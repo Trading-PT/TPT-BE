@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.auth.dto.request;
+package com.tradingpt.tpt_api.domain.user.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;

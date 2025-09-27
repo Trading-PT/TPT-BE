@@ -4,6 +4,7 @@ import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
@@ -15,7 +16,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,6 +35,10 @@ import lombok.experimental.SuperBuilder;
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 public abstract class User extends BaseEntity {
 
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<PasswordHistory> passwordHistories;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "user_id")
@@ -43,7 +50,7 @@ public abstract class User extends BaseEntity {
 	@Column(name = "email")
 	private String email;
 
-	private String password; //소셜일경우 null
+	private String password;
 
 	@Column(name = "name", nullable = false)
 	private String name; //유저의 이름
@@ -57,5 +64,9 @@ public abstract class User extends BaseEntity {
 
 	// 추상 메서드로 Role 반환
 	public abstract Role getRole();
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
 }
 
