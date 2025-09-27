@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.auth.dto.response;
+package com.tradingpt.tpt_api.domain.user.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
