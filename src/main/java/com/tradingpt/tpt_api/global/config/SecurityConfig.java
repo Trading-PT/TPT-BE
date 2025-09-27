@@ -7,6 +7,8 @@ import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
 import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
 import com.tradingpt.tpt_api.global.filter.CsrfCookieFilter;
+import com.tradingpt.tpt_api.global.security.handler.JsonAccessDeniedHandler;
+import com.tradingpt.tpt_api.global.security.handler.JsonAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +42,8 @@ public class SecurityConfig {
 	private final CustomSuccessHandler customSuccessHandler;
 	private final CustomFailureHandler customFailureHandler;
 	private final RememberMeServices rememberMeServices;
+	private final JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
+	private final JsonAccessDeniedHandler jsonAccessDeniedHandler;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
@@ -92,6 +96,10 @@ public class SecurityConfig {
 						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/oauth2/**")
 						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
 						.csrfTokenRequestHandler(requestHandler)
+				)
+				.exceptionHandling(ex -> ex
+						.authenticationEntryPoint(jsonAuthenticationEntryPoint)
+						.accessDeniedHandler(jsonAccessDeniedHandler)
 				)
 				.sessionManagement(sm -> sm
 						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
