@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -84,6 +85,11 @@ public class Customer extends User {
 
 	@Enumerated(EnumType.STRING)
 	private AccountStatus status = AccountStatus.PENDING;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	@Builder.Default
+	private UserStatus userStatus = UserStatus.UID_REVIEW_PENDING;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "membership_level")

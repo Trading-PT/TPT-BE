@@ -38,6 +38,9 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath password = _super.password;
 
+    //inherited
+    public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = _super.passwordHistories;
+
     public final StringPath profileImageUrl = createString("profileImageUrl");
 
     //inherited

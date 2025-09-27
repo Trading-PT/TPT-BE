@@ -29,6 +29,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    public final ListPath<com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory> customerMembershipHistories = this.<com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory>createList("customerMembershipHistories", com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory.class, com.tradingpt.tpt_api.domain.customermembershiphistory.entity.QCustomerMembershipHistory.class, PathInits.DIRECT2);
+
     //inherited
     public final StringPath email = _super.email;
 
@@ -51,6 +53,9 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final StringPath password = _super.password;
 
+    //inherited
+    public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = _super.passwordHistories;
+
     public final StringPath phoneNumber = createString("phoneNumber");
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> primaryInvestmentType = createEnum("primaryInvestmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
@@ -72,6 +77,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     //inherited
     public final StringPath username = _super.username;
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.UserStatus> userStatus = createEnum("userStatus", com.tradingpt.tpt_api.domain.user.enums.UserStatus.class);
 
     public QCustomer(String variable) {
         this(Customer.class, forVariable(variable), INITS);
