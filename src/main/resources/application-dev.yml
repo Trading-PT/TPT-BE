@@ -82,7 +82,7 @@ app:
     
     exposed-headers:
       - XSRF-TOKEN
-      
+      - X-XSRF-TOKEN
   swagger:
     servers:
       - url: https://dev.tradingpt.shop
