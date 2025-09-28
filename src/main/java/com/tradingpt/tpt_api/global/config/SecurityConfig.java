@@ -6,7 +6,7 @@ import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
 import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
-import com.tradingpt.tpt_api.global.filter.CsrfCookieFilter;
+import com.tradingpt.tpt_api.global.security.csrf.HeaderAndCookieCsrfTokenRepository;
 import com.tradingpt.tpt_api.global.security.handler.JsonAccessDeniedHandler;
 import com.tradingpt.tpt_api.global.security.handler.JsonAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +23,9 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
-import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.session.FindByIndexNameSessionRepository;
@@ -44,6 +43,7 @@ public class SecurityConfig {
 	private final RememberMeServices rememberMeServices;
 	private final JsonAuthenticationEntryPoint jsonAuthenticationEntryPoint;
 	private final JsonAccessDeniedHandler jsonAccessDeniedHandler;
+	private final ServerProperties serverProperties;
 
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
@@ -90,11 +90,37 @@ public class SecurityConfig {
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
 		requestHandler.setCsrfRequestAttributeName("_csrf");
 
+		HeaderAndCookieCsrfTokenRepository csrfTokenRepository = new HeaderAndCookieCsrfTokenRepository();
+		var cookieProps = serverProperties.getServlet().getSession().getCookie();
+		if (cookieProps.getDomain() != null) {
+			csrfTokenRepository.setCookieDomain(cookieProps.getDomain());
+		}
+		if (cookieProps.getPath() != null) {
+			csrfTokenRepository.setCookiePath(cookieProps.getPath());
+		}
+		// CSRF 쿠키는 JS에서 읽어야 하므로 httpOnly=false 유지
+		csrfTokenRepository.setCookieHttpOnly(false);
+		csrfTokenRepository.setCookieCustomizer(builder -> {
+			if (cookieProps.getSecure() != null) {
+				builder.secure(cookieProps.getSecure());
+			}
+			if (cookieProps.getSameSite() != null) {
+				String sameSite;
+				switch (cookieProps.getSameSite()) {
+					case LAX -> sameSite = "Lax";
+					case STRICT -> sameSite = "Strict";
+					case NONE -> sameSite = "None";
+					default -> sameSite = cookieProps.getSameSite().name();
+				}
+				builder.sameSite(sameSite);
+			}
+		});
+
 		http
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf
 						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/oauth2/**")
-						.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+						.csrfTokenRepository(csrfTokenRepository)
 						.csrfTokenRequestHandler(requestHandler)
 				)
 				.exceptionHandling(ex -> ex
@@ -137,8 +163,7 @@ public class SecurityConfig {
 						.alwaysRemember(false)
 						.useSecureCookie(true)
 				)
-				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class);
+				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}

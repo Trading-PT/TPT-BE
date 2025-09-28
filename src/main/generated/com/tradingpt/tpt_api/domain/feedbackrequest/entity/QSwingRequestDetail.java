@@ -37,6 +37,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final StringPath directionFrame = createString("directionFrame");
 
+    public final BooleanPath directionFrameExists = createBoolean("directionFrameExists");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint1 = createEnum("entryPoint1", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
     public final DateTimePath<java.time.LocalDateTime> entryPoint2 = createDateTime("entryPoint2", java.time.LocalDateTime.class);

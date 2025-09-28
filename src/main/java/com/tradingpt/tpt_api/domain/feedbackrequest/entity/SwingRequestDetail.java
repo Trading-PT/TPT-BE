@@ -51,6 +51,8 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
+	private Boolean directionFrameExists; // 디렉션 프레임 존재 유무
+
 	private String directionFrame; // 디렉션 프레임
 
 	private String mainFrame; // 메인 프레임
@@ -99,6 +101,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.leverage(request.getLeverage())
 			.position(request.getPosition())
 			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.directionFrameExists(request.getDirectionFrameExists())
 			.directionFrame(request.getDirectionFrame())
 			.mainFrame(request.getMainFrame())
 			.subFrame(request.getSubFrame())

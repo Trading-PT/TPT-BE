@@ -73,6 +73,9 @@ public class CreateSwingRequestDetailRequestDTO {
 	@Schema(description = "담당 트레이너 피드백 요청 사항")
 	private String trainerFeedbackRequestContent;
 
+	@Schema(description = "디렉션 프레임 존재 여부")
+	private Boolean directionFrameExists;
+
 	@Schema(description = "디렉션 프레임")
 	private String directionFrame;
 
