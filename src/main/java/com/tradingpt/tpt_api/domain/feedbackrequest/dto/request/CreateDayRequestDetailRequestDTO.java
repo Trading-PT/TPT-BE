@@ -2,9 +2,9 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,6 +35,7 @@ public class CreateDayRequestDetailRequestDTO {
 	private MembershipLevel membershipLevel;
 
 	@Schema(description = "요청 날짜")
+	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate requestDate;
 
 	@Schema(description = "종목")
@@ -86,7 +87,7 @@ public class CreateDayRequestDetailRequestDTO {
 	private Grade grade;
 
 	@Schema(description = "2차 진입 타점")
-	private LocalDateTime entryPoint2;
+	private LocalDate entryPoint2;
 
 	@Schema(description = "매매 복기")
 	private String tradingReview;

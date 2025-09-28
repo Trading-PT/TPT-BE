@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.request;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -30,6 +31,7 @@ public class CreateScalpingRequestDetailRequestDTO {
 	private MembershipLevel membershipLevel;
 
 	@Schema(description = "요청 날짜")
+	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate requestDate;
 
 	@Schema(description = "포지션 홀딩 시간")

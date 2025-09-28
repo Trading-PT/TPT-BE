@@ -41,7 +41,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint1 = createEnum("entryPoint1", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
-    public final DateTimePath<java.time.LocalDateTime> entryPoint2 = createDateTime("entryPoint2", java.time.LocalDateTime.class);
+    public final DatePath<java.time.LocalDate> entryPoint2 = createDate("entryPoint2", java.time.LocalDate.class);
 
     //inherited
     public final NumberPath<Integer> feedbackMonth;

@@ -1,7 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
@@ -68,7 +68,7 @@ public class DayRequestDetail extends FeedbackRequest {
 	@Enumerated(EnumType.STRING)
 	private Grade grade; // 등급
 
-	private LocalDateTime entryPoint2; // 2 진입 타점
+	private LocalDate entryPoint2; // 2 진입 타점
 
 	@Lob
 	private String tradingReview; // 매매 복기
