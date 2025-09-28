@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.global.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.domain.auth.filter.CsrfTokenResponseHeaderBindingFilter;
 import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
@@ -79,28 +80,17 @@ public class SecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(
-			HttpSecurity http,
-			SessionRegistry sessionRegistry,
-			JsonUsernamePasswordAuthFilter jsonLoginFilter,
-			CustomOAuth2UserService customOAuth2UserService,
-			AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository
-	) throws Exception {
-
-		var requestHandler = new CsrfTokenRequestAttributeHandler();
-		requestHandler.setCsrfRequestAttributeName("_csrf");
-
-		HeaderAndCookieCsrfTokenRepository csrfTokenRepository = new HeaderAndCookieCsrfTokenRepository();
+	public HeaderAndCookieCsrfTokenRepository headerAndCookieCsrfTokenRepository() {
+		HeaderAndCookieCsrfTokenRepository repo = new HeaderAndCookieCsrfTokenRepository();
 		var cookieProps = serverProperties.getServlet().getSession().getCookie();
 		if (cookieProps.getDomain() != null) {
-			csrfTokenRepository.setCookieDomain(cookieProps.getDomain());
+			repo.setCookieDomain(cookieProps.getDomain());
 		}
 		if (cookieProps.getPath() != null) {
-			csrfTokenRepository.setCookiePath(cookieProps.getPath());
+			repo.setCookiePath(cookieProps.getPath());
 		}
-		// CSRF 쿠키는 JS에서 읽어야 하므로 httpOnly=false 유지
-		csrfTokenRepository.setCookieHttpOnly(false);
-		csrfTokenRepository.setCookieCustomizer(builder -> {
+		repo.setCookieHttpOnly(false);
+		repo.setCookieCustomizer(builder -> {
 			if (cookieProps.getSecure() != null) {
 				builder.secure(cookieProps.getSecure());
 			}
@@ -115,6 +105,21 @@ public class SecurityConfig {
 				builder.sameSite(sameSite);
 			}
 		});
+		return repo;
+	}
+
+	@Bean
+	public SecurityFilterChain securityFilterChain(
+			HttpSecurity http,
+			SessionRegistry sessionRegistry,
+			JsonUsernamePasswordAuthFilter jsonLoginFilter,
+			CustomOAuth2UserService customOAuth2UserService,
+			AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository,
+			HeaderAndCookieCsrfTokenRepository csrfTokenRepository
+	) throws Exception {
+
+		var requestHandler = new CsrfTokenRequestAttributeHandler();
+		requestHandler.setCsrfRequestAttributeName("_csrf");
 
 		http
 				.cors(Customizer.withDefaults())
@@ -163,7 +168,8 @@ public class SecurityConfig {
 						.alwaysRemember(false)
 						.useSecureCookie(true)
 				)
-				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
+				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository), UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}

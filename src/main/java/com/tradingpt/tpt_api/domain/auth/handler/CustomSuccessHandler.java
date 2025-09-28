@@ -18,7 +18,6 @@ import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2User;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -41,13 +40,13 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
 		Object principal = authentication.getPrincipal();
 
-		// 1) 로컬(JSON) 로그인
-		if (principal instanceof AuthSessionUser) {
-			response.setStatus(HttpServletResponse.SC_OK);
-			return;
-		}
+			// 1) 로컬(JSON) 로그인
+			if (principal instanceof AuthSessionUser) {
+				response.setStatus(HttpServletResponse.SC_OK);
+				return;
+			}
 
-		// 2) 소셜 로그인
+			// 2) 소셜 로그인
 		if (principal instanceof CustomOAuth2User oAuth2User) {
 
 			// 서비스에서 이미 매핑/생성을 끝냈다는 전제: userId가 반드시 존재해야 정상
