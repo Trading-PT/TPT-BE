@@ -27,6 +27,9 @@ public class Trainer extends User {
 	@Column(name = "profile_image_url")
 	private String profileImageUrl;
 
+	@Column(name = "trainer_name")
+	private String trainer_name;
+
 	@Column(name = "oneline_introduction")
 	private String oneLineIntroduction;
 
