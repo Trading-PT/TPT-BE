@@ -1,7 +1,7 @@
 package com.tradingpt.tpt_api.global.config;
 
 
-import com.tradingpt.tpt_api.domain.auth.service.CustomRememberMeServices;
+import com.tradingpt.tpt_api.domain.auth.service.CustomRememberMeService;
 import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,8 +33,8 @@ public class RememberMeConfig {
 
     @Bean
     public RememberMeServices rememberMeServices(PersistentTokenRepository repo) {
-        CustomRememberMeServices services =
-                new CustomRememberMeServices(rememberKey, userDetailsService, repo);
+        CustomRememberMeService services =
+                new CustomRememberMeService(rememberKey, userDetailsService, repo);
         services.setTokenValiditySeconds(60 * 60 * 24 * 14); // 14일
         services.setAlwaysRemember(false);                    // JSON/파라미터로 on/off
         services.setCookieName("remember-me");
