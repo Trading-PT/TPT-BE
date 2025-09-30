@@ -106,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
 
 		customer.changeInvestmentType(req.getInvestmentType(), LocalDate.now());
 
-		attachUids(customer, req);     // 자식 먼저 붙이고
+		attachUid(customer, req);     // 자식 먼저 붙이고
 		userRepository.save(customer); // 저장은 한 번 (cascade로 Uid 함께 INSERT)
 
 		verificationService.clearPhoneTrace(phone);
@@ -135,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
 		customer.changeInvestmentType(req.getInvestmentType(), LocalDate.now());
 
 		// UID 병합/설정
-		attachUids(customer, req);
+		attachUid(customer, req);
 
 		// 기존 엔티티 저장 (변경 감지 + cascade)
 		userRepository.save(customer);
@@ -144,35 +144,25 @@ public class AuthServiceImpl implements AuthService {
 		verificationService.clearEmailTrace(email);
 	}
 
-	private void attachUids(Customer customer, SignUpRequest req) {
-		if (req.getUids() == null || req.getUids().isEmpty())
+	private void attachUid(Customer customer, SignUpRequest req) {
+		if (req.getUids() == null || req.getUids().isEmpty()) {
 			return;
-
-		int existing = customer.getUids() == null ? 0 : customer.getUids().size();
-		if (existing + req.getUids().size() > 5) {
+		}
+		if (req.getUids().size() > 1) {
+			// 이제 하나만 허용
 			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
 		}
 
-		Set<String> seen = new HashSet<>();
-		if (customer.getUids() != null) {
-			for (Uid u : customer.getUids())
-				seen.add(u.getUid());
+		SignUpRequest.UidRequest ur = req.getUids().get(0);
+
+		String exchange = ur.getExchangeName() == null ? "" : ur.getExchangeName().trim();
+		String uidValue = ur.getUid() == null ? "" : ur.getUid().trim();
+
+		if (exchange.isEmpty() || uidValue.isEmpty()) {
+			throw new AuthException(AuthErrorStatus.REQUIRED_FIELD_MISSING);
 		}
 
-		for (SignUpRequest.UidRequest ur : req.getUids()) {
-			String exchange = ur.getExchangeName() == null ? "" : ur.getExchangeName().trim();
-			String uidValue = ur.getUid() == null ? "" : ur.getUid().trim();
-			if (exchange.isEmpty() || uidValue.isEmpty()) {
-				throw new AuthException(AuthErrorStatus.REQUIRED_FIELD_MISSING);
-			}
-			if (!seen.add(uidValue)) {
-				throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
-			}
-			customer.addUid(Uid.builder()
-				.exchangeName(exchange)
-				.uid(uidValue)
-				.build());
-		}
+		customer.upsertUid(exchange, uidValue);
 	}
 
 	@Override

@@ -1,6 +1,8 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
+import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -53,12 +55,17 @@ public class Customer extends User {
 	 * 연관 관계 매핑
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "trainer_id")
-	private Trainer trainer;
-
-	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "trainer_id", nullable = true)
 	@Builder.Default
-	private List<Uid> uids = new ArrayList<>();
+	private Trainer trainer = null;
+
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private List<PaymentMethod> paymentMethods = new ArrayList<>();
+
+
+	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
+	private Uid uid;
 
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
@@ -110,26 +117,39 @@ public class Customer extends User {
 		return Role.ROLE_CUSTOMER;
 	}
 
-	// ⭐ 수정된 편의 메서드 - 새로운 Uid 객체를 생성하여 추가
-	public void addUid(String exchangeName, String uidValue) {
-		Uid uid = Uid.builder()
-			.exchangeName(exchangeName)
-			.uid(uidValue)
-			.customer(this)
-			.build();
-		uids.add(uid);
+	/** uid 값 통째로 교체/설정 */
+	public void setUid(Uid uid) {
+		// 기존 연관 끊기
+		if (this.uid != null) {
+			this.uid.setCustomer(null);
+		}
+		this.uid = uid;
+		if (uid != null) {
+			uid.setCustomer(this);
+		}
 	}
 
-	public void addUid(Uid uid) {
-		if (uids == null)
-			uids = new ArrayList<>(); // 과거 데이터 대비 가드
-		uids.add(uid);
-		uid.assignCustomer(this);
+	/** 값으로 신규 생성(없으면 생성, 있으면 값만 변경) */
+	public void upsertUid(String exchangeName, String uidValue) {
+		if (this.uid == null) {
+			Uid newUid = Uid.builder()
+					.exchangeName(exchangeName)
+					.uid(uidValue)
+					.customer(this)
+					.build();
+			this.uid = newUid;
+		} else {
+			this.uid.setExchangeName(exchangeName);
+			this.uid.setUid(uidValue);
+		}
 	}
 
-	public void removeUid(Uid uid) {
-		uids.remove(uid);
-		// customer 참조는 제거하지 않음 (불변성 유지)
+	/** uid 제거 */
+	public void removeUid() {
+		if (this.uid != null) {
+			this.uid.setCustomer(null);
+			this.uid = null;
+		}
 	}
 
 	public void setPhoneNumber(String phoneNumber) {
@@ -214,6 +234,10 @@ public class Customer extends User {
 
 	// 사용자의 멤버쉽 여부에 대해서 일치 여부 확인
 	public void checkMembership() {
+	}
+
+	public void setUserStatus(UserStatus status){
+		this.userStatus = status;
 	}
 
 }

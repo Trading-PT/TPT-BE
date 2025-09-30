@@ -5,9 +5,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
-public class CustomRememberMeServices extends PersistentTokenBasedRememberMeServices {
+public class CustomRememberMeService extends PersistentTokenBasedRememberMeServices {
     public static final String REMEMBER_ME_ATTR = "REMEMBER_ME_JSON";
-    public CustomRememberMeServices(String key, UserDetailsService uds, PersistentTokenRepository repo) {
+    public CustomRememberMeService(String key, UserDetailsService uds, PersistentTokenRepository repo) {
         super(key, uds, repo);
     }
     @Override

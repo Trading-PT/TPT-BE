@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 @Schema(description = "ID 찾기 응답 DTO")
-public class FindIdResponse {
+public class FindIdResponseDTO {
 
     private String userName;
 }
