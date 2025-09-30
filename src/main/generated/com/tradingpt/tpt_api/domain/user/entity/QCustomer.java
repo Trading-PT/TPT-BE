@@ -56,6 +56,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = _super.passwordHistories;
 
+    public final ListPath<com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod> paymentMethods = this.<com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod>createList("paymentMethods", com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod.class, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod.class, PathInits.DIRECT2);
+
     public final StringPath phoneNumber = createString("phoneNumber");
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> primaryInvestmentType = createEnum("primaryInvestmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
@@ -70,7 +72,7 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final QTrainer trainer;
 
-    public final ListPath<Uid, QUid> uids = this.<Uid, QUid>createList("uids", Uid.class, QUid.class, PathInits.DIRECT2);
+    public final QUid uid;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
@@ -99,6 +101,7 @@ public class QCustomer extends EntityPathBase<Customer> {
     public QCustomer(Class<? extends Customer> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.trainer = inits.isInitialized("trainer") ? new QTrainer(forProperty("trainer")) : null;
+        this.uid = inits.isInitialized("uid") ? new QUid(forProperty("uid"), inits.get("uid")) : null;
     }
 
 }

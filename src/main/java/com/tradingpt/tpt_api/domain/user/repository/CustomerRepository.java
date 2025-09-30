@@ -6,6 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
-public interface CustomerRepository extends JpaRepository<Customer, Long> {
+public interface CustomerRepository extends JpaRepository<Customer, Long>, CustomerRepositoryCustom {
 	Page<Customer> findByTrainer_Id(Long trainerId, Pageable pageable);
 }

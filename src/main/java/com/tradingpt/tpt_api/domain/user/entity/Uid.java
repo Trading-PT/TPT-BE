@@ -10,22 +10,19 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(
-	uniqueConstraints = {
-		// 같은 고객이 같은 UID를 중복 등록하는 것을 방지
-		@UniqueConstraint(name = "uk_customer_uid", columnNames = {"customer_id", "uid"})
-	}
-)
 @Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
@@ -41,7 +38,7 @@ public class Uid extends BaseEntity {
 	@Column(nullable = false)
 	private String uid;
 
-	@ManyToOne(fetch = FetchType.LAZY, optional = false)
+	@OneToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "customer_id", referencedColumnName = "user_id", nullable = false)
 	private Customer customer;
 

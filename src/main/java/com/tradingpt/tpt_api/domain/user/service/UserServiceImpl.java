@@ -2,7 +2,7 @@ package com.tradingpt.tpt_api.domain.user.service;
 
 
 import com.tradingpt.tpt_api.domain.user.dto.request.ChangePasswordRequest;
-import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponse;
+import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponseDTO;
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -10,6 +10,7 @@ import com.tradingpt.tpt_api.domain.user.entity.PasswordHistory;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -45,39 +46,34 @@ public class UserServiceImpl implements UserService {
 	public void ensureUnique(String u, String e, String p) { /* 중복 검사 */ }
 
 	@Override
-	public FindIdResponse findUserId(String email){
-		String userName = userRepository.findUsernameByEmail(email)
-				.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
+	public FindIdResponseDTO findUserId(String email) {
+		// email 기준으로 여러 User 가져오기
+		List<User> users = userRepository.findAllByEmail(email);
 
-		return FindIdResponse.builder()
-				.userName(userName)
+		// LOCAL 계정만 필터링
+		User localUser = users.stream()
+				.filter(u -> u.getProvider() == Provider.LOCAL)
+				.findFirst()
+				.orElse(null); // 없으면 null 반환
+
+		// LOCAL 계정이 없을 경우 → null 반환
+		if (localUser == null) {
+			return null;
+		}
+
+		// LOCAL 유저 존재 시 DTO 반환
+		return FindIdResponseDTO.builder()
+				.userName(localUser.getUsername())
 				.build();
-
 	}
 
+
 	@Override
+	@Transactional(readOnly = true)
 	public MeResponse getMe(Long userId) {
-		Customer c = customerRepository.findById(userId)
+		Customer c = customerRepository.findWithBasicsAndPaymentMethodsById(userId)
 				.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
-
-		boolean isPremium = MembershipLevel.PREMIUM.equals(c.getMembershipLevel())
-				&& c.getMembershipExpiredAt() != null
-				&& c.getMembershipExpiredAt().isAfter(LocalDateTime.now());
-
-		String investmentType = (c.getPrimaryInvestmentType() != null)
-				? c.getPrimaryInvestmentType().name()
-				: null;
-
-		Boolean isCourseCompleted = CourseStatus.AFTER_COMPLETION.equals(c.getCourseStatus());
-
-		return MeResponse.builder()
-				.name(c.getName())                                   // 부모(User)에서 상속
-				.username(c.getUsername())                           // 아이디 = username
-				.investmentType(investmentType)                      // 투자유형
-				.isCourseCompleted(isCourseCompleted) // 완강 여부
-				.isPremium(isPremium)
-				.userStatus(c.getUserStatus())
-				.build();
+		return MeResponse.from(c);
 	}
 
 	@Transactional
