@@ -8,7 +8,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class SendEmailCodeRequest {
+public class SendEmailCodeRequestDTO {
 
     @Schema(
             description = "인증 코드를 전송할 이메일 주소",

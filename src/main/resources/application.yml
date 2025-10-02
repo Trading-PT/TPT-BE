@@ -172,6 +172,6 @@ solapi:
 # 로깅 설정 (공통)
 logging:
   level:
-    org.springframework.security: info
+    org.springframework.security: DEBUG
     com.tradingpt.tpt_api.auth.filter: DEBUG
     org.springframework.security.web.authentication.rememberme: DEBUG

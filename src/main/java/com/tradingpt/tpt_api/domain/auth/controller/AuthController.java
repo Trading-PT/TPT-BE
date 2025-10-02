@@ -1,10 +1,12 @@
 package com.tradingpt.tpt_api.domain.auth.controller;
 
-import com.tradingpt.tpt_api.domain.auth.dto.request.SendEmailCodeRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
+import com.tradingpt.tpt_api.domain.auth.dto.request.PasswordUpdateRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SendEmailCodeRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequestDTO;
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
+import com.tradingpt.tpt_api.domain.auth.dto.response.PasswordUpdateResponseDTO;
 import com.tradingpt.tpt_api.domain.auth.dto.response.SocialInfoResponse;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
@@ -46,7 +48,7 @@ public class AuthController {
 
 	@Operation(summary = "휴대폰 인증코드 발송", description = "휴대폰 번호로 6자리 인증코드를 발송하고 세션에 OTP/만료시각을 저장합니다.")
 	@PostMapping("/phone/code")
-	public ResponseEntity<BaseResponse<Void>> sendPhoneCode(@Valid @RequestBody SendPhoneCodeRequest req,
+	public ResponseEntity<BaseResponse<Void>> sendPhoneCode(@Valid @RequestBody SendPhoneCodeRequestDTO req,
 															HttpSession session) {
 		authService.sendPhoneCode(req, session);
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -55,7 +57,7 @@ public class AuthController {
 
 	@Operation(summary = "휴대폰 인증코드 검증", description = "세션에 저장된 OTP와 사용자가 입력한 코드를 검증합니다.")
 	@PostMapping("/phone/verify")
-	public ResponseEntity<BaseResponse<Void>> verifyPhone(@Valid @RequestBody VerifyCodeRequest req,
+	public ResponseEntity<BaseResponse<Void>> verifyPhone(@Valid @RequestBody VerifyCodeRequestDTO req,
 														  HttpSession session) {
 		authService.verifyPhoneCode(req, session);
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -64,7 +66,7 @@ public class AuthController {
 
 	@Operation(summary = "이메일 인증코드 발송", description = "이메일로 인증코드를 발송하고 세션에 OTP/만료시각을 저장합니다.")
 	@PostMapping("/email/code")
-	public ResponseEntity<BaseResponse<Void>> sendEmailCode(@Valid @RequestBody SendEmailCodeRequest req,
+	public ResponseEntity<BaseResponse<Void>> sendEmailCode(@Valid @RequestBody SendEmailCodeRequestDTO req,
 															HttpSession session) {
 		authService.sendEmailCode(req, session);
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -73,7 +75,7 @@ public class AuthController {
 
 	@Operation(summary = "이메일 인증코드 검증", description = "세션에 저장된 OTP와 사용자가 입력한 코드를 검증합니다.")
 	@PostMapping("/email/verify")
-	public ResponseEntity<BaseResponse<Void>> verifyEmail(@Valid @RequestBody VerifyCodeRequest req,
+	public ResponseEntity<BaseResponse<Void>> verifyEmail(@Valid @RequestBody VerifyCodeRequestDTO req,
 														  HttpSession session) {
 		authService.verifyEmailCode(req, session);
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -82,7 +84,7 @@ public class AuthController {
 
 	@Operation(summary = "회원가입", description = "휴대폰/이메일 인증을 통과한 사용자를 가입 처리합니다.")
 	@PostMapping("/signup")
-	public ResponseEntity<BaseResponse<Void>> signUp(@Valid @RequestBody SignUpRequest req, HttpSession session) {
+	public ResponseEntity<BaseResponse<Void>> signUp(@Valid @RequestBody SignUpRequestDTO req, HttpSession session) {
 		authService.signUp(req, session);
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(BaseResponse.onSuccessCreate(null));
@@ -135,6 +137,16 @@ public class AuthController {
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(BaseResponse.onSuccessCreate(response));
+	}
+
+	@Operation(summary = "비로그인 비밀번호 재설정(이메일)",
+			  description = "이메일로 사용자를 찾고 새 비밀번호로 변경합니다. 다른 기기 세션은 모두 무효화됩니다.")
+	@PutMapping("/password/update")
+	public ResponseEntity<BaseResponse<PasswordUpdateResponseDTO>> resetPasswordByEmail(
+			@Valid @RequestBody PasswordUpdateRequestDTO req) {
+
+		PasswordUpdateResponseDTO dto = authService.resetPasswordAndInvalidateDevices(req);
+		return ResponseEntity.ok(BaseResponse.onSuccess(dto));
 	}
 
 

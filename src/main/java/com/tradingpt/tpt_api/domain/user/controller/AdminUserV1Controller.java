@@ -26,7 +26,7 @@ import java.util.List;
 @RequestMapping("admin/api/v1/users")
 @RequiredArgsConstructor
 @Tag(name = "관리자 - 회원 관리", description = "관리자/트레이너 전용 회원 관리 API")
-public class AdminUserController {
+public class AdminUserV1Controller {
 
     private final AdminUserCommandService adminUserCommandService;
     private final AdminUserQueryService adminUserQueryService;

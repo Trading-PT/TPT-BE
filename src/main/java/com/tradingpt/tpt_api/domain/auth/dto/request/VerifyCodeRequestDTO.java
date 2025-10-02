@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class VerifyCodeRequest {
+public class VerifyCodeRequestDTO {
 
     @Schema(description = "인증 대상 타입", example = "EMAIL or PHONE")
     @NotBlank(message = "type이 필요합니다.")

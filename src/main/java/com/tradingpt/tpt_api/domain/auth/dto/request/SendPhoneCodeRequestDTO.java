@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class SendPhoneCodeRequest {
+public class SendPhoneCodeRequestDTO {
 
     @Schema(description = "휴대폰 번호", example = "010-1234-5678")
     @NotBlank(message = "전화번호를 입력해주세요.")
