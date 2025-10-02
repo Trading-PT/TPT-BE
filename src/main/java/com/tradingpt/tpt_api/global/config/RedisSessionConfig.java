@@ -17,6 +17,8 @@ import java.util.List;
 @EnableRedisIndexedHttpSession(flushMode = FlushMode.IMMEDIATE)
 public class RedisSessionConfig {
 
+    private static final String ADMIN_PATH_PREFIX = "/api/v1/admin";
+
     /** Spring Session 전용: JDK 직렬화 사용 (SavedRequest 등 Jackson 이슈 방지) */
     @Bean
     public RedisSerializer<Object> springSessionDefaultRedisSerializer() {
@@ -27,12 +29,10 @@ public class RedisSessionConfig {
      * 경로 기반으로 세션 쿠키명 분리:
      *  - /admin/**  -> ADMINSESSION (Path=/admin)
      *  - 그 외      -> SESSION      (Path=/)
-     *
-     * SameSite=None + Secure=true 유지 (크로스-사이트 리다이렉트/SPA 호환)
      */
     @Bean
     public HttpSessionIdResolver httpSessionIdResolver() {
-        return new PathAwareCookieSessionIdResolver("ADMINSESSION", "SESSION", "/admin");
+        return new PathAwareCookieSessionIdResolver("ADMINSESSION", "SESSION", ADMIN_PATH_PREFIX);
     }
 
     /** AWS Elasticache 등 일부 환경에서 필요한 설정 */

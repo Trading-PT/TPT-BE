@@ -29,9 +29,9 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CsrfFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
@@ -76,7 +76,7 @@ public class SecurityConfig {
 	@Bean
 	public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
 		var filter = new JsonUsernamePasswordAuthFilter(objectMapper);
-		filter.setFilterProcessesUrl("/api/v1/auth/login"); // ← 사용자 로그인 엔드포인트
+		filter.setFilterProcessesUrl("/api/v1/auth/login"); // 사용자 로그인 엔드포인트
 		filter.setAuthenticationManager(authManager);
 		filter.setAuthenticationSuccessHandler(customSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
@@ -88,7 +88,7 @@ public class SecurityConfig {
 	@Bean
 	public AdminJsonUsernamePasswordAuthFilter adminJsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
 		var filter = new AdminJsonUsernamePasswordAuthFilter(objectMapper);
-		filter.setFilterProcessesUrl("/admin/api/v1/login"); // ★ 반드시 슬래시 포함 + /admin prefix
+		filter.setFilterProcessesUrl("/api/v1/admin/login"); // ★ 관리자 로그인 엔드포인트를 /api/v1/admin/login 으로 변경
 		filter.setAuthenticationManager(authManager);
 		filter.setAuthenticationSuccessHandler(adminSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
@@ -96,7 +96,7 @@ public class SecurityConfig {
 		return filter;
 	}
 
-	/** 공용 CSRF TokenRepository */
+	/** 공용 CSRF TokenRepository (쿠키+헤더 동시 사용) */
 	@Bean
 	public HeaderAndCookieCsrfTokenRepository csrfTokenRepository() {
 		HeaderAndCookieCsrfTokenRepository repo = new HeaderAndCookieCsrfTokenRepository();
@@ -119,7 +119,6 @@ public class SecurityConfig {
 		return repo;
 	}
 
-	/** -------------------- ADMIN -------------------- */
 	@Bean
 	@Order(0)
 	public SecurityFilterChain adminSecurityFilterChain(
@@ -132,10 +131,12 @@ public class SecurityConfig {
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
 		requestHandler.setCsrfRequestAttributeName("_csrf");
 
-		http.securityMatcher("/admin/**") // ★ /admin으로 시작하면 전부 이 체인
+		var adminMatcher = new RegexRequestMatcher("^/api/v1/admin(?:/.*)?$", null);
+
+		http.securityMatcher(adminMatcher)
 				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/admin/api/v1/login") // ★ 같은 경로
+						.ignoringRequestMatchers("/api/v1/admin/login")
 						.csrfTokenRepository(csrfTokenRepository)
 						.csrfTokenRequestHandler(requestHandler)
 				)
@@ -150,7 +151,7 @@ public class SecurityConfig {
 								.sessionRegistry(sessionRegistry))
 				)
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/admin/api/v1/login").permitAll() // ★ 같은 경로
+						.requestMatchers("/api/v1/admin/login").permitAll()
 						.anyRequest().hasAnyRole("ADMIN", "TRAINER")
 				)
 				.formLogin(AbstractHttpConfigurer::disable)
@@ -162,11 +163,9 @@ public class SecurityConfig {
 				.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
 
-
 		return http.build();
 	}
 
-	/** -------------------- USER -------------------- */
 	@Bean
 	@Order(1)
 	public SecurityFilterChain userSecurityFilterChain(
@@ -181,7 +180,10 @@ public class SecurityConfig {
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
 		requestHandler.setCsrfRequestAttributeName("_csrf");
 
-		http.cors(Customizer.withDefaults())
+		var userApiMatcher = new RegexRequestMatcher("^/api/(?!v1/admin(?:/|$)).*$", null);
+
+		http.securityMatcher(userApiMatcher)
+				.cors(Customizer.withDefaults())
 				.csrf(csrf -> csrf
 						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/**")
 						.csrfTokenRepository(csrfTokenRepository)
@@ -194,34 +196,24 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm
 						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 						.sessionFixation(sf -> sf.migrateSession())
-						.sessionConcurrency(sc -> sc.maximumSessions(3)
-								.sessionRegistry(sessionRegistry))
+						.sessionConcurrency(sc -> sc.maximumSessions(3).sessionRegistry(sessionRegistry))
 				)
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers(
 								"/api/v1/auth/**",
-								"/oauth2/**", "/login/oauth2/**",
-								"/swagger-ui.html", "/swagger-ui/**",
-								"/swagger-resources/**", "/webjars/**",
-								"/v3/api-docs/**", "/actuator/**",
-								"/", "/error", "/favicon.ico"
+								"/oauth2/**", "/login/oauth2/**"
 						).permitAll()
 						.anyRequest().authenticated()
 				)
 				.formLogin(AbstractHttpConfigurer::disable)
 				.httpBasic(AbstractHttpConfigurer::disable)
 				.oauth2Login(o -> o
-						.authorizationEndpoint(ae -> ae
-								.authorizationRequestRepository(cookieAuthRequestRepository)
-						)
+						.authorizationEndpoint(ae -> ae.authorizationRequestRepository(cookieAuthRequestRepository))
 						.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
 						.successHandler(customSuccessHandler)
 						.failureHandler(customFailureHandler)
 				)
-				.rememberMe(rm -> rm
-						.rememberMeServices(rememberMeServices)
-						.useSecureCookie(true)
-				)
+				.rememberMe(rm -> rm.rememberMeServices(rememberMeServices).useSecureCookie(true))
 				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository),
 						UsernamePasswordAuthenticationFilter.class);
