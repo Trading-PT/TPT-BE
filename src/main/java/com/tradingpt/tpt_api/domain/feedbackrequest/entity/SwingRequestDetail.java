@@ -64,7 +64,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	private BigDecimal pnl; // P&L
 
-	private String winLossRatio; // 손익비
+	private Double rnr; // R&R
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -107,7 +107,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 			.subFrame(request.getSubFrame())
 			.trendAnalysis(request.getTrendAnalysis())
 			.pnl(request.getPnl())
-			.winLossRatio(request.getWinLossRatio())
+			.rnr(request.getRnr())
 			.entryPoint1(request.getEntryPoint1())
 			.grade(request.getGrade())
 			.entryPoint2(request.getEntryPoint2())

@@ -4,7 +4,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 
-public interface FeedbackRequestCalendarQueryService {
+public interface FeedbackRequestJournalQueryService {
 	YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId);
 
 	DailyFeedbackRequestsResponseDTO getDailyFeedbackRequestsResponse(Integer year, Integer month, Integer day,

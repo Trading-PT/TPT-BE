@@ -1,8 +1,5 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
-import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
-import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
-import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,11 +11,13 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
+import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 
@@ -32,6 +31,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -63,7 +63,6 @@ public class Customer extends User {
 	@Builder.Default
 	private List<PaymentMethod> paymentMethods = new ArrayList<>();
 
-
 	@OneToOne(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Uid uid;
 
@@ -91,6 +90,7 @@ public class Customer extends User {
 	private InvestmentType primaryInvestmentType;
 
 	@Enumerated(EnumType.STRING)
+	@Builder.Default
 	private AccountStatus status = AccountStatus.PENDING;
 
 	@Enumerated(EnumType.STRING)
@@ -133,10 +133,10 @@ public class Customer extends User {
 	public void upsertUid(String exchangeName, String uidValue) {
 		if (this.uid == null) {
 			Uid newUid = Uid.builder()
-					.exchangeName(exchangeName)
-					.uid(uidValue)
-					.customer(this)
-					.build();
+				.exchangeName(exchangeName)
+				.uid(uidValue)
+				.customer(this)
+				.build();
 			this.uid = newUid;
 		} else {
 			this.uid.setExchangeName(exchangeName);
@@ -236,7 +236,7 @@ public class Customer extends User {
 	public void checkMembership() {
 	}
 
-	public void setUserStatus(UserStatus status){
+	public void setUserStatus(UserStatus status) {
 		this.userStatus = status;
 	}
 

@@ -100,6 +100,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
+    public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
+
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
 
@@ -116,8 +118,6 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
-
-    public final StringPath winLossRatio = createString("winLossRatio");
 
     public QSwingRequestDetail(String variable) {
         this(SwingRequestDetail.class, forVariable(variable), INITS);

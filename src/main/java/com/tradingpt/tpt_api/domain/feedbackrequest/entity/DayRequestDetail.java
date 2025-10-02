@@ -60,7 +60,7 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private BigDecimal pnl; // P&L
 
-	private String winLossRatio; // 손익비
+	private Double rnr; // R&R
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -89,7 +89,6 @@ public class DayRequestDetail extends FeedbackRequest {
 			.membershipLevel(request.getMembershipLevel())
 			.preCourseFeedbackDetail(preCourseFeedbackDetail)
 			.category(request.getCategory())
-			.positionHoldingTime(request.getPositionHoldingTime())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.position(request.getPosition())
@@ -100,7 +99,7 @@ public class DayRequestDetail extends FeedbackRequest {
 			.directionFrameExists(request.getDirectionFrameExists())
 			.trendAnalysis(request.getTrendAnalysis())
 			.pnl(request.getPnl())
-			.winLossRatio(request.getWinLossRatio())
+			.rnr(request.getRnr())
 			.entryPoint1(request.getEntryPoint1())
 			.grade(request.getGrade())
 			.entryPoint2(request.getEntryPoint2())

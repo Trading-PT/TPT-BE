@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class FeedbackRequestCalendarQueryServiceImpl implements FeedbackRequestCalendarQueryService {
+public class FeedbackRequestJournalQueryServiceImpl implements FeedbackRequestJournalQueryService {
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final InvestmentHistoryRepository investmentHistoryRepository;

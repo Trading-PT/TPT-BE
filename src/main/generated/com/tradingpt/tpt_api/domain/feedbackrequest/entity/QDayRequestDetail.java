@@ -94,6 +94,8 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
+    public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
+
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
 
@@ -110,8 +112,6 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
-
-    public final StringPath winLossRatio = createString("winLossRatio");
 
     public QDayRequestDetail(String variable) {
         this(DayRequestDetail.class, forVariable(variable), INITS);

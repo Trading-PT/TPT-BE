@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
@@ -63,9 +65,6 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
 
-	@Schema(description = "하루 매매 횟수")
-	private Integer dailyTradingCount;
-
 	@Schema(description = "스크린샷 이미지 URL")
 	private List<String> screenshotImageUrls;
 
@@ -75,23 +74,38 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "레버리지")
 	private Integer leverage;
 
-	@Schema(description = "총 포지션을 잡은 횟수")
-	private Integer totalPositionTakingCount;
+	@Schema(description = "포지션 (LONG/SHORT)")
+	private Position position;
 
-	@Schema(description = "총 매매 횟수 대비 수익 매매 횟수")
-	private Integer totalProfitMarginPerTrades;
+	@Schema(description = "P&L")
+	private BigDecimal pnl;
 
-	@Schema(description = "스켈핑 시 포지션을 진입하는 근거")
+	@Schema(description = "손익비")
+	private Double rnr;
+
+	@Schema(description = "비중 (운용 자금 대비)")
+	private Integer operatingFundsRatio;
+
+	@Schema(description = "진입 자금")
+	private BigDecimal entryPrice;
+
+	@Schema(description = "탈출 자금")
+	private BigDecimal exitPrice;
+
+	@Schema(description = "설정 손절가")
+	private BigDecimal settingStopLoss;
+
+	@Schema(description = "설정 익절가")
+	private BigDecimal settingTakeProfit;
+
+	@Schema(description = "포지션 진입 근거")
 	private String positionStartReason;
 
-	@Schema(description = "스켈핑 시 포지션을 종료하는 근거")
+	@Schema(description = "포지션 탈출 근거")
 	private String positionEndReason;
 
-	@Schema(description = "담당 트레이너에게 피드백 요청 사항")
-	private String trainerFeedbackRequestContent;
-
-	@Schema(description = "15분봉 기준 추세 분석")
-	private String trendAnalysis;
+	@Schema(description = "매매 복기")
+	private String tradingReview;
 
 	public static ScalpingFeedbackRequestDetailResponseDTO of(ScalpingRequestDetail scalpingRequest) {
 		return ScalpingFeedbackRequestDetailResponseDTO.builder()
@@ -108,7 +122,6 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.updatedAt(scalpingRequest.getUpdatedAt())
 			.category(scalpingRequest.getCategory())
 			.positionHoldingTime(scalpingRequest.getPositionHoldingTime())
-			.dailyTradingCount(scalpingRequest.getDailyTradingCount())
 			.screenshotImageUrls(
 				scalpingRequest.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)
@@ -116,12 +129,17 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			)
 			.riskTaking(scalpingRequest.getRiskTaking())
 			.leverage(scalpingRequest.getLeverage())
-			.totalPositionTakingCount(scalpingRequest.getTotalPositionTakingCount())
-			.totalProfitMarginPerTrades(scalpingRequest.getTotalProfitMarginPerTrades())
+			.position(scalpingRequest.getPosition())
+			.pnl(scalpingRequest.getPnl())
+			.rnr(scalpingRequest.getRnr())
+			.operatingFundsRatio(scalpingRequest.getOperatingFundsRatio())
+			.entryPrice(scalpingRequest.getEntryPrice())
+			.exitPrice(scalpingRequest.getExitPrice())
+			.settingStopLoss(scalpingRequest.getSettingStopLoss())
+			.settingTakeProfit(scalpingRequest.getSettingTakeProfit())
 			.positionStartReason(scalpingRequest.getPositionStartReason())
 			.positionEndReason(scalpingRequest.getPositionEndReason())
-			.trainerFeedbackRequestContent(scalpingRequest.getTrainerFeedbackRequestContent())
-			.trendAnalysis(scalpingRequest.getTrendAnalysis())
+			.tradingReview(scalpingRequest.getTradingReview())
 			.build();
 	}
 }

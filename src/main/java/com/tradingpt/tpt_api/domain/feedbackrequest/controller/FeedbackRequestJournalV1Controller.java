@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestCalendarQueryService;
+import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestJournalQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -17,12 +17,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/feedback-requests/calendar")
+@RequestMapping("/api/v1/feedback-requests/journals")
 @RequiredArgsConstructor
 @Tag(name = "피드백 요청 캘린더", description = "피드백 요청 캘린더 관련 API")
-public class FeedbackRequestCalendarV1Controller {
+public class FeedbackRequestJournalV1Controller {
 
-	private final FeedbackRequestCalendarQueryService feedbackRequestCalendarQueryService;
+	private final FeedbackRequestJournalQueryService feedbackRequestJournalQueryService;
 
 	@Operation(summary = "해당 연도에 대한 월별 피드백 내역",
 		description = "해당 연도에 대한 피드백 요청이 존재하는 월을 리스트업 합니다.")
@@ -32,7 +32,7 @@ public class FeedbackRequestCalendarV1Controller {
 		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestCalendarQueryService.getYearlySummaryResponse(year, customerId));
+			feedbackRequestJournalQueryService.getYearlySummaryResponse(year, customerId));
 	}
 
 	@Operation(summary = "해당 연/월에 대한 월별 트레이딩 피드백 내역",
@@ -43,7 +43,7 @@ public class FeedbackRequestCalendarV1Controller {
 		@PathVariable Integer month,
 		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
-		return BaseResponse.onSuccess(feedbackRequestCalendarQueryService.getMonthlySummaryResponse(
+		return BaseResponse.onSuccess(feedbackRequestJournalQueryService.getMonthlySummaryResponse(
 			year, month, customerId));
 	}
 
@@ -57,7 +57,7 @@ public class FeedbackRequestCalendarV1Controller {
 		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestCalendarQueryService.getDailyFeedbackRequestsResponse(year, month, day, customerId)
+			feedbackRequestJournalQueryService.getDailyFeedbackRequestsResponse(year, month, day, customerId)
 		);
 	}
 }

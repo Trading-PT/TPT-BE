@@ -112,8 +112,8 @@ public class DayFeedbackRequestDetailResponseDTO {
 	@Schema(description = "P&L")
 	private BigDecimal pnl;
 
-	@Schema(description = "손익비")
-	private String winLossRatio;
+	@Schema(description = "R&R")
+	private Double rnr;
 
 	@Schema(description = "1차 진입 타점")
 	private EntryPoint entryPoint1;
@@ -158,7 +158,7 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.subFrame(dayRequest.getSubFrame())
 			.trendAnalysis(dayRequest.getTrendAnalysis())
 			.pnl(dayRequest.getPnl())
-			.winLossRatio(dayRequest.getWinLossRatio())
+			.rnr(dayRequest.getRnr())
 			.entryPoint1(dayRequest.getEntryPoint1())
 			.grade(dayRequest.getGrade())
 			.entryPoint2(dayRequest.getEntryPoint2())

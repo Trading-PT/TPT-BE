@@ -16,9 +16,6 @@ import lombok.Setter;
 @Schema(description = "완강 전 고객 피드백 상세 입력")
 public class PreCourseFeedbackDetailRequestDTO {
 
-	@Schema(description = "R&R")
-	private Double rnr;
-
 	@Schema(description = "운용 자금 대비 비중 (%)")
 	private Integer operatingFundsRatio;
 
@@ -42,8 +39,7 @@ public class PreCourseFeedbackDetailRequestDTO {
 
 	@JsonIgnore
 	public boolean isEmpty() {
-		return rnr == null
-			&& operatingFundsRatio == null
+		return operatingFundsRatio == null
 			&& entryPrice == null
 			&& exitPrice == null
 			&& settingStopLoss == null
@@ -58,7 +54,7 @@ public class PreCourseFeedbackDetailRequestDTO {
 			return null;
 		}
 
-		return PreCourseFeedbackDetail.of(rnr, operatingFundsRatio, entryPrice, exitPrice, settingStopLoss,
+		return PreCourseFeedbackDetail.of(operatingFundsRatio, entryPrice, exitPrice, settingStopLoss,
 			settingTakeProfit, positionStartReason, positionEndReason);
 	}
 

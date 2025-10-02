@@ -109,8 +109,8 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "P&L")
 	private BigDecimal pnl;
 
-	@Schema(description = "손익비")
-	private String winLossRatio;
+	@Schema(description = "R&R")
+	private Double rnr;
 
 	@Schema(description = "1차 진입 타점")
 	private EntryPoint entryPoint1;
@@ -160,7 +160,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.subFrame(swingRequest.getSubFrame())
 			.trendAnalysis(swingRequest.getTrendAnalysis())
 			.pnl(swingRequest.getPnl())
-			.winLossRatio(swingRequest.getWinLossRatio())
+			.rnr(swingRequest.getRnr())
 			.entryPoint1(swingRequest.getEntryPoint1())
 			.grade(swingRequest.getGrade())
 			.entryPoint2(swingRequest.getEntryPoint2())
