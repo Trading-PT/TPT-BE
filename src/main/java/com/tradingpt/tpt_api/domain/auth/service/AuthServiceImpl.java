@@ -1,22 +1,27 @@
 package com.tradingpt.tpt_api.domain.auth.service;
 
+import com.tradingpt.tpt_api.domain.auth.dto.request.PasswordUpdateRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.response.PasswordUpdateResponseDTO;
+import com.tradingpt.tpt_api.domain.user.entity.PasswordHistory;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
+import com.tradingpt.tpt_api.domain.user.repository.PasswordHistoryRepository;
+import com.tradingpt.tpt_api.global.web.logout.LogoutHelper;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
 
+import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradingpt.tpt_api.domain.auth.dto.request.SendEmailCodeRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequest;
-import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequest;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SendEmailCodeRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SendPhoneCodeRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.SignUpRequestDTO;
+import com.tradingpt.tpt_api.domain.auth.dto.request.VerifyCodeRequestDTO;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.auth.infrastructure.VerificationService;
 import com.tradingpt.tpt_api.domain.auth.util.AuthUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Uid;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
@@ -31,40 +36,43 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+	private static final int PASSWORD_HISTORY_CHECK_SIZE = 5;
 	private final VerificationService verificationService;
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
+	private final PasswordHistoryRepository passwordHistoryRepository;
+	private final LogoutHelper logoutHelper;
 
 	/* === 휴대폰 인증 === */
 	@Override
-	public void sendPhoneCode(SendPhoneCodeRequest req, HttpSession session) {
+	public void sendPhoneCode(SendPhoneCodeRequestDTO req, HttpSession session) {
 		final String phone = AuthUtil.normalizePhone(req.getPhone());
 		verificationService.sendPhoneCode(phone, session);
 	}
 
 	@Override
-	public void verifyPhoneCode(VerifyCodeRequest req, HttpSession session) {
+	public void verifyPhoneCode(VerifyCodeRequestDTO req, HttpSession session) {
 		final String phone = AuthUtil.normalizePhone(req.getValue());
 		verificationService.verifyPhone(phone, req.getCode(), session);
 	}
 
 	/* === 이메일 인증 === */
 	@Override
-	public void sendEmailCode(SendEmailCodeRequest req, HttpSession session) {
+	public void sendEmailCode(SendEmailCodeRequestDTO req, HttpSession session) {
 		final String email = AuthUtil.normalizeEmail(req.getEmail());
 		verificationService.sendEmailCode(email, session);
 	}
 
 	@Override
-	public void verifyEmailCode(VerifyCodeRequest req, HttpSession session) {
+	public void verifyEmailCode(VerifyCodeRequestDTO req, HttpSession session) {
 		final String email = AuthUtil.normalizeEmail(req.getValue());
 		verificationService.verifyEmail(email, req.getCode(), session);
 	}
 
 	@Override
 	@Transactional
-	public void signUp(SignUpRequest req, HttpSession session) {
+	public void signUp(SignUpRequestDTO req, HttpSession session) {
 		// 필수 동의 검증
 		if (!Boolean.TRUE.equals(req.getTermsService()) || !Boolean.TRUE.equals(req.getTermsPrivacy())) {
 			throw new AuthException(AuthErrorStatus.TERMS_AGREEMENT_REQUIRED);
@@ -113,7 +121,52 @@ public class AuthServiceImpl implements AuthService {
 		verificationService.clearEmailTrace(email);
 	}
 
-	private void updateSocialCustomer(SignUpRequest req, HttpSession session, String phone, String email) {
+	@Transactional
+	public PasswordUpdateResponseDTO resetPasswordAndInvalidateDevices(PasswordUpdateRequestDTO req) {
+
+		//이메일로 유저 조회
+		User user = userRepository.findByEmail(req.getEmail())
+				.orElseThrow(() -> new AuthException(UserErrorStatus.USER_NOT_FOUND));
+
+		if (passwordEncoder.matches(req.getNewPassword(), user.getPassword())) {
+			throw new AuthException(AuthErrorStatus.PASSWORD_REUSED);
+		}
+
+		// 3) 최근 N개 재사용 금지 (해시만 조회: QueryDSL 커스텀)
+		List<String> recentHashes =
+				passwordHistoryRepository.findRecentHashesByUserId(user.getId(), PASSWORD_HISTORY_CHECK_SIZE);
+
+		boolean reused = recentHashes.stream()
+				.anyMatch(h -> passwordEncoder.matches(req.getNewPassword(), h));
+		if (reused) {
+			throw new AuthException(AuthErrorStatus.PASSWORD_REUSED);
+		}
+
+		// 4) 현재 해시를 히스토리에 백업
+		passwordHistoryRepository.save(
+				PasswordHistory.builder()
+						.user(user)
+						.passwordHash(user.getPassword())
+						.build()
+		);
+
+		// 6) 비밀번호 변경(해시)
+		user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+		userRepository.save(user);
+
+		// 7) 초과분 정리 (최근 N개만 유지)
+		passwordHistoryRepository.deleteOlderThanNByUserId(user.getId(), PASSWORD_HISTORY_CHECK_SIZE);
+
+		// 8) 다른 기기 세션 무효화
+		logoutHelper.invalidateAllDevices(user.getUsername());
+
+		// 9) userId 반환
+		return PasswordUpdateResponseDTO.builder()
+				.userId(user.getId())
+				.build();
+	}
+
+	private void updateSocialCustomer(SignUpRequestDTO req, HttpSession session, String phone, String email) {
 		var userOpt = userRepository.findByUsername(req.getUsername());
 		if (userOpt.isEmpty() || !(userOpt.get() instanceof Customer)) {
 			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
@@ -144,7 +197,7 @@ public class AuthServiceImpl implements AuthService {
 		verificationService.clearEmailTrace(email);
 	}
 
-	private void attachUid(Customer customer, SignUpRequest req) {
+	private void attachUid(Customer customer, SignUpRequestDTO req) {
 		if (req.getUids() == null || req.getUids().isEmpty()) {
 			return;
 		}
@@ -153,7 +206,7 @@ public class AuthServiceImpl implements AuthService {
 			throw new AuthException(AuthErrorStatus.INVALID_INPUT_FORMAT);
 		}
 
-		SignUpRequest.UidRequest ur = req.getUids().get(0);
+		SignUpRequestDTO.UidRequest ur = req.getUids().get(0);
 
 		String exchange = ur.getExchangeName() == null ? "" : ur.getExchangeName().trim();
 		String uidValue = ur.getUid() == null ? "" : ur.getUid().trim();
@@ -164,6 +217,9 @@ public class AuthServiceImpl implements AuthService {
 
 		customer.upsertUid(exchange, uidValue);
 	}
+
+
+
 
 	@Override
 	public boolean isUsernameAvailable(String username) {
