@@ -30,6 +30,13 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyPerformanceComparison;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -248,4 +255,201 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		return count != null ? count : 0L;
 	}
+
+	@Override
+	public List<CourseStatus> findUniqueCourseStatusByYearMonth(Long customerId, Integer year, Integer month) {
+		return queryFactory
+			.select(qFeedbackRequest.courseStatus)
+			.from(qFeedbackRequest)
+			.where(
+				qFeedbackRequest.customer.id.eq(customerId)
+					.and(qFeedbackRequest.feedbackYear.eq(year))
+					.and(qFeedbackRequest.feedbackMonth.eq(month))
+			)
+			.distinct()
+			.fetch();
+	}
+
+	@Override
+	public MonthlyFeedbackSummaryResponseDTO findMonthlyFeedbackSummaryByCourseStatus(
+		Long customerId, Integer year, Integer month, CourseStatus courseStatus) {
+
+		NumberExpression<Integer> unreadCase = new CaseBuilder()
+			.when(qFeedbackRequest.status.eq(Status.FN))
+			.then(1)
+			.otherwise(0);
+
+		NumberExpression<Integer> pendingCase = new CaseBuilder()
+			.when(qFeedbackRequest.status.eq(Status.N))
+			.then(1)
+			.otherwise(0);
+
+		var result = queryFactory
+			.select(Projections.constructor(
+				MonthlyFeedbackSummaryResult.class,
+				qFeedbackRequest.feedbackMonth,
+				qFeedbackRequest.count(),
+				unreadCase.sum().coalesce(0),
+				pendingCase.sum().coalesce(0)
+			))
+			.from(qFeedbackRequest)
+			.where(
+				qFeedbackRequest.customer.id.eq(customerId)
+					.and(qFeedbackRequest.feedbackYear.eq(year))
+					.and(qFeedbackRequest.feedbackMonth.eq(month))
+					.and(qFeedbackRequest.courseStatus.eq(courseStatus))
+			)
+			.fetchOne();
+
+		if (result == null) {
+			result = new MonthlyFeedbackSummaryResult(month, 0L, 0, 0);
+		}
+
+		return MonthlyFeedbackSummaryResponseDTO.builder()
+			.weekFeedbackSummaryResponseDTOS(List.of()) // 임시값
+			.winningRate(0.0) // 임시값
+			.monthlyAverageRnr(0.0) // 임시값
+			.monthlyPnl(java.math.BigDecimal.ZERO) // 임시값
+			.build();
+	}
+
+	@Override
+	public EntryPointStatisticsResponseDTO findEntryPointStatisticsByCourseStatus(
+		Long customerId, Integer year, Integer month, CourseStatus courseStatus, InvestmentType investmentType) {
+
+		// 스윙과 데이 트레이딩에만 적용
+		if (investmentType == InvestmentType.SWING) {
+			var results = queryFactory
+				.select(
+					qSwingRequestDetail.entryPoint1,
+					qSwingRequestDetail.count()
+				)
+				.from(qSwingRequestDetail)
+				.where(
+					qSwingRequestDetail.customer.id.eq(customerId)
+						.and(qSwingRequestDetail.feedbackYear.eq(year))
+						.and(qSwingRequestDetail.feedbackMonth.eq(month))
+						.and(qSwingRequestDetail.courseStatus.eq(courseStatus))
+				)
+				.groupBy(qSwingRequestDetail.entryPoint1)
+				.fetch();
+
+			// 통계 계산 및 DTO 구성
+			return buildEntryPointStatistics(results);
+
+		} else if (investmentType == InvestmentType.DAY) {
+			var results = queryFactory
+				.select(
+					qDayRequestDetail.entryPoint1,
+					qDayRequestDetail.count()
+				)
+				.from(qDayRequestDetail)
+				.where(
+					qDayRequestDetail.customer.id.eq(customerId)
+						.and(qDayRequestDetail.feedbackYear.eq(year))
+						.and(qDayRequestDetail.feedbackMonth.eq(month))
+						.and(qDayRequestDetail.courseStatus.eq(courseStatus))
+				)
+				.groupBy(qDayRequestDetail.entryPoint1)
+				.fetch();
+
+			return buildEntryPointStatistics(results);
+		}
+
+		// 스캘핑은 진입 타점 통계가 없음
+		return EntryPointStatisticsResponseDTO.builder()
+			.reverse(EntryPointStatisticsResponseDTO.PositionDetail.builder().count(0).winCount(0).lossCount(0).build())
+			.pullBack(
+				EntryPointStatisticsResponseDTO.PositionDetail.builder().count(0).winCount(0).lossCount(0).build())
+			.breakOut(
+				EntryPointStatisticsResponseDTO.PositionDetail.builder().count(0).winCount(0).lossCount(0).build())
+			.build();
+	}
+
+	@Override
+	public MonthlyPerformanceComparison findMonthlyPerformanceComparison(
+		Long customerId, Integer year, Integer month, CourseStatus courseStatus) {
+
+		// 현재 달 성과 계산
+		MonthlyPerformanceComparison.MonthSnapshot currentSnapshot = calculateMonthSnapshot(customerId, year, month,
+			courseStatus);
+
+		// 이전 달 성과 계산
+		int prevYear = month == 1 ? year - 1 : year;
+		int prevMonth = month == 1 ? 12 : month - 1;
+		MonthlyPerformanceComparison.MonthSnapshot prevSnapshot = calculateMonthSnapshot(customerId, prevYear,
+			prevMonth, courseStatus);
+
+		return MonthlyPerformanceComparison.builder()
+			.currentMonth(currentSnapshot)
+			.beforeMonth(prevSnapshot)
+			.build();
+	}
+
+	public List<MonthlyWeekFeedbackSummaryResponseDTO> findWeeklyStatisticsByCourseStatusTemp(
+		Long customerId, Integer year, Integer month, CourseStatus courseStatus, InvestmentType investmentType) {
+
+		// 스캘핑 전용 - 주차별 피드백 요청 수와 미확인 여부 조회
+		if (investmentType == InvestmentType.SCALPING) {
+			// 임시 구현: 주차별 통계를 수동으로 생성 (실제 구현 시 QueryDSL로 변경 필요)
+			return List.of(
+				MonthlyWeekFeedbackSummaryResponseDTO.builder()
+					.week(1)
+					.tradingCount(0)
+					.weeklyPnl(java.math.BigDecimal.ZERO)
+					.build()
+			);
+		}
+
+		return List.of();
+	}
+
+	private EntryPointStatisticsResponseDTO buildEntryPointStatistics(List<com.querydsl.core.Tuple> results) {
+		int reverseCount = 0;
+		int pullBackCount = 0;
+		int breakOutCount = 0;
+
+		for (com.querydsl.core.Tuple tuple : results) {
+			com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint entryPoint =
+				tuple.get(0, com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
+			Long count = tuple.get(1, Long.class);
+
+			// EntryPoint enum에 따라 분류 (실제 EntryPoint enum 값을 확인하여 분류해야 함)
+			// 임시로 모든 값을 breakOut으로 분류
+			breakOutCount += count.intValue();
+		}
+
+		return EntryPointStatisticsResponseDTO.builder()
+			.reverse(EntryPointStatisticsResponseDTO.PositionDetail.builder()
+				.count(reverseCount)
+				.winCount(0)
+				.lossCount(0)
+				.build())
+			.pullBack(EntryPointStatisticsResponseDTO.PositionDetail.builder()
+				.count(pullBackCount)
+				.winCount(0)
+				.lossCount(0)
+				.build())
+			.breakOut(EntryPointStatisticsResponseDTO.PositionDetail.builder()
+				.count(breakOutCount)
+				.winCount(0)
+				.lossCount(0)
+				.build())
+			.build();
+	}
+
+	private MonthlyPerformanceComparison.MonthSnapshot calculateMonthSnapshot(Long customerId, Integer year,
+		Integer month, CourseStatus courseStatus) {
+		// 실제 성과 계산 로직 구현 필요
+		// 이 부분은 비즈니스 로직에 따라 구현해야 합니다.
+
+		// 임시 구현: 0값으로 초기화
+		return MonthlyPerformanceComparison.MonthSnapshot.builder()
+			.month(month)
+			.finalWinRate(java.math.BigDecimal.ZERO)
+			.averageRoi(java.math.BigDecimal.ZERO)
+			.finalPnL(java.math.BigDecimal.ZERO)
+			.build();
+	}
+
 }

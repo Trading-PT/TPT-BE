@@ -12,5 +12,5 @@ public enum CourseStatus {
 	;
 
 	private final String description;
-	
+
 }

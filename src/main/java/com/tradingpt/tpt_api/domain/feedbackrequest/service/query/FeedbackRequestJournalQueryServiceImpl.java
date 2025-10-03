@@ -8,14 +8,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyFeedbackRequestsResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
-import com.tradingpt.tpt_api.domain.feedbackrequest.repository.MonthlyFeedbackSummaryResult;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
-import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
-import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentHistoryRepository;
+import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentTypeHistory;
+import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryErrorStatus;
+import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryException;
+import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentTypeHistoryRepository;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import lombok.RequiredArgsConstructor;
@@ -28,7 +30,8 @@ import lombok.extern.slf4j.Slf4j;
 public class FeedbackRequestJournalQueryServiceImpl implements FeedbackRequestJournalQueryService {
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
-	private final InvestmentHistoryRepository investmentHistoryRepository;
+	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
+	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepositoryReadOnly;
 
 	@Override
 	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
@@ -40,6 +43,17 @@ public class FeedbackRequestJournalQueryServiceImpl implements FeedbackRequestJo
 			.toList();
 
 		return YearlySummaryResponseDTO.of(year, months);
+	}
+
+	@Override
+	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
+		InvestmentTypeHistory customerUserInvestmentType = investmentTypeHistoryRepositoryReadOnly.findActiveHistory(
+				customerId,
+				LocalDate.of(year, month, 1))
+			.orElseThrow(
+				() -> new InvestmentHistoryException(InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND));
+
+		return null;
 	}
 
 	@Override
@@ -59,9 +73,9 @@ public class FeedbackRequestJournalQueryServiceImpl implements FeedbackRequestJo
 		}
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(feedbackDate);
-		InvestmentType investmentType = investmentHistoryRepository
+		InvestmentType investmentType = investmentTypeHistoryRepository
 			.findActiveHistory(customerId, feedbackDate)
-			.map(InvestmentHistory::getInvestmentType)
+			.map(InvestmentTypeHistory::getInvestmentType)
 			.orElseGet(() -> feedbackRequests.isEmpty() ? null :
 				feedbackRequests.get(0).getCustomer().getInvestmentTypeOn(feedbackDate));
 
@@ -75,8 +89,4 @@ public class FeedbackRequestJournalQueryServiceImpl implements FeedbackRequestJo
 		);
 	}
 
-	@Override
-	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
-		return null;
-	}
 }

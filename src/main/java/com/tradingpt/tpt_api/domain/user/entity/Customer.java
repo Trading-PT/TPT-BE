@@ -10,7 +10,7 @@ import com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMem
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
-import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentHistory;
+import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentTypeHistory;
 import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -72,7 +72,7 @@ public class Customer extends User {
 
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
-	private List<InvestmentHistory> investmentHistories = new ArrayList<>();
+	private List<InvestmentTypeHistory> investmentHistories = new ArrayList<>();
 
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
@@ -180,9 +180,10 @@ public class Customer extends User {
 		}
 
 		// 현재 진행 중인 마지막 투자 유형 이력을 찾음
-		InvestmentHistory latestOngoing = investmentHistories.stream()
-			.filter(InvestmentHistory::isOngoing)
-			.max(Comparator.comparing(InvestmentHistory::getStartedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+		InvestmentTypeHistory latestOngoing = investmentHistories.stream()
+			.filter(InvestmentTypeHistory::isOngoing)
+			.max(Comparator.comparing(InvestmentTypeHistory::getStartedAt,
+				Comparator.nullsLast(Comparator.naturalOrder())))
 			.orElse(null);
 
 		// 동일한 유형으로 변경 요청이 오면 새 이력 없이 현재 상태만 동기화
@@ -198,7 +199,7 @@ public class Customer extends User {
 
 		// 새로운 투자 유형이 지정되면 해당 일자부터 시작하는 이력을 추가
 		if (investmentType != null) {
-			InvestmentHistory history = InvestmentHistory.builder()
+			InvestmentTypeHistory history = InvestmentTypeHistory.builder()
 				.customer(this)
 				.investmentType(investmentType)
 				.startedAt(effectiveDate)
@@ -220,8 +221,9 @@ public class Customer extends User {
 		// 해당 날짜에 유효한 이력 중 가장 최근 시작분을 찾아 투자 유형을 결정
 		return investmentHistories.stream()
 			.filter(history -> history.isActiveOn(date))
-			.max(Comparator.comparing(InvestmentHistory::getStartedAt, Comparator.nullsLast(Comparator.naturalOrder())))
-			.map(InvestmentHistory::getInvestmentType)
+			.max(Comparator.comparing(InvestmentTypeHistory::getStartedAt,
+				Comparator.nullsLast(Comparator.naturalOrder())))
+			.map(InvestmentTypeHistory::getInvestmentType)
 			.orElse(primaryInvestmentType);
 	}
 

@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
+package com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response;
 
 /**
  * 연도/고객별 월간 피드백 요약 조회 결과.

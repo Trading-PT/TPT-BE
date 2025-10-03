@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QInvestmentHistory is a Querydsl query type for InvestmentHistory
+ * QInvestmentTypeHistory is a Querydsl query type for InvestmentTypeHistory
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QInvestmentHistory extends EntityPathBase<InvestmentHistory> {
+public class QInvestmentTypeHistory extends EntityPathBase<InvestmentTypeHistory> {
 
-    private static final long serialVersionUID = -137267940L;
+    private static final long serialVersionUID = 1734165634L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QInvestmentHistory investmentHistory = new QInvestmentHistory("investmentHistory");
+    public static final QInvestmentTypeHistory investmentTypeHistory = new QInvestmentTypeHistory("investmentTypeHistory");
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
@@ -40,23 +40,23 @@ public class QInvestmentHistory extends EntityPathBase<InvestmentHistory> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public QInvestmentHistory(String variable) {
-        this(InvestmentHistory.class, forVariable(variable), INITS);
+    public QInvestmentTypeHistory(String variable) {
+        this(InvestmentTypeHistory.class, forVariable(variable), INITS);
     }
 
-    public QInvestmentHistory(Path<? extends InvestmentHistory> path) {
+    public QInvestmentTypeHistory(Path<? extends InvestmentTypeHistory> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QInvestmentHistory(PathMetadata metadata) {
+    public QInvestmentTypeHistory(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QInvestmentHistory(PathMetadata metadata, PathInits inits) {
-        this(InvestmentHistory.class, metadata, inits);
+    public QInvestmentTypeHistory(PathMetadata metadata, PathInits inits) {
+        this(InvestmentTypeHistory.class, metadata, inits);
     }
 
-    public QInvestmentHistory(Class<? extends InvestmentHistory> type, PathMetadata metadata, PathInits inits) {
+    public QInvestmentTypeHistory(Class<? extends InvestmentTypeHistory> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
     }

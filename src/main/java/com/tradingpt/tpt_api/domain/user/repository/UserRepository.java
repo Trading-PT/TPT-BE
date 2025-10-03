@@ -1,23 +1,22 @@
 package com.tradingpt.tpt_api.domain.user.repository;
 
-import com.fasterxml.jackson.datatype.jsr310.ser.YearSerializer;
-import com.tradingpt.tpt_api.domain.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-public interface UserRepository extends JpaRepository<User, Long>{
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Provider;
 
-    boolean existsByUsername(String username);
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    Optional<User> findByUsername(String userName);
+	boolean existsByUsername(String username);
 
-    List<User> findAllByEmail(String email);
+	Optional<User> findByUsername(String userName);
 
-    Optional<User> findByProviderAndProviderId(Provider provider, String providerId);
+	List<User> findAllByEmail(String email);
 
-    Boolean existsByEmail(String email);
+	Optional<User> findByProviderAndProviderId(Provider provider, String providerId);
+
+	Boolean existsByEmail(String email);
 }

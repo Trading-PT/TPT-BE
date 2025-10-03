@@ -13,4 +13,10 @@ extends JpaRepository<MonthlyTradingSummary, Long>, MonthlyTradingSummaryReposit
 		Long trainerId,
 		Long customerId
 	);
+
+	Optional<MonthlyTradingSummary> findByCustomer_IdAndPeriodYearAndPeriodMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	);
 }

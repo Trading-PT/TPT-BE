@@ -2,7 +2,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.repository.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
