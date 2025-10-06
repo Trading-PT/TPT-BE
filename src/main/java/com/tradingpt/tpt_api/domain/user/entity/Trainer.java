@@ -28,7 +28,7 @@ public class Trainer extends User {
 	private String profileImageUrl;
 
 	@Column(name = "trainer_name")
-	private String trainer_name;
+	private String trainerName;
 
 	@Column(name = "oneline_introduction")
 	private String oneLineIntroduction;
