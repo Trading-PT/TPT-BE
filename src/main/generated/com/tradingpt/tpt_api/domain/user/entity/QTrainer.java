@@ -49,7 +49,7 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath providerId = _super.providerId;
 
-    public final StringPath trainer_name = createString("trainer_name");
+    public final StringPath trainerName = createString("trainerName");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
