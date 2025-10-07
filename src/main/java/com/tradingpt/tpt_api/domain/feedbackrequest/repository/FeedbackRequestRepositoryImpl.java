@@ -10,6 +10,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -573,6 +574,22 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			}
 			default -> throw new FeedbackRequestException(FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
 		}
+	}
+
+	@Override
+	public Optional<FeedbackRequest> findFirstByFeedbackYearAndFeedbackMonth(Long customerId, Integer year,
+		Integer month) {
+		FeedbackRequest result = queryFactory
+			.selectFrom(feedbackRequest)
+			.where(
+				feedbackRequest.customer.id.eq(customerId)
+					.and(feedbackRequest.feedbackYear.eq(year))
+					.and(feedbackRequest.feedbackMonth.eq(month))
+			)
+			.orderBy(feedbackRequest.feedbackYear.desc(), feedbackRequest.feedbackMonth.desc())
+			.fetchFirst();
+
+		return Optional.ofNullable(result);
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {

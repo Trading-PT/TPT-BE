@@ -65,14 +65,13 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
-		LocalDate date = LocalDate.of(year, month, 1);
 
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 1. 해당 월의 CourseStatus 조회
 		CourseStatus courseStatus = feedbackRequestRepository
-			.findByCustomer_IdAndFeedbackYearAndFeedbackMonth(customerId, year, month)
+			.findFirstByFeedbackYearAndFeedbackMonth(customerId, year, month)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND))
 			.getCourseStatus();
 

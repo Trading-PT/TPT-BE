@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -113,5 +114,14 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer month,
 		InvestmentType investmentType
 	);
+
+	/**
+	 * 고객의 ID와 특정 연/월에 대해서 가장 최근의 FeedbackRequest를 조회
+	 * @param customerId
+	 * @param year
+	 * @param month
+	 * @return
+	 */
+	Optional<FeedbackRequest> findFirstByFeedbackYearAndFeedbackMonth(Long customerId, Integer year, Integer month);
 
 }
