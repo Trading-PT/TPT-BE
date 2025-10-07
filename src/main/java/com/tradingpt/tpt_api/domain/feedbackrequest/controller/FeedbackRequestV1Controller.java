@@ -84,22 +84,8 @@ public class FeedbackRequestV1Controller {
 			feedbackRequestCommandService.createSwingRequest(request, customerId));
 	}
 
-	// @Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
-	// @GetMapping
-	// @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	// public BaseResponse<Page<FeedbackRequestResponseDTO>> getFeedbackRequests(
-	// 	@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-	// 	@Parameter(description = "고객 ID 필터 (트레이너만 사용 가능)") @RequestParam(required = false) Long customerId) {
-	//
-	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequests(
-	// 		pageable, feedbackType, status, customerId));
-	// }
-
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
-	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal(expression = "id") Long customerId) {
@@ -119,18 +105,6 @@ public class FeedbackRequestV1Controller {
 		return BaseResponse.onSuccessDelete(
 			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
 	}
-
-	// @Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
-	// @GetMapping("/my")
-	// @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	// public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
-	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-	// 	@AuthenticationPrincipal(expression = "id") Long customerId) {
-	//
-	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
-	// 		customerId, feedbackType, status));
-	// }
 
 	private class PreCourseFeedbackDetailEditor extends java.beans.PropertyEditorSupport {
 		@Override

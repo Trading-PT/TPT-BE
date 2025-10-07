@@ -28,8 +28,4 @@ public interface FeedbackRequestQueryService {
 	 */
 	List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType, Status status);
 
-	/**
-	 * 고객 피드백 요청 권한 확인
-	 */
-	boolean hasAccessPermission(Long feedbackRequestId, Long currentUserId);
 }
