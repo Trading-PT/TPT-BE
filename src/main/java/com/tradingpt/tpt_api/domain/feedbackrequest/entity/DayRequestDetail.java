@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
@@ -35,12 +34,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private String category; // 종목
-
-	private Integer riskTaking; // 리스크 테이킹
-
-	private Integer leverage; // 레버리지
-
 	@Enumerated(EnumType.STRING)
 	private Position position; // 포지션
 
@@ -58,10 +51,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trendAnalysis; // 추세 분석
 
-	private BigDecimal pnl; // P&L
-
-	private Double rnr; // R&R
-
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
 
@@ -69,9 +58,6 @@ public class DayRequestDetail extends FeedbackRequest {
 	private Grade grade; // 등급
 
 	private LocalDate entryPoint2; // 2 진입 타점
-
-	@Lob
-	private String tradingReview; // 매매 복기
 
 	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer,
 		FeedbackPeriodUtil.FeedbackPeriod period, String title) {

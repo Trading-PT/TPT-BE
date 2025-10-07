@@ -32,4 +32,5 @@ public class MonthlyWeekFeedbackSummaryResponseDTO {
 			.weeklyPnl(weeklyPnl)
 			.build();
 	}
+
 }

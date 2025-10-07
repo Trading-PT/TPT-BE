@@ -9,10 +9,10 @@ import org.springframework.data.domain.Pageable;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyPerformanceComparison;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -84,55 +84,34 @@ public interface FeedbackRequestRepositoryCustom {
 	);
 
 	/**
-	 * 특정 연/월에 해당하는 고유한 CourseStatus 목록을 조회한다.
-	 * FeedbackRequest 생성 시점의 CourseStatus를 기준으로 한다.
-	 *
-	 * @param customerId 고객 ID
-	 * @param year 조회 연도
-	 * @param month 조회 월
-	 * @return 해당 월에 존재하는 고유한 CourseStatus 목록
+	 * 특정 고객의 특정 연/월/CourseStatus별 주차 통계 조회
 	 */
-	List<CourseStatus> findUniqueCourseStatusByYearMonth(Long customerId, Integer year, Integer month);
-
-	/**
-	 * 특정 CourseStatus에 해당하는 월별 피드백 요약 정보를 조회한다.
-	 *
-	 * @param customerId 고객 ID
-	 * @param year 조회 연도
-	 * @param month 조회 월
-	 * @param courseStatus 완강 상태
-	 * @return 월별 피드백 요약 정보
-	 */
-	MonthlyFeedbackSummaryResponseDTO findMonthlyFeedbackSummaryByCourseStatus(
-		Long customerId, Integer year, Integer month, CourseStatus courseStatus
+	List<WeeklyRawData> findWeeklyStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
 	);
 
 	/**
-	 * 특정 CourseStatus와 InvestmentType에 해당하는 진입 타점 통계를 조회한다.
-	 * (완강 후 스윙/데이 트레이딩 전용)
-	 *
-	 * @param customerId 고객 ID
-	 * @param year 조회 연도
-	 * @param month 조회 월
-	 * @param courseStatus 완강 상태
-	 * @param investmentType 투자 타입
-	 * @return 진입 타점 통계 정보
+	 * 진입 타점별 통계 조회 (완강 후, 스윙/데이만)
 	 */
-	EntryPointStatisticsResponseDTO findEntryPointStatisticsByCourseStatus(
-		Long customerId, Integer year, Integer month, CourseStatus courseStatus, InvestmentType investmentType
+	EntryPointStatistics findEntryPointStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
 	);
 
 	/**
-	 * 이전 달 대비 성과 비교 정보를 조회한다.
-	 *
-	 * @param customerId 고객 ID
-	 * @param year 조회 연도
-	 * @param month 조회 월
-	 * @param courseStatus 완강 상태
-	 * @return 월별 성과 비교 정보
+	 * 특정 달의 최종 성과 조회
 	 */
-	MonthlyPerformanceComparison findMonthlyPerformanceComparison(
-		Long customerId, Integer year, Integer month, CourseStatus courseStatus
+	MonthlyPerformanceSnapshot findMonthlyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
 	);
 
 }

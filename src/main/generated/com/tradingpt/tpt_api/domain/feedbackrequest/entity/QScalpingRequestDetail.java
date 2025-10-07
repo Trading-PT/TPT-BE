@@ -24,7 +24,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     public final QFeedbackRequest _super;
 
-    public final StringPath category = createString("category");
+    //inherited
+    public final StringPath category;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus;
@@ -69,14 +70,16 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final BooleanPath isResponded;
 
-    public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
+    //inherited
+    public final NumberPath<Integer> leverage;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
 
     public final NumberPath<Integer> operatingFundsRatio = createNumber("operatingFundsRatio", Integer.class);
 
-    public final NumberPath<java.math.BigDecimal> pnl = createNumber("pnl", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> pnl;
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
@@ -90,9 +93,11 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     // inherited
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
-    public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
+    //inherited
+    public final NumberPath<Integer> riskTaking;
 
-    public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
+    //inherited
+    public final NumberPath<Double> rnr;
 
     public final NumberPath<java.math.BigDecimal> settingStopLoss = createNumber("settingStopLoss", java.math.BigDecimal.class);
 
@@ -104,7 +109,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final StringPath title;
 
-    public final StringPath tradingReview = createString("tradingReview");
+    //inherited
+    public final StringPath tradingReview;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
@@ -128,6 +134,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public QScalpingRequestDetail(Class<? extends ScalpingRequestDetail> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this._super = new QFeedbackRequest(type, metadata, inits);
+        this.category = _super.category;
         this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
@@ -141,11 +148,16 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
+        this.pnl = _super.pnl;
         this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
+        this.riskTaking = _super.riskTaking;
+        this.rnr = _super.rnr;
         this.status = _super.status;
         this.title = _super.title;
+        this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }
 

@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -35,15 +34,9 @@ public class SwingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private String category; // 종목
-
 	private LocalDate positionStartDate; // 포지션 진입 날짜
 
 	private LocalDate positionEndDate; // 포지션 종료 날짜
-
-	private Integer riskTaking; // 리스크 테이킹
-
-	private Integer leverage; // 레버리지
 
 	@Enumerated(EnumType.STRING)
 	private Position position; // 숏, 롱
@@ -62,10 +55,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Lob
 	private String trendAnalysis; // 추세 분석
 
-	private BigDecimal pnl; // P&L
-
-	private Double rnr; // R&R
-
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
 
@@ -75,9 +64,6 @@ public class SwingRequestDetail extends FeedbackRequest {
 	private LocalDateTime entryPoint2; // 2 진입 타점
 
 	private LocalDateTime entryPoint3; // 3 진입 타점
-
-	@Lob
-	private String tradingReview; // 매매 복기
 
 	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer,
 		String title) {

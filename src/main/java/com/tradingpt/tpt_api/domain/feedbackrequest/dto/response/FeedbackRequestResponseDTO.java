@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -40,7 +41,7 @@ public class FeedbackRequestResponseDTO {
 	private LocalDate feedbackRequestedAt;
 
 	@Schema(description = "완강 여부")
-	private Boolean isCourseCompleted;
+	private CourseStatus courseStatus;
 
 	@Schema(description = "피드백 연도")
 	private Integer feedbackYear;
@@ -71,7 +72,7 @@ public class FeedbackRequestResponseDTO {
 			.feedbackType(feedbackRequest.getFeedbackType())
 			.status(feedbackRequest.getStatus())
 			.feedbackRequestedAt(feedbackRequest.getFeedbackRequestedAt())
-			.isCourseCompleted(feedbackRequest.getIsCourseCompleted())
+			.courseStatus(feedbackRequest.getCourseStatus())
 			.feedbackYear(feedbackRequest.getFeedbackYear())
 			.feedbackMonth(feedbackRequest.getFeedbackMonth())
 			.feedbackWeek(feedbackRequest.getFeedbackWeek())

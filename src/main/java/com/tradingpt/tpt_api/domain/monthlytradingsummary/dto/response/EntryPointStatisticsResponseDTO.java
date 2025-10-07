@@ -38,13 +38,13 @@ public class EntryPointStatisticsResponseDTO {
 	public static class PositionDetail {
 		private Integer count;
 		private Integer winCount;
-		private Integer lossCount;
+		private Double rnr;
 
-		public static PositionDetail of(Integer count, Integer winCount, Integer lossCount) {
+		public static PositionDetail of(Integer count, Integer winCount, Double rnr) {
 			return PositionDetail.builder()
 				.count(count)
 				.winCount(winCount)
-				.lossCount(lossCount)
+				.rnr(rnr)
 				.build();
 		}
 	}

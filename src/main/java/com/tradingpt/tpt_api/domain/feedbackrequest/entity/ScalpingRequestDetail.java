@@ -32,18 +32,9 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private String category; // 종목
-
-	private Integer riskTaking; // 리스크 테이킹
-
-	private Integer leverage; // 레버리지
 
 	@Enumerated(EnumType.STRING)
 	private Position position; // 포지션
-
-	private BigDecimal pnl; // P&L
-
-	private Double rnr; // R&R
 
 	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
 
@@ -60,9 +51,6 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 
 	@Lob
 	private String positionEndReason; // 포지션 탈출 근거
-
-	@Lob
-	private String tradingReview; // 매매 복기
 
 	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer,
 		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
