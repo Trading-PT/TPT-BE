@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -17,7 +18,6 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,7 +44,7 @@ import lombok.experimental.SuperBuilder;
 @Getter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "feedback_request")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "ftype", discriminatorType = DiscriminatorType.STRING)
@@ -71,19 +71,18 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private FeedbackResponse feedbackResponse;
 
 	/**
-	 * 필드
+	 * 완강 전/후 모두 공통인 필드만 (진짜 공통)
 	 */
 	private String title;
-
-	private LocalDate feedbackRequestedAt; // 피드백 요청 일자
-
+	private LocalDate feedbackRequestDate; // 피드백 요청 일자
+	private String category; // 종목
 	private String positionHoldingTime; // 포지션 홀딩 시간
 
-	private String category; // 종목
-
 	private Integer riskTaking; // 리스크 테이킹
-
 	private Integer leverage; // 레버리지
+
+	@Enumerated(EnumType.STRING)
+	private Position position; // 포지션
 
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus; // 완강 여부
@@ -91,18 +90,30 @@ public abstract class FeedbackRequest extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private MembershipLevel membershipLevel;
 
-	@Embedded
-	private PreCourseFeedbackDetail preCourseFeedbackDetail;
-
 	private BigDecimal pnl; // P&L
-
 	private Double rnr; // R&R
 
 	private Integer feedbackYear; // 피드백 연도
-
 	private Integer feedbackMonth; // 피드백 월
-
 	private Integer feedbackWeek; // 피드백 주차
+
+	/**
+	 * ⭐ 완강 전 모든 타입 + 스캘핑 완강 후 사용 필드
+	 * - 모든 타입의 완강 전: 필수
+	 * - 스캘핑 완강 후: 필수
+	 * - 데이/스윙 완강 후: null
+	 */
+	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
+	private BigDecimal entryPrice; // 진입 자금
+	private BigDecimal exitPrice; // 탈출 자금
+	private BigDecimal settingStopLoss; // 설정 손절가
+	private BigDecimal settingTakeProfit; // 설정 익절가
+
+	@Lob
+	private String positionStartReason; // 포지션 진입 근거
+
+	@Lob
+	private String positionEndReason; // 포지션 탈출 근거
 
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
@@ -129,14 +140,6 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	public void setFeedbackResponse(FeedbackResponse feedbackResponse) {
 		this.feedbackResponse = feedbackResponse;
-	}
-
-	public String getPositionStartReason() {
-		return preCourseFeedbackDetail != null ? preCourseFeedbackDetail.getPositionStartReason() : null;
-	}
-
-	public String getPositionEndReason() {
-		return preCourseFeedbackDetail != null ? preCourseFeedbackDetail.getPositionEndReason() : null;
 	}
 
 }

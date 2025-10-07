@@ -3,10 +3,8 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,18 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.PreCourseFeedbackDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
-import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -45,11 +39,6 @@ public class FeedbackRequestV1Controller {
 	private final FeedbackRequestCommandService feedbackRequestCommandService;
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
 	private final ObjectMapper objectMapper;
-
-	@InitBinder
-	protected void initBinder(WebDataBinder binder) {
-		binder.registerCustomEditor(PreCourseFeedbackDetailRequestDTO.class, new PreCourseFeedbackDetailEditor());
-	}
 
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/day", consumes = "multipart/form-data")
@@ -84,22 +73,8 @@ public class FeedbackRequestV1Controller {
 			feedbackRequestCommandService.createSwingRequest(request, customerId));
 	}
 
-	// @Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
-	// @GetMapping
-	// @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	// public BaseResponse<Page<FeedbackRequestResponseDTO>> getFeedbackRequests(
-	// 	@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-	// 	@Parameter(description = "고객 ID 필터 (트레이너만 사용 가능)") @RequestParam(required = false) Long customerId) {
-	//
-	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequests(
-	// 		pageable, feedbackType, status, customerId));
-	// }
-
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
-	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal(expression = "id") Long customerId) {
@@ -118,45 +93,6 @@ public class FeedbackRequestV1Controller {
 
 		return BaseResponse.onSuccessDelete(
 			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
-	}
-
-	// @Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
-	// @GetMapping("/my")
-	// @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	// public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
-	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-	// 	@AuthenticationPrincipal(expression = "id") Long customerId) {
-	//
-	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
-	// 		customerId, feedbackType, status));
-	// }
-
-	private class PreCourseFeedbackDetailEditor extends java.beans.PropertyEditorSupport {
-		@Override
-		public void setAsText(String text) {
-			if (text == null || text.isBlank()) {
-				setValue(null);
-				return;
-			}
-
-			try {
-				setValue(objectMapper.readValue(text, PreCourseFeedbackDetailRequestDTO.class));
-			} catch (JsonProcessingException e) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.PRECOURSE_FEEDBACK_DETAIL_JSON_PARSE_ERROR);
-			}
-		}
-
-		@Override
-		public void setValue(Object value) {
-			if (value instanceof String[]) {
-				String[] array = (String[])value;
-				setAsText(array.length > 0 ? array[0] : null);
-				return;
-			}
-			super.setValue(value);
-		}
 	}
 
 }

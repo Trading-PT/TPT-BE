@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "완강 후 고객 월별 요약 - 스캘핑")
-public class AfterCompletedScalpingSummaryDTO extends MonthlySummaryResponseDTO {
+public class AfterCompletedScalpingMonthlySummaryDTO extends MonthlySummaryResponseDTO {
 
 	@Schema(description = "주별 트레이딩 피드백")
 	private List<WeeklyFeedbackSummaryDTO> weeklyFeedbacks;

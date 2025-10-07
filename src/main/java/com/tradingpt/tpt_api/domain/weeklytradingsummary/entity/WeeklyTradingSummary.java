@@ -60,10 +60,13 @@ public class WeeklyTradingSummary extends BaseEntity {
 	private WeeklyPeriod period; // 요약 연/월/주
 
 	@Lob
+	private String memo; // 나의 문제점 메모하기
+
+	@Lob
 	private String weeklyEvaluation; // 주간 회원 매매평가
 
 	@Lob
-	private String weeklyProfitableTradingAnalysis; // 수익난 메메 분석
+	private String weeklyProfitableTradingAnalysis; // 수익난 매매 분석
 
 	@Lob
 	private String weeklyLossTradingAnalysis; // 손실난 매매분석

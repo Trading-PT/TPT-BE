@@ -56,7 +56,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
 		// 권한 체크: 고객은 자신의 피드백만, 트레이너는 모든 피드백 조회 가능
-		if (!hasAccessPermission(feedbackRequestId, currentUserId)) {
+		if (!hasAccessPermission(feedbackRequest, currentUserId)) {
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
 		}
 
@@ -98,11 +98,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.toList();
 	}
 
-	@Override
-	public boolean hasAccessPermission(Long feedbackRequestId, Long currentUserId) {
-		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
-			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
-
+	private boolean hasAccessPermission(FeedbackRequest feedbackRequest, Long currentUserId) {
 		// 고객은 자신의 피드백만, 트레이너는 모든 피드백 접근 가능
 		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
 			return true;

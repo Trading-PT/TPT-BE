@@ -45,13 +45,19 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final DatePath<java.time.LocalDate> entryPoint2 = createDate("entryPoint2", java.time.LocalDate.class);
 
     //inherited
+    public final NumberPath<java.math.BigDecimal> entryPrice;
+
+    //inherited
+    public final NumberPath<java.math.BigDecimal> exitPrice;
+
+    //inherited
     public final NumberPath<Integer> feedbackMonth;
 
     //inherited
     public final ListPath<FeedbackRequestAttachment, QFeedbackRequestAttachment> feedbackRequestAttachments;
 
     //inherited
-    public final DatePath<java.time.LocalDate> feedbackRequestedAt;
+    public final DatePath<java.time.LocalDate> feedbackRequestDate;
 
     // inherited
     public final com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse feedbackResponse;
@@ -85,21 +91,34 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
 
     //inherited
+    public final NumberPath<Integer> operatingFundsRatio;
+
+    //inherited
     public final NumberPath<java.math.BigDecimal> pnl;
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
+    //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position;
+
+    //inherited
+    public final StringPath positionEndReason;
 
     //inherited
     public final StringPath positionHoldingTime;
 
-    // inherited
-    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
+    //inherited
+    public final StringPath positionStartReason;
 
     //inherited
     public final NumberPath<Integer> riskTaking;
 
     //inherited
     public final NumberPath<Double> rnr;
+
+    //inherited
+    public final NumberPath<java.math.BigDecimal> settingStopLoss;
+
+    //inherited
+    public final NumberPath<java.math.BigDecimal> settingTakeProfit;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
@@ -142,9 +161,11 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
+        this.entryPrice = _super.entryPrice;
+        this.exitPrice = _super.exitPrice;
         this.feedbackMonth = _super.feedbackMonth;
         this.feedbackRequestAttachments = _super.feedbackRequestAttachments;
-        this.feedbackRequestedAt = _super.feedbackRequestedAt;
+        this.feedbackRequestDate = _super.feedbackRequestDate;
         this.feedbackResponse = _super.feedbackResponse;
         this.feedbackWeek = _super.feedbackWeek;
         this.feedbackYear = _super.feedbackYear;
@@ -154,11 +175,16 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isResponded = _super.isResponded;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
+        this.operatingFundsRatio = _super.operatingFundsRatio;
         this.pnl = _super.pnl;
+        this.position = _super.position;
+        this.positionEndReason = _super.positionEndReason;
         this.positionHoldingTime = _super.positionHoldingTime;
-        this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
+        this.positionStartReason = _super.positionStartReason;
         this.riskTaking = _super.riskTaking;
         this.rnr = _super.rnr;
+        this.settingStopLoss = _super.settingStopLoss;
+        this.settingTakeProfit = _super.settingTakeProfit;
         this.status = _super.status;
         this.title = _super.title;
         this.tradingReview = _super.tradingReview;

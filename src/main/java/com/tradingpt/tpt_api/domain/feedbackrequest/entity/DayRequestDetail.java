@@ -6,9 +6,9 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -32,24 +32,18 @@ import lombok.experimental.SuperBuilder;
 public class DayRequestDetail extends FeedbackRequest {
 
 	/**
-	 * 필드
+	 * 데이 완강 후 전용 필드
 	 */
-	@Enumerated(EnumType.STRING)
-	private Position position; // 포지션
-
-	@Lob
-	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
-
-	private Boolean directionFrameExists; // 디렉션 프레임 방향성 유무
-
-	private String directionFrame; // 디렉션 프레임
-
-	private String mainFrame; // 메인 프레임
-
-	private String subFrame; // 서브 프레임
+	private Boolean directionFrameExists;
+	private String directionFrame;
+	private String mainFrame;
+	private String subFrame;
 
 	@Lob
 	private String trendAnalysis; // 추세 분석
+
+	@Lob
+	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -59,42 +53,72 @@ public class DayRequestDetail extends FeedbackRequest {
 
 	private LocalDate entryPoint2; // 2 진입 타점
 
-	public static DayRequestDetail createFrom(CreateDayRequestDetailRequestDTO request, Customer customer,
-		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
-		PreCourseFeedbackDetail preCourseFeedbackDetail = request.toPreCourseFeedbackDetail();
+	/**
+	 * DTO로부터 DayRequestDetail 엔티티를 생성하는 정적 팩토리 메서드
+	 *
+	 * @param request DTO 요청 객체
+	 * @param customer 피드백을 요청하는 고객
+	 * @param period 피드백 기간 정보 (년, 월, 주차)
+	 * @param title 피드백 요청 제목
+	 * @return 생성된 DayRequestDetail 엔티티
+	 */
+	public static DayRequestDetail createFrom(
+		CreateDayRequestDetailRequestDTO request,
+		Customer customer,
+		FeedbackPeriodUtil.FeedbackPeriod period,
+		String title) {
 
-		DayRequestDetail newDayRequestDetail = DayRequestDetail.builder()
+		// 1. 공통 필드 설정 (완강 전/후 무관)
+		DayRequestDetailBuilder<?, ?> builder = DayRequestDetail.builder()
 			.customer(customer)
 			.title(title)
 			.feedbackYear(period.year())
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
-			.feedbackRequestedAt(request.getRequestDate())
+			.feedbackRequestDate(request.getRequestDate())
+			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
+			.position(request.getPosition())
 			.courseStatus(request.getCourseStatus())
 			.membershipLevel(request.getMembershipLevel())
-			.preCourseFeedbackDetail(preCourseFeedbackDetail)
-			.category(request.getCategory())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
-			.position(request.getPosition())
-			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-			.directionFrame(request.getDirectionFrame())
-			.mainFrame(request.getMainFrame())
-			.subFrame(request.getSubFrame())
-			.directionFrameExists(request.getDirectionFrameExists())
-			.trendAnalysis(request.getTrendAnalysis())
 			.pnl(request.getPnl())
 			.rnr(request.getRnr())
-			.entryPoint1(request.getEntryPoint1())
-			.grade(request.getGrade())
-			.entryPoint2(request.getEntryPoint2())
-			.tradingReview(request.getTradingReview())
-			.build();
+			.tradingReview(request.getTradingReview());
 
-		customer.getFeedbackRequests().add(newDayRequestDetail); // 양방향 연관 관계 매핑
+		// 2. 완강 여부에 따른 조건부 필드 설정
+		if (request.getCourseStatus() == CourseStatus.BEFORE_COMPLETION) {
+			// 완강 전 필드
+			builder
+				.operatingFundsRatio(request.getOperatingFundsRatio())
+				.entryPrice(request.getEntryPrice())
+				.exitPrice(request.getExitPrice())
+				.settingStopLoss(request.getSettingStopLoss())
+				.settingTakeProfit(request.getSettingTakeProfit())
+				.positionStartReason(request.getPositionStartReason())
+				.positionEndReason(request.getPositionEndReason());
+		} else if (request.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
+			// 완강 후 필드
+			builder
+				.directionFrameExists(request.getDirectionFrameExists())
+				.directionFrame(request.getDirectionFrame())
+				.mainFrame(request.getMainFrame())
+				.subFrame(request.getSubFrame())
+				.trendAnalysis(request.getTrendAnalysis())
+				.entryPoint1(request.getEntryPoint1())
+				.grade(request.getGrade())
+				.entryPoint2(request.getEntryPoint2())
+				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent());
+		}
 
-		return newDayRequestDetail;
+		// 3. 엔티티 생성
+		DayRequestDetail dayRequestDetail = builder.build();
+
+		// 4. 양방향 연관관계 설정
+		customer.getFeedbackRequests().add(dayRequestDetail);
+
+		return dayRequestDetail;
 	}
 
 	@Override

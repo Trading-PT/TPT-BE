@@ -7,8 +7,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingReque
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -32,28 +32,21 @@ import lombok.experimental.SuperBuilder;
 public class SwingRequestDetail extends FeedbackRequest {
 
 	/**
-	 * 필드
+	 * 스윙 완강 후 전용 필드
 	 */
 	private LocalDate positionStartDate; // 포지션 진입 날짜
-
-	private LocalDate positionEndDate; // 포지션 종료 날짜
-
-	@Enumerated(EnumType.STRING)
-	private Position position; // 숏, 롱
-
-	@Lob
-	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
+	private LocalDate positionEndDate; // 포지션 종료
 
 	private Boolean directionFrameExists; // 디렉션 프레임 존재 유무
-
 	private String directionFrame; // 디렉션 프레임
-
 	private String mainFrame; // 메인 프레임
-
 	private String subFrame; // 서브 프레임
 
 	@Lob
 	private String trendAnalysis; // 추세 분석
+
+	@Lob
+	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	@Enumerated(EnumType.STRING)
 	private EntryPoint entryPoint1; // 1 진입 타점
@@ -65,41 +58,71 @@ public class SwingRequestDetail extends FeedbackRequest {
 
 	private LocalDateTime entryPoint3; // 3 진입 타점
 
-	public static SwingRequestDetail createFrom(CreateSwingRequestDetailRequestDTO request, Customer customer,
+	/**
+	 * DTO로부터 SwingRequestDetail 엔티티를 생성하는 정적 팩토리 메서드
+	 *
+	 * @param request DTO 요청 객체
+	 * @param customer 피드백을 요청하는 고객
+	 * @param title 피드백 요청 제목
+	 * @return 생성된 SwingRequestDetail 엔티티
+	 */
+	public static SwingRequestDetail createFrom(
+		CreateSwingRequestDetailRequestDTO request,
+		Customer customer,
 		String title) {
-		PreCourseFeedbackDetail preCourseFeedbackDetail = request.toPreCourseFeedbackDetail();
 
-		return SwingRequestDetail.builder()
+		// 1. 공통 필드 설정
+		SwingRequestDetailBuilder<?, ?> builder = SwingRequestDetail.builder()
 			.customer(customer)
 			.title(title)
 			.feedbackYear(request.getFeedbackYear())
 			.feedbackMonth(request.getFeedbackMonth())
 			.feedbackWeek(request.getFeedbackWeek())
-			.feedbackRequestedAt(request.getRequestDate())
+			.feedbackRequestDate(request.getFeedbackRequestDate())
+			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
+			.position(request.getPosition())
 			.courseStatus(request.getCourseStatus())
 			.membershipLevel(request.getMembershipLevel())
-			.preCourseFeedbackDetail(preCourseFeedbackDetail)
-			.category(request.getCategory())
-			.positionStartDate(request.getPositionStartDate())
-			.positionEndDate(request.getPositionEndDate())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
-			.position(request.getPosition())
-			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-			.directionFrameExists(request.getDirectionFrameExists())
-			.directionFrame(request.getDirectionFrame())
-			.mainFrame(request.getMainFrame())
-			.subFrame(request.getSubFrame())
-			.trendAnalysis(request.getTrendAnalysis())
 			.pnl(request.getPnl())
 			.rnr(request.getRnr())
-			.entryPoint1(request.getEntryPoint1())
-			.grade(request.getGrade())
-			.entryPoint2(request.getEntryPoint2())
-			.entryPoint3(request.getEntryPoint3())
-			.tradingReview(request.getTradingReview())
-			.build();
+			.tradingReview(request.getTradingReview());
+
+		// 2. 완강 여부에 따른 조건부 필드 설정
+		if (request.getCourseStatus() == CourseStatus.BEFORE_COMPLETION) {
+			// 완강 전 필드
+			builder
+				.operatingFundsRatio(request.getOperatingFundsRatio())
+				.entryPrice(request.getEntryPrice())
+				.exitPrice(request.getExitPrice())
+				.settingStopLoss(request.getSettingStopLoss())
+				.settingTakeProfit(request.getSettingTakeProfit())
+				.positionStartReason(request.getPositionStartReason())
+				.positionEndReason(request.getPositionEndReason());
+		} else if (request.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
+			// 완강 후 필드
+			builder
+				.positionStartDate(request.getPositionStartDate())
+				.positionEndDate(request.getPositionEndDate())
+				.directionFrameExists(request.getDirectionFrameExists())
+				.directionFrame(request.getDirectionFrame())
+				.mainFrame(request.getMainFrame())
+				.subFrame(request.getSubFrame())
+				.trendAnalysis(request.getTrendAnalysis())
+				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+				.entryPoint1(request.getEntryPoint1())
+				.grade(request.getGrade())
+				.entryPoint2(request.getEntryPoint2())
+				.entryPoint3(request.getEntryPoint3());
+		}
+
+		// 3. 엔티티 생성 및 양방향 연관관계 설정
+		SwingRequestDetail swingRequestDetail = builder.build();
+		customer.getFeedbackRequests().add(swingRequestDetail);
+
+		return swingRequestDetail;
 	}
 
 	@Override

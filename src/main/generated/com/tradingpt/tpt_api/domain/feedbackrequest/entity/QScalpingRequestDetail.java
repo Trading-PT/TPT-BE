@@ -36,9 +36,11 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     // inherited
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
-    public final NumberPath<java.math.BigDecimal> entryPrice = createNumber("entryPrice", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> entryPrice;
 
-    public final NumberPath<java.math.BigDecimal> exitPrice = createNumber("exitPrice", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> exitPrice;
 
     //inherited
     public final NumberPath<Integer> feedbackMonth;
@@ -47,10 +49,12 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final ListPath<FeedbackRequestAttachment, QFeedbackRequestAttachment> feedbackRequestAttachments;
 
     //inherited
-    public final DatePath<java.time.LocalDate> feedbackRequestedAt;
+    public final DatePath<java.time.LocalDate> feedbackRequestDate;
 
     // inherited
     public final com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse feedbackResponse;
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType> feedbackType = createEnum("feedbackType", com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType.class);
 
     //inherited
     public final NumberPath<Integer> feedbackWeek;
@@ -76,22 +80,23 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
 
-    public final NumberPath<Integer> operatingFundsRatio = createNumber("operatingFundsRatio", Integer.class);
+    //inherited
+    public final NumberPath<Integer> operatingFundsRatio;
 
     //inherited
     public final NumberPath<java.math.BigDecimal> pnl;
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
+    //inherited
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position;
 
-    public final StringPath positionEndReason = createString("positionEndReason");
+    //inherited
+    public final StringPath positionEndReason;
 
     //inherited
     public final StringPath positionHoldingTime;
 
-    public final StringPath positionStartReason = createString("positionStartReason");
-
-    // inherited
-    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
+    //inherited
+    public final StringPath positionStartReason;
 
     //inherited
     public final NumberPath<Integer> riskTaking;
@@ -99,9 +104,11 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     //inherited
     public final NumberPath<Double> rnr;
 
-    public final NumberPath<java.math.BigDecimal> settingStopLoss = createNumber("settingStopLoss", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> settingStopLoss;
 
-    public final NumberPath<java.math.BigDecimal> settingTakeProfit = createNumber("settingTakeProfit", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> settingTakeProfit;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
@@ -138,9 +145,11 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
+        this.entryPrice = _super.entryPrice;
+        this.exitPrice = _super.exitPrice;
         this.feedbackMonth = _super.feedbackMonth;
         this.feedbackRequestAttachments = _super.feedbackRequestAttachments;
-        this.feedbackRequestedAt = _super.feedbackRequestedAt;
+        this.feedbackRequestDate = _super.feedbackRequestDate;
         this.feedbackResponse = _super.feedbackResponse;
         this.feedbackWeek = _super.feedbackWeek;
         this.feedbackYear = _super.feedbackYear;
@@ -150,11 +159,16 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isResponded = _super.isResponded;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
+        this.operatingFundsRatio = _super.operatingFundsRatio;
         this.pnl = _super.pnl;
+        this.position = _super.position;
+        this.positionEndReason = _super.positionEndReason;
         this.positionHoldingTime = _super.positionHoldingTime;
-        this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
+        this.positionStartReason = _super.positionStartReason;
         this.riskTaking = _super.riskTaking;
         this.rnr = _super.rnr;
+        this.settingStopLoss = _super.settingStopLoss;
+        this.settingTakeProfit = _super.settingTakeProfit;
         this.status = _super.status;
         this.title = _super.title;
         this.tradingReview = _super.tradingReview;

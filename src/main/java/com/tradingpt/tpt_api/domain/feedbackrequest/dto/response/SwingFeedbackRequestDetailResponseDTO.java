@@ -41,7 +41,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	private CourseStatus courseStatus;
 
 	@Schema(description = "날짜")
-	private LocalDate feedbackRequestedAt;
+	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
@@ -133,7 +133,7 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.createdAt(swingRequest.getCreatedAt())
 			.feedbackType(swingRequest.getFeedbackType())
 			.courseStatus(swingRequest.getCourseStatus())
-			.feedbackRequestedAt(swingRequest.getFeedbackRequestedAt())
+			.feedbackRequestDate(swingRequest.getFeedbackRequestDate())
 			.status(swingRequest.getStatus())
 			.feedbackYear(swingRequest.getFeedbackYear())
 			.feedbackMonth(swingRequest.getFeedbackMonth())

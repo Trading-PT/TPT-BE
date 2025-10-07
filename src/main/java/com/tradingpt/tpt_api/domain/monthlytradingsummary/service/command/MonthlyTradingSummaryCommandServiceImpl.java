@@ -33,6 +33,10 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 
 		Trainer trainer = customer.getTrainer();
 
+		// TODO
+		//  - 고객의 해당 달의 CourseStatus가 AFTER_COMPLETION 일 경우에만 월별 매매 일지에 최종 평가를 달 수 있도록
+		//  - 검증 로직을 추가해야한다.
+
 		MonthlyTradingSummary newMonthlyTradingSummary = MonthlyTradingSummary.createFrom(request, customer, trainer,
 			year, month);
 

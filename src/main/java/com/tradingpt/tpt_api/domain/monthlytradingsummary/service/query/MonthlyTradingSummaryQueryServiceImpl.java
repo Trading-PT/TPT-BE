@@ -19,9 +19,9 @@ import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentTypeH
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedGeneralSummaryDTO;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedScalpingSummaryDTO;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.BeforeCompletedCourseSummaryDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedGeneralMonthlySummaryDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedScalpingMonthlySummaryDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.BeforeCompletedCourseMonthlySummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
@@ -65,14 +65,13 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
-		LocalDate date = LocalDate.of(year, month, 1);
 
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 1. 해당 월의 CourseStatus 조회
 		CourseStatus courseStatus = feedbackRequestRepository
-			.findByCustomer_IdAndFeedbackYearAndFeedbackMonth(customerId, year, month)
+			.findFirstByFeedbackYearAndFeedbackMonth(customerId, year, month)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND))
 			.getCourseStatus();
 
@@ -99,7 +98,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	/**
 	 * 완강 전 월별 요약 생성
 	 */
-	private BeforeCompletedCourseSummaryDTO buildBeforeCompletionSummary(
+	private BeforeCompletedCourseMonthlySummaryDTO buildBeforeCompletionSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -152,7 +151,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			customerId, year, month, investmentType
 		);
 
-		return BeforeCompletedCourseSummaryDTO.of(
+		return BeforeCompletedCourseMonthlySummaryDTO.of(
 			courseStatus,
 			investmentType,
 			year,
@@ -165,7 +164,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	/**
 	 * 완강 후 일반 월별 요약 생성 (스윙/데이)
 	 */
-	private AfterCompletedGeneralSummaryDTO buildAfterCompletionGeneralSummary(
+	private AfterCompletedGeneralMonthlySummaryDTO buildAfterCompletionGeneralSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -249,7 +248,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			customerId, year, month, investmentType
 		);
 
-		return AfterCompletedGeneralSummaryDTO.of(
+		return AfterCompletedGeneralMonthlySummaryDTO.of(
 			monthlyFeedback,
 			isTrainerEvaluated,
 			monthlyEvaluation,
@@ -262,7 +261,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	/**
 	 * 완강 후 스캘핑 월별 요약 생성
 	 */
-	private AfterCompletedScalpingSummaryDTO buildAfterCompletionScalpingSummary(
+	private AfterCompletedScalpingMonthlySummaryDTO buildAfterCompletionScalpingSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -298,7 +297,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			})
 			.toList();
 
-		return AfterCompletedScalpingSummaryDTO.builder()
+		return AfterCompletedScalpingMonthlySummaryDTO.builder()
 			.courseStatus(courseStatus)
 			.investmentType(investmentType)
 			.year(year)

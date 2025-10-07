@@ -10,6 +10,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -151,7 +152,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.selectFrom(feedbackRequest)
 			.where(
 				feedbackRequest.customer.id.eq(customerId)
-					.and(feedbackRequest.feedbackRequestedAt.eq(feedbackDate))
+					.and(feedbackRequest.feedbackRequestDate.eq(feedbackDate))
 			)
 			.orderBy(feedbackRequest.createdAt.asc())
 			.fetch();
@@ -221,7 +222,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(dayRequestDetail)
 					.where(
 						dayRequestDetail.customer.id.eq(customerId)
-							.and(dayRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(dayRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -231,7 +232,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(scalpingRequestDetail)
 					.where(
 						scalpingRequestDetail.customer.id.eq(customerId)
-							.and(scalpingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(scalpingRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -241,7 +242,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(swingRequestDetail)
 					.where(
 						swingRequestDetail.customer.id.eq(customerId)
-							.and(swingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(swingRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -573,6 +574,22 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			}
 			default -> throw new FeedbackRequestException(FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
 		}
+	}
+
+	@Override
+	public Optional<FeedbackRequest> findFirstByFeedbackYearAndFeedbackMonth(Long customerId, Integer year,
+		Integer month) {
+		FeedbackRequest result = queryFactory
+			.selectFrom(feedbackRequest)
+			.where(
+				feedbackRequest.customer.id.eq(customerId)
+					.and(feedbackRequest.feedbackYear.eq(year))
+					.and(feedbackRequest.feedbackMonth.eq(month))
+			)
+			.orderBy(feedbackRequest.feedbackYear.desc(), feedbackRequest.feedbackMonth.desc())
+			.fetchFirst();
+
+		return Optional.ofNullable(result);
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {

@@ -48,7 +48,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	private Integer feedbackWeek;
 
 	@Schema(description = "날짜")
-	private LocalDate feedbackRequestedAt;
+	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
@@ -116,7 +116,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.feedbackYear(scalpingRequest.getFeedbackYear())
 			.feedbackMonth(scalpingRequest.getFeedbackMonth())
 			.feedbackWeek(scalpingRequest.getFeedbackWeek())
-			.feedbackRequestedAt(scalpingRequest.getFeedbackRequestedAt())
+			.feedbackRequestDate(scalpingRequest.getFeedbackRequestDate())
 			.status(scalpingRequest.getStatus())
 			.isBestFeedback(scalpingRequest.getIsBestFeedback())
 			.updatedAt(scalpingRequest.getUpdatedAt())

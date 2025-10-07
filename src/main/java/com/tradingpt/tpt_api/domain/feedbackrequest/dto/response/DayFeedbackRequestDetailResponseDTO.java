@@ -50,7 +50,7 @@ public class DayFeedbackRequestDetailResponseDTO {
 	private Integer feedbackWeek;
 
 	@Schema(description = "날짜")
-	private LocalDate feedbackRequestedAt;
+	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
@@ -132,7 +132,7 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.id(dayRequest.getId())
 			.feedbackType(dayRequest.getFeedbackType())
 			.status(dayRequest.getStatus())
-			.feedbackRequestedAt(dayRequest.getFeedbackRequestedAt())
+			.feedbackRequestDate(dayRequest.getFeedbackRequestDate())
 			.courseStatus(dayRequest.getCourseStatus())
 			.feedbackYear(dayRequest.getFeedbackYear())
 			.feedbackMonth(dayRequest.getFeedbackMonth())

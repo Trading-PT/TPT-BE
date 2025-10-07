@@ -11,7 +11,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "완강 후 고객 월별 요약 - 스윙/데이 트레이딩")
-public class AfterCompletedGeneralSummaryDTO extends MonthlySummaryResponseDTO {
+public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryResponseDTO {
 
 	@Schema(description = "월별 통계 DTO")
 	private MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO;
@@ -31,13 +31,13 @@ public class AfterCompletedGeneralSummaryDTO extends MonthlySummaryResponseDTO {
 	@Schema(description = "월별 성과 비교")
 	private MonthlyPerformanceComparison tradingPerformanceVariation;
 
-	public static AfterCompletedGeneralSummaryDTO of(
+	public static AfterCompletedGeneralMonthlySummaryDTO of(
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO,
 		Boolean isTrainerEvaluated, String monthlyEvaluation, String nextMonthGoal,
 		EntryPointStatisticsResponseDTO entryPointStatisticsResponseDTO,
 		MonthlyPerformanceComparison tradingPerformanceVariation
 	) {
-		return AfterCompletedGeneralSummaryDTO.builder()
+		return AfterCompletedGeneralMonthlySummaryDTO.builder()
 			.monthlyFeedbackSummaryResponseDTO(monthlyFeedbackSummaryResponseDTO)
 			.isTrainerEvaluated(isTrainerEvaluated)
 			.monthlyEvaluation(monthlyEvaluation)
