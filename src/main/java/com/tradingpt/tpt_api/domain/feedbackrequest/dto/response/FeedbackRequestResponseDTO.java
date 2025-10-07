@@ -38,7 +38,7 @@ public class FeedbackRequestResponseDTO {
 	private Status status;
 
 	@Schema(description = "피드백 요청 일자")
-	private LocalDate feedbackRequestedAt;
+	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
@@ -71,7 +71,7 @@ public class FeedbackRequestResponseDTO {
 			.customerName(feedbackRequest.getCustomer().getName())
 			.feedbackType(feedbackRequest.getFeedbackType())
 			.status(feedbackRequest.getStatus())
-			.feedbackRequestedAt(feedbackRequest.getFeedbackRequestedAt())
+			.feedbackRequestDate(feedbackRequest.getFeedbackRequestDate())
 			.courseStatus(feedbackRequest.getCourseStatus())
 			.feedbackYear(feedbackRequest.getFeedbackYear())
 			.feedbackMonth(feedbackRequest.getFeedbackMonth())

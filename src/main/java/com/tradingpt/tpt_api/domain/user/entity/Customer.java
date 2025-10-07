@@ -181,7 +181,7 @@ public class Customer extends User {
 		// 현재 진행 중인 마지막 투자 유형 이력을 찾음
 		InvestmentTypeHistory latestOngoing = investmentHistories.stream()
 			.filter(InvestmentTypeHistory::isOngoing)
-			.max(Comparator.comparing(InvestmentTypeHistory::getStartedAt,
+			.max(Comparator.comparing(InvestmentTypeHistory::getStartDate,
 				Comparator.nullsLast(Comparator.naturalOrder())))
 			.orElse(null);
 
@@ -201,7 +201,7 @@ public class Customer extends User {
 			InvestmentTypeHistory history = InvestmentTypeHistory.builder()
 				.customer(this)
 				.investmentType(investmentType)
-				.startedAt(effectiveDate)
+				.startDate(effectiveDate)
 				.build();
 			history.assignCustomer(this);
 			investmentHistories.add(history);
@@ -220,7 +220,7 @@ public class Customer extends User {
 		// 해당 날짜에 유효한 이력 중 가장 최근 시작분을 찾아 투자 유형을 결정
 		return investmentHistories.stream()
 			.filter(history -> history.isActiveOn(date))
-			.max(Comparator.comparing(InvestmentTypeHistory::getStartedAt,
+			.max(Comparator.comparing(InvestmentTypeHistory::getStartDate,
 				Comparator.nullsLast(Comparator.naturalOrder())))
 			.map(InvestmentTypeHistory::getInvestmentType)
 			.orElse(primaryInvestmentType);

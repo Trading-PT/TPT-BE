@@ -26,11 +26,11 @@ public class InvestmentTypeHistoryRepositoryImpl implements InvestmentTypeHistor
 			.selectFrom(investmentTypeHistory)
 			.where(
 				investmentTypeHistory.customer.id.eq(customerId),
-				investmentTypeHistory.startedAt.loe(endOfMonth),  // startDate <= 월 마지막날
-				investmentTypeHistory.endedAt.isNull()
-					.or(investmentTypeHistory.endedAt.goe(startOfMonth))  // endDate >= 월 첫날 OR endDate IS NULL
+				investmentTypeHistory.startDate.loe(endOfMonth),  // startDate <= 월 마지막날
+				investmentTypeHistory.endDate.isNull()
+					.or(investmentTypeHistory.endDate.goe(startOfMonth))  // endDate >= 월 첫날 OR endDate IS NULL
 			)
-			.orderBy(investmentTypeHistory.startedAt.desc())
+			.orderBy(investmentTypeHistory.startDate.desc())
 			.fetchFirst();
 
 		return Optional.ofNullable(result);

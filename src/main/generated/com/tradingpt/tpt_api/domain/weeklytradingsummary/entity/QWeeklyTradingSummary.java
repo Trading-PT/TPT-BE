@@ -35,6 +35,8 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
+    public final StringPath memo = createString("memo");
+
     public final QWeeklyPeriod period;
 
     public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;

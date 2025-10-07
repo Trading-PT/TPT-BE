@@ -3,10 +3,8 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,18 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.PreCourseFeedbackDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
-import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -45,11 +39,6 @@ public class FeedbackRequestV1Controller {
 	private final FeedbackRequestCommandService feedbackRequestCommandService;
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
 	private final ObjectMapper objectMapper;
-
-	@InitBinder
-	protected void initBinder(WebDataBinder binder) {
-		binder.registerCustomEditor(PreCourseFeedbackDetailRequestDTO.class, new PreCourseFeedbackDetailEditor());
-	}
 
 	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
 	@PostMapping(value = "/day", consumes = "multipart/form-data")
@@ -104,33 +93,6 @@ public class FeedbackRequestV1Controller {
 
 		return BaseResponse.onSuccessDelete(
 			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
-	}
-
-	private class PreCourseFeedbackDetailEditor extends java.beans.PropertyEditorSupport {
-		@Override
-		public void setAsText(String text) {
-			if (text == null || text.isBlank()) {
-				setValue(null);
-				return;
-			}
-
-			try {
-				setValue(objectMapper.readValue(text, PreCourseFeedbackDetailRequestDTO.class));
-			} catch (JsonProcessingException e) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.PRECOURSE_FEEDBACK_DETAIL_JSON_PARSE_ERROR);
-			}
-		}
-
-		@Override
-		public void setValue(Object value) {
-			if (value instanceof String[]) {
-				String[] array = (String[])value;
-				setAsText(array.length > 0 ? array[0] : null);
-				return;
-			}
-			super.setValue(value);
-		}
 	}
 
 }

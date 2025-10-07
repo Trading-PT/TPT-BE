@@ -33,11 +33,15 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    public final NumberPath<java.math.BigDecimal> entryPrice = createNumber("entryPrice", java.math.BigDecimal.class);
+
+    public final NumberPath<java.math.BigDecimal> exitPrice = createNumber("exitPrice", java.math.BigDecimal.class);
+
     public final NumberPath<Integer> feedbackMonth = createNumber("feedbackMonth", Integer.class);
 
     public final ListPath<FeedbackRequestAttachment, QFeedbackRequestAttachment> feedbackRequestAttachments = this.<FeedbackRequestAttachment, QFeedbackRequestAttachment>createList("feedbackRequestAttachments", FeedbackRequestAttachment.class, QFeedbackRequestAttachment.class, PathInits.DIRECT2);
 
-    public final DatePath<java.time.LocalDate> feedbackRequestedAt = createDate("feedbackRequestedAt", java.time.LocalDate.class);
+    public final DatePath<java.time.LocalDate> feedbackRequestDate = createDate("feedbackRequestDate", java.time.LocalDate.class);
 
     public final com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse feedbackResponse;
 
@@ -57,15 +61,25 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);
 
+    public final NumberPath<Integer> operatingFundsRatio = createNumber("operatingFundsRatio", Integer.class);
+
     public final NumberPath<java.math.BigDecimal> pnl = createNumber("pnl", java.math.BigDecimal.class);
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
+
+    public final StringPath positionEndReason = createString("positionEndReason");
 
     public final StringPath positionHoldingTime = createString("positionHoldingTime");
 
-    public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
+    public final StringPath positionStartReason = createString("positionStartReason");
 
     public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
 
     public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
+
+    public final NumberPath<java.math.BigDecimal> settingStopLoss = createNumber("settingStopLoss", java.math.BigDecimal.class);
+
+    public final NumberPath<java.math.BigDecimal> settingTakeProfit = createNumber("settingTakeProfit", java.math.BigDecimal.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
 
@@ -96,7 +110,6 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
         this.feedbackResponse = inits.isInitialized("feedbackResponse") ? new com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse(forProperty("feedbackResponse"), inits.get("feedbackResponse")) : null;
-        this.preCourseFeedbackDetail = inits.isInitialized("preCourseFeedbackDetail") ? new QPreCourseFeedbackDetail(forProperty("preCourseFeedbackDetail")) : null;
     }
 
 }

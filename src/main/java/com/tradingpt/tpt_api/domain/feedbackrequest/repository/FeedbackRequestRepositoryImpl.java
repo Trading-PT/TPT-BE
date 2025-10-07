@@ -152,7 +152,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.selectFrom(feedbackRequest)
 			.where(
 				feedbackRequest.customer.id.eq(customerId)
-					.and(feedbackRequest.feedbackRequestedAt.eq(feedbackDate))
+					.and(feedbackRequest.feedbackRequestDate.eq(feedbackDate))
 			)
 			.orderBy(feedbackRequest.createdAt.asc())
 			.fetch();
@@ -222,7 +222,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(dayRequestDetail)
 					.where(
 						dayRequestDetail.customer.id.eq(customerId)
-							.and(dayRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(dayRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -232,7 +232,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(scalpingRequestDetail)
 					.where(
 						scalpingRequestDetail.customer.id.eq(customerId)
-							.and(scalpingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(scalpingRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -242,7 +242,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.from(swingRequestDetail)
 					.where(
 						swingRequestDetail.customer.id.eq(customerId)
-							.and(swingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+							.and(swingRequestDetail.feedbackRequestDate.eq(feedbackDate))
 					)
 					.fetchOne();
 			}

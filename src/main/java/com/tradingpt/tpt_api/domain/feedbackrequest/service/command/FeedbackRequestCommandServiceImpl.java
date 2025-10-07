@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,15 +63,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// DayRequestDetail 생성
 		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
 
-		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
-		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
-			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
-				if (screenshotFile != null && !screenshotFile.isEmpty()) {
-					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createFrom(dayRequest, uploadResult.url()); // 양방향 연관 관계 매핑
-				}
-			}
-		}
+		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
+		uploadScreenshots(request.getScreenshotFiles(), dayRequest);
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
@@ -93,15 +87,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// ScalpingRequestDetail 생성
 		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);
 
-		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
-		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
-			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
-				if (screenshotFile != null && !screenshotFile.isEmpty()) {
-					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createFrom(scalpingRequest, uploadResult.url());
-				}
-			}
-		}
+		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
+		uploadScreenshots(request.getScreenshotFiles(), scalpingRequest);
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
@@ -115,22 +102,15 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		customer.checkTradingType(InvestmentType.SWING);
 
-		String title = buildFeedbackTitle(request.getRequestDate(),
+		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getRequestDate(), FeedbackType.SWING) + 1);
+				customerId, request.getFeedbackRequestDate(), FeedbackType.SWING) + 1);
 
 		// SwingRequestDetail 생성
 		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer, title);
 
-		// 스크린샷 파일들이 있으면 S3에 업로드하고 attachment 생성
-		if (request.getScreenshotFiles() != null && !request.getScreenshotFiles().isEmpty()) {
-			for (MultipartFile screenshotFile : request.getScreenshotFiles()) {
-				if (screenshotFile != null && !screenshotFile.isEmpty()) {
-					S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-					FeedbackRequestAttachment.createFrom(swingRequest, uploadResult.url());
-				}
-			}
-		}
+		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
+		uploadScreenshots(request.getScreenshotFiles(), swingRequest);
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
@@ -152,11 +132,49 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		return null;
 	}
 
+	// ========================================
+	// Private Helper Methods
+	// ========================================
+
+	/**
+	 * 스크린샷 파일들을 S3에 업로드하고 FeedbackRequestAttachment를 생성한다.
+	 *
+	 * @param screenshotFiles 업로드할 스크린샷 파일 리스트
+	 * @param feedbackRequest 첨부될 피드백 요청 엔티티
+	 */
+	private void uploadScreenshots(List<MultipartFile> screenshotFiles, FeedbackRequest feedbackRequest) {
+		if (screenshotFiles == null || screenshotFiles.isEmpty()) {
+			return;
+		}
+
+		for (MultipartFile screenshotFile : screenshotFiles) {
+			if (screenshotFile != null && !screenshotFile.isEmpty()) {
+				S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
+				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url());
+			}
+		}
+	}
+
+	/**
+	 * Customer ID로 Customer 엔티티를 조회한다.
+	 *
+	 * @param customerId 조회할 고객 ID
+	 * @return 조회된 Customer 엔티티
+	 * @throws UserException 고객을 찾을 수 없는 경우
+	 */
 	private Customer getCustomerById(Long customerId) {
 		return (Customer)userRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 	}
 
+	/**
+	 * 피드백 요청의 제목을 생성한다.
+	 * 형식: "월/일 (순서) 작성완료"
+	 *
+	 * @param requestDate 요청 날짜
+	 * @param order 같은 날짜의 몇 번째 요청인지
+	 * @return 생성된 제목
+	 */
 	private String buildFeedbackTitle(LocalDate requestDate, long order) {
 		int month = requestDate.getMonthValue();
 		int day = requestDate.getDayOfMonth();

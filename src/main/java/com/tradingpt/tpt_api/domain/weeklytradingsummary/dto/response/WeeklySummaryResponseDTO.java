@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response;
+package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -18,16 +18,16 @@ import lombok.experimental.SuperBuilder;
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.EXISTING_PROPERTY,
-	property = "courseStatus",
+	property = "courseStatus",  // courseStatus 값으로 자식 타입 구분
 	visible = true
 )
 @JsonSubTypes({
-	@JsonSubTypes.Type(value = BeforeCompletedCourseMonthlySummaryDTO.class, name = "BEFORE_COMPLETION"),
-	@JsonSubTypes.Type(value = AfterCompletedGeneralMonthlySummaryDTO.class, name = "AFTER_COMPLETION_GENERAL"),
-	@JsonSubTypes.Type(value = AfterCompletedScalpingMonthlySummaryDTO.class, name = "AFTER_COMPLETION_SCALPING")
+	@JsonSubTypes.Type(value = BeforeCompletedCourseWeeklySummaryDTO.class, name = "BEFORE_COMPLETION")
+	// @JsonSubTypes.Type(value = AfterCompletedGeneralWeeklySummaryDTO.class, name = "AFTER_COMPLETION_GENERAL"),
+	// @JsonSubTypes.Type(value = AfterCompletedScalpingWeeklySummaryDTO.class, name = "AFTER_COMPLETION_SCALPING")
 })
-@Schema(description = "월별 트레이딩 피드백 기본 DTO")
-public abstract class MonthlySummaryResponseDTO {
+@Schema(description = "주차별 트레이딩 피드백 기본 DTO")
+public abstract class WeeklySummaryResponseDTO {
 
 	@Schema(description = "고객의 완강 여부")
 	private CourseStatus courseStatus;
@@ -40,4 +40,7 @@ public abstract class MonthlySummaryResponseDTO {
 
 	@Schema(description = "월")
 	private Integer month;
+
+	@Schema(description = "주차")
+	private Integer week;
 }

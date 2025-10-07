@@ -51,10 +51,10 @@ public class InvestmentTypeHistory extends BaseEntity {
 	private InvestmentType investmentType;
 
 	@Column(name = "started_at", nullable = false)
-	private LocalDate startedAt;
+	private LocalDate startDate;
 
 	@Column(name = "ended_at")
-	private LocalDate endedAt;
+	private LocalDate endDate;
 
 	public void assignCustomer(Customer customer) {
 		this.customer = customer;
@@ -64,23 +64,23 @@ public class InvestmentTypeHistory extends BaseEntity {
 		if (endDate == null) {
 			return;
 		}
-		if (startedAt != null && endDate.isBefore(startedAt)) {
-			this.endedAt = startedAt;
+		if (startDate != null && endDate.isBefore(startDate)) {
+			this.endDate = startDate;
 			return;
 		}
-		this.endedAt = endDate;
+		this.endDate = endDate;
 	}
 
 	public boolean isActiveOn(LocalDate targetDate) {
 		if (targetDate == null) {
 			return false;
 		}
-		boolean startsBeforeOrEquals = startedAt == null || !startedAt.isAfter(targetDate);
-		boolean endsAfterOrEquals = endedAt == null || !endedAt.isBefore(targetDate);
+		boolean startsBeforeOrEquals = startDate == null || !startDate.isAfter(targetDate);
+		boolean endsAfterOrEquals = endDate == null || !endDate.isBefore(targetDate);
 		return startsBeforeOrEquals && endsAfterOrEquals;
 	}
 
 	public boolean isOngoing() {
-		return endedAt == null;
+		return endDate == null;
 	}
 }

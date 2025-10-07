@@ -8,7 +8,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.PreCourseFeedbackDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
@@ -16,7 +15,6 @@ import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,6 +25,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Schema(description = "데이 트레이딩 피드백 요청 DTO")
 public class CreateDayRequestDetailRequestDTO {
+
+	// ========================================
+	// 공통 필드 (완강 전/후 모두 사용)
+	// ========================================
 
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
@@ -56,8 +58,43 @@ public class CreateDayRequestDetailRequestDTO {
 	@Schema(description = "포지션 (LONG/SHORT)")
 	private Position position;
 
-	@Schema(description = "담당 트레이너 피드백 요청 사항")
-	private String trainerFeedbackRequestContent;
+	@Schema(description = "P&L")
+	private BigDecimal pnl;
+
+	@Schema(description = "손익비")
+	private Double rnr;
+
+	@Schema(description = "매매 복기")
+	private String tradingReview;
+
+	// ========================================
+	// 완강 전 전용 필드
+	// ========================================
+
+	@Schema(description = "비중 (운용 자금 대비) - 완강 전 필수", example = "50")
+	private Integer operatingFundsRatio;
+
+	@Schema(description = "진입 가격 - 완강 전 필수", example = "50000.00")
+	private BigDecimal entryPrice;
+
+	@Schema(description = "탈출 가격 - 완강 전 필수", example = "55000.00")
+	private BigDecimal exitPrice;
+
+	@Schema(description = "설정 손절가 - 완강 전 필수", example = "48000.00")
+	private BigDecimal settingStopLoss;
+
+	@Schema(description = "설정 익절가 - 완강 전 필수", example = "60000.00")
+	private BigDecimal settingTakeProfit;
+
+	@Schema(description = "포지션 진입 근거 - 완강 전 필수")
+	private String positionStartReason;
+
+	@Schema(description = "포지션 탈출 근거 - 완강 전 필수")
+	private String positionEndReason;
+
+	// ========================================
+	// 완강 후 전용 필드
+	// ========================================
 
 	@Schema(description = "디렉션 프레임")
 	private String directionFrame;
@@ -74,11 +111,8 @@ public class CreateDayRequestDetailRequestDTO {
 	@Schema(description = "추세 분석")
 	private String trendAnalysis;
 
-	@Schema(description = "P&L")
-	private BigDecimal pnl;
-
-	@Schema(description = "손익비")
-	private Double rnr;
+	@Schema(description = "담당 트레이너 피드백 요청 사항")
+	private String trainerFeedbackRequestContent;
 
 	@Schema(description = "1차 진입 타점")
 	private EntryPoint entryPoint1;
@@ -89,29 +123,42 @@ public class CreateDayRequestDetailRequestDTO {
 	@Schema(description = "2차 진입 타점")
 	private LocalDate entryPoint2;
 
-	@Schema(description = "매매 복기")
-	private String tradingReview;
+	// ========================================
+	// Validation
+	// ========================================
 
-	@Valid
-	@Schema(description = "완강 전 고객이 입력하는 상세 정보")
-	private PreCourseFeedbackDetailRequestDTO preCourseFeedbackDetail;
-
+	/**
+	 * 완강 전 필드 검증
+	 */
+	@AssertTrue(message = "완강 전 요청은 완강 전 필드 입력이 필요합니다.")
 	@JsonIgnore
-	public PreCourseFeedbackDetail toPreCourseFeedbackDetail() {
-		if (courseStatus == null) {
-			return null;
+	public boolean isBeforeCompletionFieldsValid() {
+		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
+			return operatingFundsRatio != null
+				&& entryPrice != null
+				&& exitPrice != null
+				&& settingStopLoss != null
+				&& settingTakeProfit != null
+				&& positionStartReason != null && !positionStartReason.isBlank()
+				&& positionEndReason != null && !positionEndReason.isBlank();
 		}
-
-		return courseStatus == CourseStatus.BEFORE_COMPLETION && preCourseFeedbackDetail != null
-			? preCourseFeedbackDetail.toEntity()
-			: null;
+		return true;
 	}
 
-	@AssertTrue(message = "완강 전 요청은 preCourseFeedbackDetail 입력이 필요합니다.")
+	/**
+	 * 완강 후 필드 검증
+	 */
+	@AssertTrue(message = "완강 후 요청은 완강 후 필드 입력이 필요합니다.")
 	@JsonIgnore
-	public boolean isPreCourseDetailValid() {
-		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
-			return preCourseFeedbackDetail != null && !preCourseFeedbackDetail.isEmpty();
+	public boolean isAfterCompletionFieldsValid() {
+		if (courseStatus == CourseStatus.AFTER_COMPLETION) {
+			return directionFrameExists != null
+				&& directionFrame != null && !directionFrame.isBlank()
+				&& mainFrame != null && !mainFrame.isBlank()
+				&& subFrame != null && !subFrame.isBlank()
+				&& trendAnalysis != null && !trendAnalysis.isBlank()
+				&& entryPoint1 != null
+				&& entryPoint2 != null;
 		}
 		return true;
 	}
