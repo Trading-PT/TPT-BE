@@ -29,8 +29,6 @@ public class QPreCourseFeedbackDetail extends BeanPath<PreCourseFeedbackDetail> 
 
     public final StringPath positionStartReason = createString("positionStartReason");
 
-    public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
-
     public final NumberPath<java.math.BigDecimal> settingStopLoss = createNumber("settingStopLoss", java.math.BigDecimal.class);
 
     public final NumberPath<java.math.BigDecimal> settingTakeProfit = createNumber("settingTakeProfit", java.math.BigDecimal.class);

@@ -1,11 +1,5 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 
-import java.util.List;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,7 +11,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,11 +22,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingReque
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.PreCourseFeedbackDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
@@ -94,18 +84,18 @@ public class FeedbackRequestV1Controller {
 			feedbackRequestCommandService.createSwingRequest(request, customerId));
 	}
 
-	@Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
-	@GetMapping
-	@PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
-	public BaseResponse<Page<FeedbackRequestResponseDTO>> getFeedbackRequests(
-		@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-		@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-		@Parameter(description = "고객 ID 필터 (트레이너만 사용 가능)") @RequestParam(required = false) Long customerId) {
-
-		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequests(
-			pageable, feedbackType, status, customerId));
-	}
+	// @Operation(summary = "피드백 요청 목록 조회", description = "피드백 요청 목록을 페이징으로 조회합니다.")
+	// @GetMapping
+	// @PreAuthorize("hasRole('ROLE_CUSTOMER') or hasRole('ROLE_TRAINER')")
+	// public BaseResponse<Page<FeedbackRequestResponseDTO>> getFeedbackRequests(
+	// 	@PageableDefault(sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
+	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
+	// 	@Parameter(description = "고객 ID 필터 (트레이너만 사용 가능)") @RequestParam(required = false) Long customerId) {
+	//
+	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequests(
+	// 		pageable, feedbackType, status, customerId));
+	// }
 
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
 	@GetMapping("/{feedbackRequestId}")
@@ -130,17 +120,17 @@ public class FeedbackRequestV1Controller {
 			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
 	}
 
-	@Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
-	@GetMapping("/my")
-	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
-		@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
-		@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
-		@AuthenticationPrincipal(expression = "id") Long customerId) {
-
-		return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
-			customerId, feedbackType, status));
-	}
+	// @Operation(summary = "내 피드백 요청 목록 조회", description = "현재 로그인한 고객의 피드백 요청 목록을 조회합니다.")
+	// @GetMapping("/my")
+	// @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+	// public BaseResponse<List<FeedbackRequestResponseDTO>> getMyFeedbackRequests(
+	// 	@Parameter(description = "피드백 타입 필터") @RequestParam(required = false) FeedbackType feedbackType,
+	// 	@Parameter(description = "상태 필터") @RequestParam(required = false) Status status,
+	// 	@AuthenticationPrincipal(expression = "id") Long customerId) {
+	//
+	// 	return BaseResponse.onSuccess(feedbackRequestQueryService.getMyFeedbackRequests(
+	// 		customerId, feedbackType, status));
+	// }
 
 	private class PreCourseFeedbackDetailEditor extends java.beans.PropertyEditorSupport {
 		@Override

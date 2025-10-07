@@ -29,7 +29,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "investment_history")
-public class InvestmentHistory extends BaseEntity {
+public class InvestmentTypeHistory extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -49,7 +49,7 @@ public class InvestmentHistory extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "investment_type", nullable = false)
 	private InvestmentType investmentType;
-	
+
 	@Column(name = "started_at", nullable = false)
 	private LocalDate startedAt;
 

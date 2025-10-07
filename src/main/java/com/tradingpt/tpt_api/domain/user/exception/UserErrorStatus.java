@@ -24,7 +24,9 @@ public enum UserErrorStatus implements BaseCodeInterface {
 	USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "USER4005", "이미 존재하는 사용자입니다."),
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "USER4006", "접근 권한이 없습니다."),
 	INVALID_INVESTMENT_HISTORY_REQUEST(HttpStatus.BAD_REQUEST, "USER4007", "투자 유형 변경 요청이 올바르지 않습니다."),
-	INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "USER4008", "잘못된 상태 요청입니다.");
+	INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "USER4008", "잘못된 상태 요청입니다."),
+	COURSE_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4009", "유저의 완강 여부가 존재하지 않습니다."),
+	;
 
 	private final HttpStatus httpStatus;
 	private final boolean isSuccess = false;

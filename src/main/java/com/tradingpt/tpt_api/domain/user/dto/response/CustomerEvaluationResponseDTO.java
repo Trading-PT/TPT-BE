@@ -58,7 +58,7 @@ public class CustomerEvaluationResponseDTO {
 			.weeklyEvaluation(EvaluationStatus.fromWeekly(weeklyTradingSummary))
 			.build();
 	}
-	
+
 	@Getter
 	@Builder
 	@NoArgsConstructor(access = AccessLevel.PROTECTED)

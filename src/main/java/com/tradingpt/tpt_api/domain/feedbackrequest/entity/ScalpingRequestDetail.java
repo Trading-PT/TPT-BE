@@ -1,12 +1,17 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
+import java.math.BigDecimal;
+
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -27,23 +32,25 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 	/**
 	 * 필드
 	 */
-	private String category; // 종목
 
-	private Integer dailyTradingCount; // 하루 매매 횟수
+	@Enumerated(EnumType.STRING)
+	private Position position; // 포지션
 
-	private Integer riskTaking; // 리스크 테이킹
+	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
 
-	private Integer leverage; // 레버리지
+	private BigDecimal entryPrice; // 진입 자금
 
-	private Integer totalPositionTakingCount; // 총 포지션 잡은 횟수
+	private BigDecimal exitPrice; // 탈출 자금
 
-	private Integer totalProfitMarginPerTrades; // 총 매매 횟수 대비 수익 매매횟수
+	private BigDecimal settingStopLoss; // 설정 손절가
+
+	private BigDecimal settingTakeProfit; // 설정 익절가
 
 	@Lob
-	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
+	private String positionStartReason; // 포지션 진입 근거
 
 	@Lob
-	private String trendAnalysis; // 15분봉 기준 추세 분석
+	private String positionEndReason; // 포지션 탈출 근거
 
 	public static ScalpingRequestDetail createFrom(CreateScalpingRequestDetailRequestDTO request, Customer customer,
 		FeedbackPeriodUtil.FeedbackPeriod period, String title) {
@@ -61,13 +68,19 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
 			.category(request.getCategory())
-			.dailyTradingCount(request.getDailyTradingCount())
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
-			.totalPositionTakingCount(request.getTotalPositionTakingCount())
-			.totalProfitMarginPerTrades(request.getTotalProfitMarginPerTrades())
-			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-			.trendAnalysis(request.getTrendAnalysis())
+			.position(request.getPosition())
+			.pnl(request.getPnl())
+			.rnr(request.getRnr())
+			.operatingFundsRatio(request.getOperatingFundsRatio())
+			.entryPrice(request.getEntryPrice())
+			.exitPrice(request.getExitPrice())
+			.settingStopLoss(request.getSettingStopLoss())
+			.settingTakeProfit(request.getSettingTakeProfit())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.tradingReview(request.getTradingReview())
 			.build();
 	}
 

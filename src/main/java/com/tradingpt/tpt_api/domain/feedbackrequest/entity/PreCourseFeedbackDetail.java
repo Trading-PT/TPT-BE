@@ -22,8 +22,6 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode
 public class PreCourseFeedbackDetail {
 
-	private Double rnr; // R&R
-
 	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
 
 	private BigDecimal entryPrice; // 진입 자금
@@ -40,11 +38,10 @@ public class PreCourseFeedbackDetail {
 	@Lob
 	private String positionEndReason; // 포지션 탈출 근거
 
-	public static PreCourseFeedbackDetail of(Double rnr, Integer operatingFundsRatio, BigDecimal entryPrice,
+	public static PreCourseFeedbackDetail of(Integer operatingFundsRatio, BigDecimal entryPrice,
 		BigDecimal exitPrice, BigDecimal settingStopLoss, BigDecimal settingTakeProfit, String positionStartReason,
 		String positionEndReason) {
 		return PreCourseFeedbackDetail.builder()
-			.rnr(rnr)
 			.operatingFundsRatio(operatingFundsRatio)
 			.entryPrice(entryPrice)
 			.exitPrice(exitPrice)

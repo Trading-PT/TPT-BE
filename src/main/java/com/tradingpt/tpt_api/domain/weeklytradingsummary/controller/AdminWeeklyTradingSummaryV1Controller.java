@@ -1,0 +1,15 @@
+package com.tradingpt.tpt_api.domain.weeklytradingsummary.controller;
+
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+
+@RestController
+@RequestMapping("/api/v1/admin/weekly-trading-summary")
+@RequiredArgsConstructor
+@Tag(name = "ADMIN 주간 매매 일지 통계", description = "ADMIN이 사용하는 주간 매매 일지 통계 API")
+public class AdminWeeklyTradingSummaryV1Controller {
+
+}

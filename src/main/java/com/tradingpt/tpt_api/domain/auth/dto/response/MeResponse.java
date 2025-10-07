@@ -1,11 +1,12 @@
 package com.tradingpt.tpt_api.domain.auth.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
-
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
-import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -32,15 +33,16 @@ public class MeResponse {
 	private Boolean isPremium;
 
 	public static MeResponse from(Customer c) {
-		if (c == null) return null;
+		if (c == null)
+			return null;
 
 		boolean isPremium = MembershipLevel.PREMIUM.equals(c.getMembershipLevel())
-				&& c.getMembershipExpiredAt() != null
-				&& c.getMembershipExpiredAt().isAfter(LocalDateTime.now());
+			&& c.getMembershipExpiredAt() != null
+			&& c.getMembershipExpiredAt().isAfter(LocalDateTime.now());
 
 		String investmentType = (c.getPrimaryInvestmentType() != null)
-				? c.getPrimaryInvestmentType().name()
-				: null;
+			? c.getPrimaryInvestmentType().name()
+			: null;
 
 		Boolean isCourseCompleted = CourseStatus.AFTER_COMPLETION.equals(c.getCourseStatus());
 
@@ -56,30 +58,29 @@ public class MeResponse {
 		String paymentMethod = null;
 		if (c.getPaymentMethods() != null && !c.getPaymentMethods().isEmpty()) {
 			paymentMethod = c.getPaymentMethods().stream()
-					.filter(pm -> pm.isActive() && !pm.isExpired())
-					.findFirst()
-					.map(pm -> pm.getDisplayName())
-					.orElse(null);
+				.filter(pm -> pm.isActive() && !pm.isExpired())
+				.findFirst()
+				.map(pm -> pm.getDisplayName())
+				.orElse(null);
 		}
 
 		return MeResponse.builder()
-				.name(c.getName())
-				.username(c.getUsername())
-				.email(c.getEmail())
-				.phoneNumber(c.getPhoneNumber())
-				.uid(uidValue)
-				.exchangeName(exchangeName)
-				.paymentMethod(paymentMethod)
-				.userStatus(c.getUserStatus())
-				.trainerId(trainerId)
-				.trainerName(trainerName)
-				.profileImage((c.getTrainer() != null) ? c.getTrainer().getProfileImageUrl() : null)
-				.investmentType(investmentType)
-				.isCourseCompleted(isCourseCompleted)
-				.isPremium(isPremium)
-				.build();
+			.name(c.getName())
+			.username(c.getUsername())
+			.email(c.getEmail())
+			.phoneNumber(c.getPhoneNumber())
+			.uid(uidValue)
+			.exchangeName(exchangeName)
+			.paymentMethod(paymentMethod)
+			.userStatus(c.getUserStatus())
+			.trainerId(trainerId)
+			.trainerName(trainerName)
+			.profileImage((c.getTrainer() != null) ? c.getTrainer().getProfileImageUrl() : null)
+			.investmentType(investmentType)
+			.isCourseCompleted(isCourseCompleted)
+			.isPremium(isPremium)
+			.build();
 	}
-
 
 }
 

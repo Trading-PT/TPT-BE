@@ -8,9 +8,10 @@ import lombok.Getter;
 public enum CourseStatus {
 
 	BEFORE_COMPLETION("완강 전"),
+	PENDING_COMPLETION("완강 했지만 다음 달이 되지 않음"),
 	AFTER_COMPLETION("완강 후"),
 	;
 
 	private final String description;
-	
+
 }

@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import java.util.List;
+
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
@@ -18,7 +20,6 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,7 +35,6 @@ import lombok.experimental.SuperBuilder;
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "role", discriminatorType = DiscriminatorType.STRING)
 public abstract class User extends BaseEntity {
-
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PasswordHistory> passwordHistories;

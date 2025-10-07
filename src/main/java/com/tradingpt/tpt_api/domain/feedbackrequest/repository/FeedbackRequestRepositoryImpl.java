@@ -5,6 +5,8 @@ import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackReque
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QSwingRequestDetail.*;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,16 +22,19 @@ import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.QDayRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.QSwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,10 +46,6 @@ import lombok.RequiredArgsConstructor;
 public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
-	private final QFeedbackRequest qFeedbackRequest = feedbackRequest;
-	private final QDayRequestDetail qDayRequestDetail = dayRequestDetail;
-	private final QScalpingRequestDetail qScalpingRequestDetail = scalpingRequestDetail;
-	private final QSwingRequestDetail qSwingRequestDetail = swingRequestDetail;
 
 	@Override
 	public Page<FeedbackRequest> findFeedbackRequestsWithFilters(
@@ -53,6 +54,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Status status,
 		Long customerId
 	) {
+
 		BooleanBuilder predicate = buildBasePredicate(status, customerId);
 
 		List<FeedbackRequest> allResults = new ArrayList<>();
@@ -60,27 +62,27 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		// FeedbackType에 따라 해당하는 서브타입만 조회
 		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
 			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(qDayRequestDetail)
+				.selectFrom(dayRequestDetail)
 				.where(predicate)
-				.orderBy(qDayRequestDetail.createdAt.desc())
+				.orderBy(dayRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(dayRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(qScalpingRequestDetail)
+				.selectFrom(scalpingRequestDetail)
 				.where(predicate)
-				.orderBy(qScalpingRequestDetail.createdAt.desc())
+				.orderBy(scalpingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(scalpingRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
 			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(qSwingRequestDetail)
+				.selectFrom(swingRequestDetail)
 				.where(predicate)
-				.orderBy(qSwingRequestDetail.createdAt.desc())
+				.orderBy(swingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(swingRequests);
 		}
@@ -102,10 +104,10 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Status status
 	) {
 		BooleanBuilder predicate = new BooleanBuilder();
-		predicate.and(qFeedbackRequest.customer.id.eq(customerId));
+		predicate.and(feedbackRequest.customer.id.eq(customerId));
 
 		if (status != null) {
-			predicate.and(qFeedbackRequest.status.eq(status));
+			predicate.and(feedbackRequest.status.eq(status));
 		}
 
 		List<FeedbackRequest> allResults = new ArrayList<>();
@@ -113,27 +115,27 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		// FeedbackType에 따라 해당하는 서브타입만 조회
 		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
 			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(qDayRequestDetail)
+				.selectFrom(dayRequestDetail)
 				.where(predicate)
-				.orderBy(qDayRequestDetail.createdAt.desc())
+				.orderBy(dayRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(dayRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(qScalpingRequestDetail)
+				.selectFrom(scalpingRequestDetail)
 				.where(predicate)
-				.orderBy(qScalpingRequestDetail.createdAt.desc())
+				.orderBy(scalpingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(scalpingRequests);
 		}
 
 		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
 			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(qSwingRequestDetail)
+				.selectFrom(swingRequestDetail)
 				.where(predicate)
-				.orderBy(qSwingRequestDetail.createdAt.desc())
+				.orderBy(swingRequestDetail.createdAt.desc())
 				.fetch();
 			allResults.addAll(swingRequests);
 		}
@@ -146,42 +148,42 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	@Override
 	public List<FeedbackRequest> findFeedbackRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate) {
 		return queryFactory
-			.selectFrom(qFeedbackRequest)
+			.selectFrom(feedbackRequest)
 			.where(
-				qFeedbackRequest.customer.id.eq(customerId)
-					.and(qFeedbackRequest.feedbackRequestedAt.eq(feedbackDate))
+				feedbackRequest.customer.id.eq(customerId)
+					.and(feedbackRequest.feedbackRequestedAt.eq(feedbackDate))
 			)
-			.orderBy(qFeedbackRequest.createdAt.asc())
+			.orderBy(feedbackRequest.createdAt.asc())
 			.fetch();
 	}
 
 	@Override
 	public List<MonthlyFeedbackSummaryResult> findMonthlySummaryByYear(Long customerId, Integer year) {
 		NumberExpression<Integer> unreadCase = new CaseBuilder()
-			.when(qFeedbackRequest.status.eq(Status.FN))
+			.when(feedbackRequest.status.eq(Status.FN))
 			.then(1)
 			.otherwise(0);
 
 		NumberExpression<Integer> pendingCase = new CaseBuilder()
-			.when(qFeedbackRequest.status.eq(Status.N))
+			.when(feedbackRequest.status.eq(Status.N))
 			.then(1)
 			.otherwise(0);
 
 		return queryFactory
 			.select(Projections.constructor(
 				MonthlyFeedbackSummaryResult.class,
-				qFeedbackRequest.feedbackMonth,
-				qFeedbackRequest.count(),
+				feedbackRequest.feedbackMonth,
+				feedbackRequest.count(),
 				unreadCase.sum().coalesce(0),
 				pendingCase.sum().coalesce(0)
 			))
-			.from(qFeedbackRequest)
+			.from(feedbackRequest)
 			.where(
-				qFeedbackRequest.customer.id.eq(customerId),
-				qFeedbackRequest.feedbackYear.eq(year)
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year)
 			)
-			.groupBy(qFeedbackRequest.feedbackMonth)
-			.orderBy(qFeedbackRequest.feedbackMonth.asc())
+			.groupBy(feedbackRequest.feedbackMonth)
+			.orderBy(feedbackRequest.feedbackMonth.asc())
 			.fetch();
 	}
 
@@ -193,12 +195,12 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		// 상태 필터
 		if (status != null) {
-			predicate.and(qFeedbackRequest.status.eq(status));
+			predicate.and(feedbackRequest.status.eq(status));
 		}
 
 		// 고객 ID 필터 (트레이너만 사용 가능)
 		if (customerId != null) {
-			predicate.and(qFeedbackRequest.customer.id.eq(customerId));
+			predicate.and(feedbackRequest.customer.id.eq(customerId));
 		}
 
 		return predicate;
@@ -215,31 +217,31 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		switch (feedbackType) {
 			case DAY -> {
 				count = queryFactory
-					.select(qDayRequestDetail.count())
-					.from(qDayRequestDetail)
+					.select(dayRequestDetail.count())
+					.from(dayRequestDetail)
 					.where(
-						qDayRequestDetail.customer.id.eq(customerId)
-							.and(qDayRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+						dayRequestDetail.customer.id.eq(customerId)
+							.and(dayRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
 			case SCALPING -> {
 				count = queryFactory
-					.select(qScalpingRequestDetail.count())
-					.from(qScalpingRequestDetail)
+					.select(scalpingRequestDetail.count())
+					.from(scalpingRequestDetail)
 					.where(
-						qScalpingRequestDetail.customer.id.eq(customerId)
-							.and(qScalpingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+						scalpingRequestDetail.customer.id.eq(customerId)
+							.and(scalpingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
 			case SWING -> {
 				count = queryFactory
-					.select(qSwingRequestDetail.count())
-					.from(qSwingRequestDetail)
+					.select(swingRequestDetail.count())
+					.from(swingRequestDetail)
 					.where(
-						qSwingRequestDetail.customer.id.eq(customerId)
-							.and(qSwingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
+						swingRequestDetail.customer.id.eq(customerId)
+							.and(swingRequestDetail.feedbackRequestedAt.eq(feedbackDate))
 					)
 					.fetchOne();
 			}
@@ -248,4 +250,356 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		return count != null ? count : 0L;
 	}
+
+	@Override
+	public List<WeeklyRawData> findWeeklyStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		switch (investmentType) {
+			case DAY -> {
+				// DAY 타입 전용 predicate
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(dayRequestDetail.customer.id.eq(customerId))
+					.and(dayRequestDetail.feedbackYear.eq(year))
+					.and(dayRequestDetail.feedbackMonth.eq(month))
+					.and(dayRequestDetail.courseStatus.eq(courseStatus));
+
+				// DAY 타입 전용 winCase
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						WeeklyRawData.class,
+						dayRequestDetail.feedbackWeek,
+						dayRequestDetail.count().intValue(),
+						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					))
+					.from(dayRequestDetail)
+					.where(predicate)
+					.groupBy(dayRequestDetail.feedbackWeek)
+					.orderBy(dayRequestDetail.feedbackWeek.asc())
+					.fetch();
+			}
+			case SWING -> {
+				// SWING 타입 전용 predicate
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(swingRequestDetail.customer.id.eq(customerId))
+					.and(swingRequestDetail.feedbackYear.eq(year))
+					.and(swingRequestDetail.feedbackMonth.eq(month))
+					.and(swingRequestDetail.courseStatus.eq(courseStatus));
+
+				// SWING 타입 전용 winCase
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						WeeklyRawData.class,
+						swingRequestDetail.feedbackWeek,
+						swingRequestDetail.count().intValue(),
+						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					))
+					.from(swingRequestDetail)
+					.where(predicate)
+					.groupBy(swingRequestDetail.feedbackWeek)
+					.orderBy(swingRequestDetail.feedbackWeek.asc())
+					.fetch();
+			}
+			case SCALPING -> {
+				// SCALPING 타입 전용 predicate
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(scalpingRequestDetail.customer.id.eq(customerId))
+					.and(scalpingRequestDetail.feedbackYear.eq(year))
+					.and(scalpingRequestDetail.feedbackMonth.eq(month))
+					.and(scalpingRequestDetail.courseStatus.eq(courseStatus));
+
+				// SCALPING 타입 전용 winCase
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(scalpingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						WeeklyRawData.class,
+						scalpingRequestDetail.feedbackWeek,
+						scalpingRequestDetail.count().intValue(),
+						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					))
+					.from(scalpingRequestDetail)
+					.where(predicate)
+					.groupBy(scalpingRequestDetail.feedbackWeek)
+					.orderBy(scalpingRequestDetail.feedbackWeek.asc())
+					.fetch();
+			}
+			default -> throw new FeedbackRequestException(FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
+		}
+	}
+
+	@Override
+	public EntryPointStatistics findEntryPointStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	) {
+		if (investmentType == InvestmentType.DAY) {
+			// DAY 전용 basePredicate
+			BooleanBuilder basePredicate = new BooleanBuilder()
+				.and(dayRequestDetail.customer.id.eq(customerId))
+				.and(dayRequestDetail.feedbackYear.eq(year))
+				.and(dayRequestDetail.feedbackMonth.eq(month));
+
+			NumberExpression<Integer> winCase = new CaseBuilder()
+				.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+				.then(1)
+				.otherwise(0);
+
+			var reverseStats = queryFactory
+				.select(
+					dayRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(dayRequestDetail)
+				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.REVERSE)))
+				.fetchOne();
+
+			var pullBackStats = queryFactory
+				.select(
+					dayRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(dayRequestDetail)
+				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.PULL_BACK)))
+				.fetchOne();
+
+			var breakOutStats = queryFactory
+				.select(
+					dayRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(dayRequestDetail)
+				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.BREAK_OUT)))
+				.fetchOne();
+
+			return new EntryPointStatistics(
+				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
+				),
+				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
+				),
+				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
+				)
+			);
+		} else { // SWING
+			// SWING 전용 basePredicate
+			BooleanBuilder basePredicate = new BooleanBuilder()
+				.and(swingRequestDetail.customer.id.eq(customerId))
+				.and(swingRequestDetail.feedbackYear.eq(year))
+				.and(swingRequestDetail.feedbackMonth.eq(month));
+
+			NumberExpression<Integer> winCase = new CaseBuilder()
+				.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+				.then(1)
+				.otherwise(0);
+
+			var reverseStats = queryFactory
+				.select(
+					swingRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(swingRequestDetail)
+				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.REVERSE)))
+				.fetchOne();
+
+			var pullBackStats = queryFactory
+				.select(
+					swingRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(swingRequestDetail)
+				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.PULL_BACK)))
+				.fetchOne();
+
+			var breakOutStats = queryFactory
+				.select(
+					swingRequestDetail.count().intValue(),
+					winCase.sum().coalesce(0),
+					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.riskTaking.sum().coalesce(0)
+				)
+				.from(swingRequestDetail)
+				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.BREAK_OUT)))
+				.fetchOne();
+
+			return new EntryPointStatistics(
+				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
+				),
+				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
+				),
+				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
+				calculateRnr(
+					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
+				)
+			);
+		}
+	}
+
+	@Override
+	public MonthlyPerformanceSnapshot findMonthlyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	) {
+		switch (investmentType) {
+			case DAY -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(dayRequestDetail.customer.id.eq(customerId))
+					.and(dayRequestDetail.feedbackYear.eq(year))
+					.and(dayRequestDetail.feedbackMonth.eq(month));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						dayRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.riskTaking.sum().coalesce(0)
+					)
+					.from(dayRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				return buildPerformanceSnapshot(result);
+			}
+			case SWING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(swingRequestDetail.customer.id.eq(customerId))
+					.and(swingRequestDetail.feedbackYear.eq(year))
+					.and(swingRequestDetail.feedbackMonth.eq(month));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						swingRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.riskTaking.sum().coalesce(0)
+					)
+					.from(swingRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				return buildPerformanceSnapshot(result);
+			}
+			case SCALPING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(scalpingRequestDetail.customer.id.eq(customerId))
+					.and(scalpingRequestDetail.feedbackYear.eq(year))
+					.and(scalpingRequestDetail.feedbackMonth.eq(month));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(scalpingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						scalpingRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.riskTaking.sum().coalesce(0)
+					)
+					.from(scalpingRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				return buildPerformanceSnapshot(result);
+			}
+			default -> throw new FeedbackRequestException(FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
+		}
+	}
+
+	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
+		if (result == null) {
+			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+		}
+
+		Integer totalCount = result.get(0, Integer.class);
+		Integer winCount = result.get(1, Integer.class);
+		BigDecimal totalPnl = result.get(2, BigDecimal.class);
+		Integer totalRiskTaking = result.get(3, Integer.class);
+
+		BigDecimal winRate = totalCount > 0
+			? BigDecimal.valueOf((double)winCount / totalCount * 100).setScale(2, RoundingMode.HALF_UP)
+			: BigDecimal.ZERO;
+		BigDecimal avgRnr = totalRiskTaking > 0
+			? totalPnl.divide(BigDecimal.valueOf(totalRiskTaking), 2, RoundingMode.HALF_UP)
+			: BigDecimal.ZERO;
+
+		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+	}
+
+	private Double calculateRnr(BigDecimal totalPnl, Integer totalRiskTaking) {
+		if (totalRiskTaking == null || totalRiskTaking == 0) {
+			return 0.0;
+		}
+		return totalPnl.divide(BigDecimal.valueOf(totalRiskTaking), 2, RoundingMode.HALF_UP).doubleValue();
+	}
+
 }

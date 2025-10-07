@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/weekly-trading-summary")
 @RequiredArgsConstructor
-@Tag(name = "주간 트레이딩 피드백 평가 관리", description = "주간 트레이딩 피드백 평가 관리 API")
+@Tag(name = "주간 매매 일지 통계", description = "피드백 요청 주간 매매 일지 통계 API")
 public class WeeklyTradingSummaryV1Controller {
+
 }

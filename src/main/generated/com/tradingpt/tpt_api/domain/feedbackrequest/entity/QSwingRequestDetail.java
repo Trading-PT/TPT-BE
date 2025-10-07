@@ -24,7 +24,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final QFeedbackRequest _super;
 
-    public final StringPath category = createString("category");
+    //inherited
+    public final StringPath category;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus;
@@ -77,14 +78,16 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     //inherited
     public final BooleanPath isResponded;
 
-    public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
+    //inherited
+    public final NumberPath<Integer> leverage;
 
     public final StringPath mainFrame = createString("mainFrame");
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
 
-    public final NumberPath<java.math.BigDecimal> pnl = createNumber("pnl", java.math.BigDecimal.class);
+    //inherited
+    public final NumberPath<java.math.BigDecimal> pnl;
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
@@ -98,7 +101,11 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     // inherited
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
-    public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
+    //inherited
+    public final NumberPath<Integer> riskTaking;
+
+    //inherited
+    public final NumberPath<Double> rnr;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
@@ -108,7 +115,8 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     //inherited
     public final StringPath title;
 
-    public final StringPath tradingReview = createString("tradingReview");
+    //inherited
+    public final StringPath tradingReview;
 
     public final StringPath trainerFeedbackRequestContent = createString("trainerFeedbackRequestContent");
 
@@ -116,8 +124,6 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt;
-
-    public final StringPath winLossRatio = createString("winLossRatio");
 
     public QSwingRequestDetail(String variable) {
         this(SwingRequestDetail.class, forVariable(variable), INITS);
@@ -138,6 +144,7 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     public QSwingRequestDetail(Class<? extends SwingRequestDetail> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this._super = new QFeedbackRequest(type, metadata, inits);
+        this.category = _super.category;
         this.courseStatus = _super.courseStatus;
         this.createdAt = _super.createdAt;
         this.customer = _super.customer;
@@ -151,11 +158,16 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
+        this.pnl = _super.pnl;
         this.positionHoldingTime = _super.positionHoldingTime;
         this.preCourseFeedbackDetail = _super.preCourseFeedbackDetail;
+        this.riskTaking = _super.riskTaking;
+        this.rnr = _super.rnr;
         this.status = _super.status;
         this.title = _super.title;
+        this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }
 

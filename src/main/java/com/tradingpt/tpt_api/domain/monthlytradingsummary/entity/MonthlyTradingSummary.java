@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
 import java.time.LocalDateTime;
 
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.CreateMonthlyTradingSummaryRequestDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
@@ -68,5 +69,20 @@ public class MonthlyTradingSummary extends BaseEntity {
 
 	@Builder.Default
 	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가 시각
+
+	public static MonthlyTradingSummary createFrom(CreateMonthlyTradingSummaryRequestDTO request, Customer customer,
+		Trainer trainer, Integer year, Integer month) {
+		
+		MonthlyPeriod monthlyPeriod = MonthlyPeriod.of(year, month);
+
+		return MonthlyTradingSummary.builder()
+			.customer(customer)
+			.trainer(trainer)
+			.period(monthlyPeriod)
+			.investmentType(customer.getPrimaryInvestmentType())
+			.monthlyEvaluation(request.getMonthlyEvaluation())
+			.nextMonthGoal(request.getNextMonthGoal())
+			.build();
+	}
 
 }

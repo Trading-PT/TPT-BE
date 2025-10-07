@@ -9,6 +9,12 @@ import org.springframework.data.domain.Pageable;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 /**
  * FeedbackRequest 커스텀 Repository 인터페이스
@@ -76,4 +82,36 @@ public interface FeedbackRequestRepositoryCustom {
 		LocalDate feedbackDate,
 		FeedbackType feedbackType
 	);
+
+	/**
+	 * 특정 고객의 특정 연/월/CourseStatus별 주차 통계 조회
+	 */
+	List<WeeklyRawData> findWeeklyStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	);
+
+	/**
+	 * 진입 타점별 통계 조회 (완강 후, 스윙/데이만)
+	 */
+	EntryPointStatistics findEntryPointStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	);
+
+	/**
+	 * 특정 달의 최종 성과 조회
+	 */
+	MonthlyPerformanceSnapshot findMonthlyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	);
+
 }

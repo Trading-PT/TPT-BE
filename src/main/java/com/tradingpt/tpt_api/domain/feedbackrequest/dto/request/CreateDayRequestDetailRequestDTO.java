@@ -78,7 +78,7 @@ public class CreateDayRequestDetailRequestDTO {
 	private BigDecimal pnl;
 
 	@Schema(description = "손익비")
-	private String winLossRatio;
+	private Double rnr;
 
 	@Schema(description = "1차 진입 타점")
 	private EntryPoint entryPoint1;

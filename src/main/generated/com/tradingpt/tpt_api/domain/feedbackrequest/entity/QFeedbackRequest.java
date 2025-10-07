@@ -24,6 +24,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final StringPath category = createString("category");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
 
     //inherited
@@ -51,15 +53,25 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isResponded = createBoolean("isResponded");
 
+    public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);
+
+    public final NumberPath<java.math.BigDecimal> pnl = createNumber("pnl", java.math.BigDecimal.class);
 
     public final StringPath positionHoldingTime = createString("positionHoldingTime");
 
     public final QPreCourseFeedbackDetail preCourseFeedbackDetail;
 
+    public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
+
+    public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
+
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
 
     public final StringPath title = createString("title");
+
+    public final StringPath tradingReview = createString("tradingReview");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

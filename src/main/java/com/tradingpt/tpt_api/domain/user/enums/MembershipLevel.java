@@ -1,5 +1,5 @@
 package com.tradingpt.tpt_api.domain.user.enums;
 
 public enum MembershipLevel {
-    BASIC, PREMIUM
+	BASIC, PREMIUM
 }

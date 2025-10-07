@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -77,7 +79,11 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private String positionHoldingTime; // 포지션 홀딩 시간
 
-	// private Boolean isCourseCompleted; // 완강 여부
+	private String category; // 종목
+
+	private Integer riskTaking; // 리스크 테이킹
+
+	private Integer leverage; // 레버리지
 
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus; // 완강 여부
@@ -88,6 +94,10 @@ public abstract class FeedbackRequest extends BaseEntity {
 	@Embedded
 	private PreCourseFeedbackDetail preCourseFeedbackDetail;
 
+	private BigDecimal pnl; // P&L
+
+	private Double rnr; // R&R
+
 	private Integer feedbackYear; // 피드백 연도
 
 	private Integer feedbackMonth; // 피드백 월
@@ -97,6 +107,9 @@ public abstract class FeedbackRequest extends BaseEntity {
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
 	private Status status = Status.N; // 피드백 답변 여부
+
+	@Lob
+	private String tradingReview; // 매매 복기
 
 	@Builder.Default
 	private Boolean isRead = false;
@@ -116,17 +129,6 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	public void setFeedbackResponse(FeedbackResponse feedbackResponse) {
 		this.feedbackResponse = feedbackResponse;
-	}
-
-	public Boolean getIsCourseCompleted() {
-		if (courseStatus == null) {
-			return null;
-		}
-
-		return switch (courseStatus) {
-			case AFTER_COMPLETION -> Boolean.TRUE;
-			case BEFORE_COMPLETION -> Boolean.FALSE;
-		};
 	}
 
 	public String getPositionStartReason() {
