@@ -38,7 +38,7 @@ public class CreateDayRequestDetailRequestDTO {
 
 	@Schema(description = "요청 날짜")
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-	private LocalDate requestDate;
+	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "종목")
 	private String category;
