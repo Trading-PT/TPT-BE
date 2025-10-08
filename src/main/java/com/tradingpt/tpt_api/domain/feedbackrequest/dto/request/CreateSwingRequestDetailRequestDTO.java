@@ -52,7 +52,7 @@ public class CreateSwingRequestDetailRequestDTO {
 	@Schema(description = "종목", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String category;
 
-	@Schema(description = "포지션 홀딩 시간", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
 
 	@Schema(description = "스크린샷 이미지 파일")
