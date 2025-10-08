@@ -53,12 +53,12 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		customer.checkTradingType(InvestmentType.DAY);
 
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
-		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
 		// 거래 날짜를 기반으로 제목을 자동 생성함.
-		String title = buildFeedbackTitle(request.getRequestDate(),
+		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getRequestDate(), FeedbackType.DAY) + 1);
+				customerId, request.getFeedbackRequestDate(), FeedbackType.DAY) + 1);
 
 		// DayRequestDetail 생성
 		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
@@ -78,11 +78,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		customer.checkTradingType(InvestmentType.SCALPING);
 
-		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getRequestDate());
+		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
-		String title = buildFeedbackTitle(request.getRequestDate(),
+		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getRequestDate(), FeedbackType.SCALPING) + 1);
+				customerId, request.getFeedbackRequestDate(), FeedbackType.SCALPING) + 1);
 
 		// ScalpingRequestDetail 생성
 		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);

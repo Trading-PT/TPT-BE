@@ -73,7 +73,7 @@ public class DayRequestDetail extends FeedbackRequest {
 			.feedbackYear(period.year())
 			.feedbackMonth(period.month())
 			.feedbackWeek(period.week())
-			.feedbackRequestDate(request.getRequestDate())
+			.feedbackRequestDate(request.getFeedbackRequestDate())
 			.category(request.getCategory())
 			.positionHoldingTime(request.getPositionHoldingTime())
 			.position(request.getPosition())
