@@ -105,6 +105,7 @@ public class Customer extends User {
 	private LocalDateTime membershipExpiredAt;
 
 	@Builder.Default
+	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
 
 	@Column(name = "open_chapter_number")
