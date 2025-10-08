@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,5 +14,14 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Schema(description = "완강 전 고객 주간 매매 일지")
 public class BeforeCompletedCourseWeeklySummaryDTO extends WeeklySummaryResponseDTO {
-	private Long id;
+
+	@Schema(description = "주별 통계 DTO")
+	private WeeklyFeedbackSummaryResponseDTO weeklyFeedbackSummaryResponseDTO;
+
+	@Schema(description = "주별 성과 비교")
+	private PerformanceComparison<PerformanceComparison.WeekSnapshot> performanceComparison;
+
+	@Schema(description = "이번 주 나의 매매 중 가장 큰 문제점 메모하기")
+	private String memo;
+
 }

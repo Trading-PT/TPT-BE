@@ -8,10 +8,6 @@ import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * 피드백 요청 도메인 에러 상태 코드 정의
- * 피드백 요청 관련 비즈니스 로직에서 발생할 수 있는 모든 에러 상태를 정의
- */
 @Getter
 @AllArgsConstructor
 public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
@@ -28,7 +24,22 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	UNSUPPORTED_REQUEST_FEEDBACK_TYPE(HttpStatus.BAD_REQUEST, "FEEDBACK4009", "지원하지 않는 피드백 타입입니다."),
 	PRECOURSE_FEEDBACK_DETAIL_JSON_PARSE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "FEEDBACK4010",
 		"preCourseFeedbackDetail JSON 파싱 실패"),
-	FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH(HttpStatus.CONFLICT, "FEEDBACK4011", "사용자의 투자 타입과 피드백 요청 타입이 일치하지 않습니다."),
+	FEEDBACK_REQUEST_INVESTMENT_TYPE_MISMATCH(HttpStatus.CONFLICT, "FEEDBACK4011",
+		"사용자의 투자 타입과 피드백 요청 타입이 일치하지 않습니다."),
+	FEEDBACK_REQUEST_READ_STATUS_CANNOT_BE_NULL(HttpStatus.CONFLICT, "FEEDBACK4012",
+		"피드백 요청의 읽음 상태 여부의 개수는 null이면 안됩니다."),
+	FEEDBACK_REQUEST_READ_STATUS_CANNOT_BE_MINUS(HttpStatus.CONFLICT, "FEEDBACK4013",
+		"피드백 요청의 읽음 상태 여부의 개수는 음수일 수 없습니다."),
+
+	// ✅ 트레이딩 계산 관련 에러 추가
+	INVALID_WIN_RATE_TOTAL_COUNT_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4014", "전체 매매 횟수는 null일 수 없습니다."),
+	INVALID_WIN_RATE_WIN_COUNT_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4015", "승리 횟수는 null일 수 없습니다."),
+	INVALID_WIN_RATE_TOTAL_COUNT_NEGATIVE(HttpStatus.BAD_REQUEST, "FEEDBACK4016", "전체 매매 횟수는 음수일 수 없습니다."),
+	INVALID_WIN_RATE_WIN_COUNT_NEGATIVE(HttpStatus.BAD_REQUEST, "FEEDBACK4017", "승리 횟수는 음수일 수 없습니다."),
+	INVALID_WIN_RATE_WIN_GREATER_THAN_TOTAL(HttpStatus.BAD_REQUEST, "FEEDBACK4018", "승리 횟수가 전체 매매 횟수보다 클 수 없습니다."),
+	INVALID_RNR_PNL_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4019", "P&L은 null일 수 없습니다."),
+	INVALID_RNR_RISK_TAKING_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4020", "리스크 테이킹은 null일 수 없습니다."),
+	INVALID_RNR_RISK_TAKING_NEGATIVE(HttpStatus.BAD_REQUEST, "FEEDBACK4021", "리스크 테이킹은 음수일 수 없습니다."),
 	;
 
 	private final HttpStatus httpStatus;

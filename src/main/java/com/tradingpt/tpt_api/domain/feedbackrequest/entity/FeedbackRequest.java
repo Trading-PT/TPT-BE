@@ -123,10 +123,10 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private String tradingReview; // 매매 복기
 
 	@Builder.Default
-	private Boolean isRead = false;
+	private Boolean isRead = false; // 피드백 답변 읽은 여부
 
 	@Builder.Default
-	private Boolean isResponded = false;
+	private Boolean isResponded = false; // 피드백 답변 여부
 
 	@Builder.Default
 	private Boolean isBestFeedback = false; // 베스트 피드백 여부

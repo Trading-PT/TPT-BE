@@ -121,7 +121,7 @@ public class CreateDayRequestDetailRequestDTO {
 	private Grade grade;
 
 	@Schema(description = "2차 진입 타점")
-	private LocalDate entryPoint2;
+	private String entryPoint2;
 
 	// ========================================
 	// Validation

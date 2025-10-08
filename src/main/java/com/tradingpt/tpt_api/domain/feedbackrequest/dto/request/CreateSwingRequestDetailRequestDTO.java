@@ -2,7 +2,6 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.request;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -52,8 +51,8 @@ public class CreateSwingRequestDetailRequestDTO {
 
 	@Schema(description = "종목", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String category;
-	
-	@Schema(description = "포지션 홀딩 시간", requiredMode = Schema.RequiredMode.REQUIRED)
+
+	@Schema(description = "포지션 홀딩 시간")
 	private String positionHoldingTime;
 
 	@Schema(description = "스크린샷 이미지 파일")
@@ -140,11 +139,11 @@ public class CreateSwingRequestDetailRequestDTO {
 
 	@Schema(description = "2차 진입 타점 - 완강 후 필수")
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-	private LocalDateTime entryPoint2;
+	private String entryPoint2;
 
 	@Schema(description = "3차 진입 타점 - 완강 후 필수")
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-	private LocalDateTime entryPoint3;
+	private String entryPoint3;
 
 	// ========================================
 	// Validation

@@ -30,10 +30,13 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackStatusUtil;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.TradingCalculationUtil;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyFeedbackProjection;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyFeedbackSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -159,24 +162,26 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
-	public List<MonthlyFeedbackSummaryResult> findMonthlySummaryByYear(Long customerId, Integer year) {
-		NumberExpression<Integer> unreadCase = new CaseBuilder()
-			.when(feedbackRequest.status.eq(Status.FN))
-			.then(1)
-			.otherwise(0);
+	public List<MonthlyFeedbackSummary> findMonthlySummaryByYear(Long customerId, Integer year) {
 
-		NumberExpression<Integer> pendingCase = new CaseBuilder()
+		NumberExpression<Integer> nCase = new CaseBuilder()
 			.when(feedbackRequest.status.eq(Status.N))
 			.then(1)
 			.otherwise(0);
 
-		return queryFactory
+		NumberExpression<Integer> fnCase = new CaseBuilder()
+			.when(feedbackRequest.status.eq(Status.FN))
+			.then(1)
+			.otherwise(0);
+
+		// 1. Projection으로 조회
+		List<MonthlyFeedbackProjection> projections = queryFactory
 			.select(Projections.constructor(
-				MonthlyFeedbackSummaryResult.class,
+				MonthlyFeedbackProjection.class,
 				feedbackRequest.feedbackMonth,
 				feedbackRequest.count(),
-				unreadCase.sum().coalesce(0),
-				pendingCase.sum().coalesce(0)
+				nCase.sum().coalesce(0),
+				fnCase.sum().coalesce(0)
 			))
 			.from(feedbackRequest)
 			.where(
@@ -186,6 +191,15 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.groupBy(feedbackRequest.feedbackMonth)
 			.orderBy(feedbackRequest.feedbackMonth.asc())
 			.fetch();
+
+		// 2. 최종 DTO로 변환
+		return projections.stream()
+			.map(p -> new MonthlyFeedbackSummary(
+				p.getMonth(),
+				p.getTotalCount(),
+				FeedbackStatusUtil.determineReadStatus(p.getFnCount())
+			))
+			.toList();
 	}
 
 	/**
@@ -262,16 +276,25 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	) {
 		switch (investmentType) {
 			case DAY -> {
-				// DAY 타입 전용 predicate
 				BooleanBuilder predicate = new BooleanBuilder()
 					.and(dayRequestDetail.customer.id.eq(customerId))
 					.and(dayRequestDetail.feedbackYear.eq(year))
 					.and(dayRequestDetail.feedbackMonth.eq(month))
 					.and(dayRequestDetail.courseStatus.eq(courseStatus));
 
-				// DAY 타입 전용 winCase
 				NumberExpression<Integer> winCase = new CaseBuilder()
 					.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				// ✅ Status 관련 CASE 추가
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(dayRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(dayRequestDetail.status.eq(Status.FN))
 					.then(1)
 					.otherwise(0);
 
@@ -282,7 +305,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						dayRequestDetail.count().intValue(),
 						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
-						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),    // ✅ 추가
+						fnCase.sum().coalesce(0)    // ✅ 추가
 					))
 					.from(dayRequestDetail)
 					.where(predicate)
@@ -291,16 +316,25 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.fetch();
 			}
 			case SWING -> {
-				// SWING 타입 전용 predicate
 				BooleanBuilder predicate = new BooleanBuilder()
 					.and(swingRequestDetail.customer.id.eq(customerId))
 					.and(swingRequestDetail.feedbackYear.eq(year))
 					.and(swingRequestDetail.feedbackMonth.eq(month))
 					.and(swingRequestDetail.courseStatus.eq(courseStatus));
 
-				// SWING 타입 전용 winCase
 				NumberExpression<Integer> winCase = new CaseBuilder()
 					.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				// ✅ Status 관련 CASE 추가
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(swingRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(swingRequestDetail.status.eq(Status.FN))
 					.then(1)
 					.otherwise(0);
 
@@ -311,7 +345,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						swingRequestDetail.count().intValue(),
 						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
-						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),    // ✅ 추가
+						fnCase.sum().coalesce(0)    // ✅ 추가
 					))
 					.from(swingRequestDetail)
 					.where(predicate)
@@ -320,16 +356,25 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.fetch();
 			}
 			case SCALPING -> {
-				// SCALPING 타입 전용 predicate
 				BooleanBuilder predicate = new BooleanBuilder()
 					.and(scalpingRequestDetail.customer.id.eq(customerId))
 					.and(scalpingRequestDetail.feedbackYear.eq(year))
 					.and(scalpingRequestDetail.feedbackMonth.eq(month))
 					.and(scalpingRequestDetail.courseStatus.eq(courseStatus));
 
-				// SCALPING 타입 전용 winCase
 				NumberExpression<Integer> winCase = new CaseBuilder()
 					.when(scalpingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				// ✅ Status 관련 CASE 추가
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(scalpingRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(scalpingRequestDetail.status.eq(Status.FN))
 					.then(1)
 					.otherwise(0);
 
@@ -340,7 +385,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						scalpingRequestDetail.count().intValue(),
 						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
-						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),    // ✅ 추가
+						fnCase.sum().coalesce(0)    // ✅ 추가
 					))
 					.from(scalpingRequestDetail)
 					.where(predicate)
@@ -360,7 +407,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		InvestmentType investmentType
 	) {
 		if (investmentType == InvestmentType.DAY) {
-			// DAY 전용 basePredicate
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(dayRequestDetail.customer.id.eq(customerId))
 				.and(dayRequestDetail.feedbackYear.eq(year))
@@ -405,27 +451,38 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.fetchOne();
 
 			return new EntryPointStatistics(
+				// REVERSE
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
-				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
-				calculateRnr(
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+					reverseStats != null ? reverseStats.get(1, Integer.class) : 0
+				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
 					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				),
+				// PULL_BACK
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
-				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
-				calculateRnr(
-					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+				),
+				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
-				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
-				calculateRnr(
-					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
+				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				)
 			);
 		} else { // SWING
-			// SWING 전용 basePredicate
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(swingRequestDetail.customer.id.eq(customerId))
 				.and(swingRequestDetail.feedbackYear.eq(year))
@@ -470,23 +527,35 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.fetchOne();
 
 			return new EntryPointStatistics(
+				// REVERSE
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
-				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
-				calculateRnr(
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+					reverseStats != null ? reverseStats.get(1, Integer.class) : 0
+				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
 					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				),
+				// PULL_BACK
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
-				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
-				calculateRnr(
-					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+				),
+				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
-				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
-				calculateRnr(
-					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
+				TradingCalculationUtil.calculateWinRate(  // ✅ 승률 계산
+					breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
+				),
+				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
+					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				)
 			);
 		}
@@ -610,13 +679,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			: BigDecimal.ZERO;
 
 		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
-	}
-
-	private Double calculateRnr(BigDecimal totalPnl, Integer totalRiskTaking) {
-		if (totalRiskTaking == null || totalRiskTaking == 0) {
-			return 0.0;
-		}
-		return totalPnl.divide(BigDecimal.valueOf(totalRiskTaking), 2, RoundingMode.HALF_UP).doubleValue();
 	}
 
 }

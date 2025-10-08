@@ -29,13 +29,13 @@ public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryRespon
 	private EntryPointStatisticsResponseDTO entryPointStatisticsResponseDTO;
 
 	@Schema(description = "월별 성과 비교")
-	private MonthlyPerformanceComparison tradingPerformanceVariation;
+	private PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison;
 
 	public static AfterCompletedGeneralMonthlySummaryDTO of(
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO,
 		Boolean isTrainerEvaluated, String monthlyEvaluation, String nextMonthGoal,
 		EntryPointStatisticsResponseDTO entryPointStatisticsResponseDTO,
-		MonthlyPerformanceComparison tradingPerformanceVariation
+		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison
 	) {
 		return AfterCompletedGeneralMonthlySummaryDTO.builder()
 			.monthlyFeedbackSummaryResponseDTO(monthlyFeedbackSummaryResponseDTO)
@@ -43,7 +43,7 @@ public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryRespon
 			.monthlyEvaluation(monthlyEvaluation)
 			.nextMonthGoal(nextMonthGoal)
 			.entryPointStatisticsResponseDTO(entryPointStatisticsResponseDTO)
-			.tradingPerformanceVariation(tradingPerformanceVariation)
+			.performanceComparison(performanceComparison)
 			.build();
 	}
 }
