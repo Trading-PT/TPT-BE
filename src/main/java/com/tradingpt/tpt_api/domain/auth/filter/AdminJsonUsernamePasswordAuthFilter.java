@@ -33,8 +33,8 @@ public class AdminJsonUsernamePasswordAuthFilter extends UsernamePasswordAuthent
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> creds = objectMapper.readValue(request.getInputStream(), Map.class);
-            String username = String.valueOf(creds.getOrDefault("id", ""));
-            String password = String.valueOf(creds.getOrDefault("pw", ""));
+            String username = String.valueOf(creds.getOrDefault("username", ""));
+            String password = String.valueOf(creds.getOrDefault("password", ""));
 
             var authRequest = new UsernamePasswordAuthenticationToken(username, password);
             setDetails(request, authRequest);
