@@ -15,10 +15,10 @@ import lombok.experimental.SuperBuilder;
 public class DirectionStatisticsResponseDTO {
 
 	@Schema(description = "방향성 O")
-	private Integer o;
+	private DirectionDetail o;
 
 	@Schema(description = "방향성 x")
-	private Integer x;
+	private DirectionDetail x;
 
 	@Getter
 	@Builder
@@ -26,8 +26,16 @@ public class DirectionStatisticsResponseDTO {
 	@AllArgsConstructor
 	public static class DirectionDetail {
 		private Integer count;
-		private Integer winCount;
+		private Integer winRate;
 		private Double rnr;
+
+		public static DirectionDetail of(Integer count, Integer winRate, Double rnr) {
+			return DirectionDetail.builder()
+				.count(count)
+				.winRate(winRate)
+				.rnr(rnr)
+				.build();
+		}
 	}
 
 }

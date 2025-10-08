@@ -2,7 +2,8 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyFeedbackSummary;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -44,18 +45,14 @@ public class YearlySummaryResponseDTO {
 		@Schema(description = "해당 월의 피드백 요청 수")
 		private Integer totalCount;
 
-		@Schema(description = "해당 월에 읽지 않은 피드백 답변이 존재하는지 여부")
-		private Boolean hasUnreadFeedbackResponse;
+		@Schema(description = "피드백 답변 여부, 피드백 답변 읽음 여부 상태")
+		private Status status;
 
-		@Schema(description = "해당 월에 트레이너 답변 대기 상태의 요청이 존재하는지 여부")
-		private Boolean hasPendingTrainerResponse;
-
-		public static MonthlyFeedbackSummaryDTO of(MonthlyFeedbackSummaryResult summary) {
-			return YearlySummaryResponseDTO.MonthlyFeedbackSummaryDTO.builder()
-				.month(summary.month())
-				.totalCount(summary.totalCount().intValue())
-				.hasUnreadFeedbackResponse(summary.unreadCount() != null && summary.unreadCount() > 0)
-				.hasPendingTrainerResponse(summary.pendingCount() != null && summary.pendingCount() > 0)
+		public static MonthlyFeedbackSummaryDTO of(MonthlyFeedbackSummary summary) {
+			return MonthlyFeedbackSummaryDTO.builder()
+				.month(summary.getMonth())
+				.totalCount(summary.getTotalCount().intValue())
+				.status(summary.getStatus())
 				.build();
 		}
 	}

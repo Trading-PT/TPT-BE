@@ -14,6 +14,8 @@ public class WeeklyRawData {
 	private Integer week;
 	private Integer tradingCount;
 	private BigDecimal weeklyPnl;
-	private Integer winCount;  // 승률 계산용
-	private BigDecimal totalRiskTaking;  // R&R 계산용
+	private Integer winCount;           // 승률 계산용
+	private BigDecimal totalRiskTaking; // R&R 계산용
+	private Integer nCount;             // ✅ Status.N 개수
+	private Integer fnCount;            // ✅ Status.FN 개수
 }

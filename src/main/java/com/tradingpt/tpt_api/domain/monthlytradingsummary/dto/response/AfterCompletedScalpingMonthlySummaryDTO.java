@@ -16,6 +16,6 @@ import lombok.experimental.SuperBuilder;
 public class AfterCompletedScalpingMonthlySummaryDTO extends MonthlySummaryResponseDTO {
 
 	@Schema(description = "주별 트레이딩 피드백")
-	private List<WeeklyFeedbackSummaryDTO> weeklyFeedbacks;
+	private List<WeeklyFeedbackSummaryDTO> weeklyFeedbackSummaryDTOS;
 
 }
