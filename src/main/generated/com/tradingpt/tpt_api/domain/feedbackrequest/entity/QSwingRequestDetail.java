@@ -42,9 +42,9 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint1 = createEnum("entryPoint1", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
-    public final DateTimePath<java.time.LocalDateTime> entryPoint2 = createDateTime("entryPoint2", java.time.LocalDateTime.class);
+    public final StringPath entryPoint2 = createString("entryPoint2");
 
-    public final DateTimePath<java.time.LocalDateTime> entryPoint3 = createDateTime("entryPoint3", java.time.LocalDateTime.class);
+    public final StringPath entryPoint3 = createString("entryPoint3");
 
     //inherited
     public final NumberPath<java.math.BigDecimal> entryPrice;

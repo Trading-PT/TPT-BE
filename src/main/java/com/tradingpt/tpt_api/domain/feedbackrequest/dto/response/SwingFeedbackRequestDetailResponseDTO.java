@@ -119,10 +119,10 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	private Grade grade;
 
 	@Schema(description = "2차 진입 타점")
-	private LocalDateTime entryPoint2;
+	private String entryPoint2;
 
 	@Schema(description = "3차 진입 타점")
-	private LocalDateTime entryPoint3;
+	private String entryPoint3;
 
 	@Schema(description = "매매 복기")
 	private String tradingReview;

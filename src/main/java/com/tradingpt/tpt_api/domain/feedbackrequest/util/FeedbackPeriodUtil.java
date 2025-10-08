@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.util;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
+import java.util.Locale;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -38,6 +39,32 @@ public final class FeedbackPeriodUtil {
 		}
 
 		return new FeedbackPeriod(year, month, week);
+	}
+
+	/**
+	 * 해당 월의 주차 수를 계산합니다.
+	 *
+	 * @param year 연도
+	 * @param month 월
+	 * @return 해당 월의 주차 수 (보통 4~5주)
+	 *
+	 * @example
+	 * <pre>{@code
+	 * // 2025년 10월의 주차 수
+	 * int weeks = FeedbackPeriodUtil.getWeeksInMonth(2025, 10);
+	 * // 결과: 5
+	 * }</pre>
+	 */
+	public static int getWeeksInMonth(Integer year, Integer month) {
+		LocalDate firstDay = LocalDate.of(year, month, 1);
+		LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
+
+		WeekFields weekFields = WeekFields.of(Locale.getDefault());
+
+		int firstWeek = firstDay.get(weekFields.weekOfMonth());
+		int lastWeek = lastDay.get(weekFields.weekOfMonth());
+
+		return lastWeek - firstWeek + 1;
 	}
 
 	public record FeedbackPeriod(int year, int month, int week) {

@@ -42,7 +42,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint1 = createEnum("entryPoint1", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
-    public final DatePath<java.time.LocalDate> entryPoint2 = createDate("entryPoint2", java.time.LocalDate.class);
+    public final StringPath entryPoint2 = createString("entryPoint2");
 
     //inherited
     public final NumberPath<java.math.BigDecimal> entryPrice;
