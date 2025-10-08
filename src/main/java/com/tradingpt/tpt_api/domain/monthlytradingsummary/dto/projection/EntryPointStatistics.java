@@ -10,14 +10,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public class EntryPointStatistics {
 	private Integer reverseCount;
-	private Integer reverseWinCount;
+	private Double reverseWinRate;
 	private Double reverseRnr;
 
 	private Integer pullBackCount;
-	private Integer pullBackWinCount;
+	private Double pullBackWinRate;
 	private Double pullBackRnr;
 
 	private Integer breakOutCount;
-	private Integer breakOutWinCount;
+	private Double breakOutWinRate;
 	private Double breakOutRnr;
 }

@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class MonthlyFeedbackSummaryResponseDTO {
 
 	@Schema(description = "각 주차별 통계 DTO")
-	private List<MonthlyWeekFeedbackSummaryResponseDTO> weekFeedbackSummaryResponseDTOS;
+	private List<MonthlyWeekFeedbackSummaryResponseDTO> monthlyWeekFeedbackSummaryResponseDTOS;
 
 	@Schema(description = "월간 최종 승률")
 	private Double winningRate;
@@ -30,10 +30,10 @@ public class MonthlyFeedbackSummaryResponseDTO {
 	private BigDecimal monthlyPnl;
 
 	public static MonthlyFeedbackSummaryResponseDTO of(
-		List<MonthlyWeekFeedbackSummaryResponseDTO> weekFeedbackSummaryResponseDTOS,
+		List<MonthlyWeekFeedbackSummaryResponseDTO> monthlyWeekFeedbackSummaryResponseDTOS,
 		Double winningRate, Double monthlyAverageRnr, BigDecimal monthlyPnl) {
 		return MonthlyFeedbackSummaryResponseDTO.builder()
-			.weekFeedbackSummaryResponseDTOS(weekFeedbackSummaryResponseDTOS)
+			.monthlyWeekFeedbackSummaryResponseDTOS(monthlyWeekFeedbackSummaryResponseDTOS)
 			.winningRate(winningRate)
 			.monthlyAverageRnr(monthlyAverageRnr)
 			.monthlyPnl(monthlyPnl)

@@ -20,13 +20,13 @@ public class BeforeCompletedCourseMonthlySummaryDTO extends MonthlySummaryRespon
 	private MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO;
 
 	@Schema(description = "월별 성과 비교")
-	private MonthlyPerformanceComparison tradingPerformanceVariation;
+	private PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison;
 
 	public static BeforeCompletedCourseMonthlySummaryDTO of(
 		CourseStatus courseStatus,
 		InvestmentType investmentType, Integer year, Integer month,
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO,
-		MonthlyPerformanceComparison tradingPerformanceVariation) {
+		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison) {
 
 		return BeforeCompletedCourseMonthlySummaryDTO.builder()
 			.courseStatus(courseStatus)
@@ -34,7 +34,7 @@ public class BeforeCompletedCourseMonthlySummaryDTO extends MonthlySummaryRespon
 			.year(year)
 			.month(month)
 			.monthlyFeedbackSummaryResponseDTO(monthlyFeedbackSummaryResponseDTO)
-			.tradingPerformanceVariation(tradingPerformanceVariation)
+			.performanceComparison(performanceComparison)
 			.build();
 	}
 }

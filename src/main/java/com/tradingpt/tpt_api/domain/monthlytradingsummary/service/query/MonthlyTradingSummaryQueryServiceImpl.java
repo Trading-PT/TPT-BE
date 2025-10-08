@@ -25,9 +25,9 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.BeforeCom
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResult;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyPerformanceComparison;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.WeeklyFeedbackSummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
@@ -147,7 +147,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		);
 
 		// 4. 이전 달과 현재 달 성과 비교
-		MonthlyPerformanceComparison performanceComparison = buildMonthlyPerformanceComparison(
+		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison = buildMonthlyPerformanceComparison(
 			customerId, year, month, investmentType
 		);
 
@@ -216,22 +216,22 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			customerId, year, month, investmentType
 		);
 
-		// 4. EntryPointStatisticsResponseDTO 변환 (lossCount → rnr)
+		// 4. EntryPointStatisticsResponseDTO 변환
 		EntryPointStatisticsResponseDTO entryPointDTO = EntryPointStatisticsResponseDTO.of(
 			EntryPointStatisticsResponseDTO.PositionDetail.of(
 				entryPointStats.getReverseCount(),
-				entryPointStats.getReverseWinCount(),
-				entryPointStats.getReverseRnr()  // 변경: lossCount → rnr
+				entryPointStats.getReverseWinRate(),
+				entryPointStats.getReverseRnr()
 			),
 			EntryPointStatisticsResponseDTO.PositionDetail.of(
 				entryPointStats.getPullBackCount(),
-				entryPointStats.getPullBackWinCount(),
-				entryPointStats.getPullBackRnr()  // 변경: lossCount → rnr
+				entryPointStats.getPullBackWinRate(),
+				entryPointStats.getPullBackRnr()
 			),
 			EntryPointStatisticsResponseDTO.PositionDetail.of(
 				entryPointStats.getBreakOutCount(),
-				entryPointStats.getBreakOutWinCount(),
-				entryPointStats.getBreakOutRnr()  // 변경: lossCount → rnr
+				entryPointStats.getBreakOutWinRate(),
+				entryPointStats.getBreakOutRnr()
 			)
 		);
 
@@ -244,7 +244,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		String nextMonthGoal = evaluation.map(MonthlyTradingSummary::getNextMonthGoal).orElse(null);
 
 		// 6. 이전 달과 현재 달 성과 비교
-		MonthlyPerformanceComparison performanceComparison = buildMonthlyPerformanceComparison(
+		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison = buildMonthlyPerformanceComparison(
 			customerId, year, month, investmentType
 		);
 
@@ -309,7 +309,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	/**
 	 * 월별 성과 비교 생성 (이전 달 vs 현재 달)
 	 */
-	private MonthlyPerformanceComparison buildMonthlyPerformanceComparison(
+	private PerformanceComparison<PerformanceComparison.MonthSnapshot> buildMonthlyPerformanceComparison(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -331,21 +331,21 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			customerId, previousYear, previousMonth, investmentType
 		);
 
-		MonthlyPerformanceComparison.MonthSnapshot beforeMonth = MonthlyPerformanceComparison.MonthSnapshot.of(
+		PerformanceComparison.MonthSnapshot beforeMonth = PerformanceComparison.MonthSnapshot.of(
 			previousMonth,
 			previousSnapshot.getFinalWinRate(),
 			previousSnapshot.getAverageRnr(),
 			previousSnapshot.getFinalPnl()
 		);
 
-		MonthlyPerformanceComparison.MonthSnapshot currentMonthSnapshot = MonthlyPerformanceComparison.MonthSnapshot.of(
+		PerformanceComparison.MonthSnapshot currentMonthSnapshot = PerformanceComparison.MonthSnapshot.of(
 			month,
 			currentSnapshot.getFinalWinRate(),
 			currentSnapshot.getAverageRnr(),
 			currentSnapshot.getFinalPnl()
 		);
 
-		return MonthlyPerformanceComparison.of(beforeMonth, currentMonthSnapshot);
+		return PerformanceComparison.of(beforeMonth, currentMonthSnapshot);
 	}
 
 	/**

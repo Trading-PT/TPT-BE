@@ -360,7 +360,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		InvestmentType investmentType
 	) {
 		if (investmentType == InvestmentType.DAY) {
-			// DAY 전용 basePredicate
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(dayRequestDetail.customer.id.eq(customerId))
 				.and(dayRequestDetail.feedbackYear.eq(year))
@@ -405,27 +404,38 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.fetchOne();
 
 			return new EntryPointStatistics(
+				// REVERSE
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
-				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+					reverseStats != null ? reverseStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
 				),
+				// PULL_BACK
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
-				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
 				),
+				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
-				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
 				)
 			);
 		} else { // SWING
-			// SWING 전용 basePredicate
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(swingRequestDetail.customer.id.eq(customerId))
 				.and(swingRequestDetail.feedbackYear.eq(year))
@@ -470,20 +480,32 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.fetchOne();
 
 			return new EntryPointStatistics(
+				// REVERSE
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
-				reverseStats != null ? reverseStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
+					reverseStats != null ? reverseStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					reverseStats != null ? reverseStats.get(3, Integer.class) : 0
 				),
+				// PULL_BACK
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
-				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
+					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					pullBackStats != null ? pullBackStats.get(3, Integer.class) : 0
 				),
+				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
-				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0,
+				calculateWinRate(  // ✅ 승률 계산
+					breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
+					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
+				),
 				calculateRnr(
 					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
 					breakOutStats != null ? breakOutStats.get(3, Integer.class) : 0
@@ -610,6 +632,18 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			: BigDecimal.ZERO;
 
 		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+	}
+
+	// ✅ 승률 계산 헬퍼 메서드
+	private Double calculateWinRate(Integer totalCount, Integer winCount) {
+		if (totalCount == null || totalCount == 0) {
+			return 0.0;
+		}
+		return BigDecimal.valueOf(winCount)
+			.divide(BigDecimal.valueOf(totalCount), 4, RoundingMode.HALF_UP)
+			.multiply(BigDecimal.valueOf(100))
+			.setScale(2, RoundingMode.HALF_UP)
+			.doubleValue();
 	}
 
 	private Double calculateRnr(BigDecimal totalPnl, Integer totalRiskTaking) {

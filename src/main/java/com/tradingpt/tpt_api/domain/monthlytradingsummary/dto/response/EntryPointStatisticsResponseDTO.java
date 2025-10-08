@@ -37,13 +37,13 @@ public class EntryPointStatisticsResponseDTO {
 	@AllArgsConstructor
 	public static class PositionDetail {
 		private Integer count;
-		private Integer winCount;
+		private Double winCount;
 		private Double rnr;
 
-		public static PositionDetail of(Integer count, Integer winCount, Double rnr) {
+		public static PositionDetail of(Integer count, Double winRate, Double rnr) {
 			return PositionDetail.builder()
 				.count(count)
-				.winCount(winCount)
+				.winCount(winRate)
 				.rnr(rnr)
 				.build();
 		}
