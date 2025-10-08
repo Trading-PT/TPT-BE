@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,5 +27,8 @@ public class WeeklyWeekFeedbackSummaryResponseDTO {
 
 	@Schema(description = "일간 P&L")
 	private Double dailyPnl;
+
+	@Schema(description = "피드백 답변 읽음 상태")
+	private Status status;
 
 }

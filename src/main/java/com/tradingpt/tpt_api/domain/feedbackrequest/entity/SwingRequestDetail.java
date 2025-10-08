@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
@@ -54,9 +53,9 @@ public class SwingRequestDetail extends FeedbackRequest {
 	@Enumerated(EnumType.STRING)
 	private Grade grade; // 등급
 
-	private LocalDateTime entryPoint2; // 2 진입 타점
+	private String entryPoint2; // 2 진입 타점
 
-	private LocalDateTime entryPoint3; // 3 진입 타점
+	private String entryPoint3; // 3 진입 타점
 
 	/**
 	 * DTO로부터 SwingRequestDetail 엔티티를 생성하는 정적 팩토리 메서드
