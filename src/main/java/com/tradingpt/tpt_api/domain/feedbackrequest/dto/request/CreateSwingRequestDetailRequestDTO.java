@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
@@ -20,6 +21,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -61,6 +63,7 @@ public class CreateSwingRequestDetailRequestDTO {
 	private Integer feedbackWeek;
 
 	@NotNull(message = "요청 날짜는 필수입니다.")
+	@PastOrPresent(message = "요청 날짜는 오늘을 포함한 과거 날짜만 가능합니다.")
 	@Schema(description = "요청 날짜", requiredMode = Schema.RequiredMode.REQUIRED)
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate feedbackRequestDate;
@@ -174,6 +177,28 @@ public class CreateSwingRequestDetailRequestDTO {
 	// ========================================
 	// Validation
 	// ========================================
+
+	/**
+	 * 피드백 날짜 정보 일치 검증
+	 * feedbackYear, feedbackMonth, feedbackWeek가 feedbackRequestDate와 일치하는지 확인
+	 */
+	@AssertTrue(message = "피드백 연/월/주차 정보가 요청 날짜와 일치하지 않습니다.")
+	@JsonIgnore
+	public boolean isFeedbackPeriodValid() {
+		if (feedbackRequestDate == null || feedbackYear == null
+			|| feedbackMonth == null || feedbackWeek == null) {
+			return true; // @NotNull에서 검증되므로 여기서는 pass
+		}
+
+		// feedbackRequestDate로부터 실제 연/월/주차 계산
+		FeedbackPeriodUtil.FeedbackPeriod calculatedPeriod =
+			FeedbackPeriodUtil.resolveFrom(feedbackRequestDate);
+
+		// 입력값과 계산값 비교
+		return calculatedPeriod.year() == feedbackYear
+			&& calculatedPeriod.month() == feedbackMonth
+			&& calculatedPeriod.week() == feedbackWeek;
+	}
 
 	/**
 	 * 완강 전 필드 검증

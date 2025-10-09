@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public class CreateScalpingRequestDetailRequestDTO {
 	private MembershipLevel membershipLevel;
 
 	@NotNull(message = "요청 날짜는 필수입니다.")
+	@PastOrPresent(message = "요청 날짜는 오늘을 포함한 과거 날짜만 가능합니다.")
 	@Schema(description = "요청 날짜", requiredMode = Schema.RequiredMode.REQUIRED)
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate feedbackRequestDate;

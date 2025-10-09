@@ -76,6 +76,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SCALPING);
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
@@ -100,6 +101,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
+		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SWING);
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
