@@ -6,6 +6,9 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -40,8 +43,9 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
 
     Optional<Consultation> findByIdAndCustomerId(Long id, Long customerId);
 
-    void deleteByIdAndCustomerId(Long id, Long customerId);
-
+    // 상담 진행 유무로 목록 조회(N+1 방지를 위해 유저까지 조회)
+    @EntityGraph(attributePaths = "customer")
+    Page<Consultation> findByIsProcessed(Boolean isProcessed, Pageable pageable);
 
 
 
