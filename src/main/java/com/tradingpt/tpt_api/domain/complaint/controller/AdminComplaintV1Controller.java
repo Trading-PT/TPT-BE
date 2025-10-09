@@ -21,7 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/admin/complaint")
+@RequestMapping("/api/v1/admin/complaints")
 @RequiredArgsConstructor
 @Tag(name = "관리자 민원", description = "민원 관련 API (관리자용)")
 public class AdminComplaintV1Controller {
