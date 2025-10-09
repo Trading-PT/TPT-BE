@@ -111,6 +111,12 @@ public class Customer extends User {
 	@Column(name = "open_chapter_number")
 	private Integer openChapterNumber;
 
+	@Column(name = "profileImageUrl", length = 512)
+	private String profileImageUrl;
+
+	@Column(name = "profileImageKey", length = 512)
+	private String profileImageKey;
+
 	// ⭐ getRole() 구현
 	@Override
 	public Role getRole() {
@@ -240,6 +246,12 @@ public class Customer extends User {
 
 	public void setUserStatus(UserStatus status) {
 		this.userStatus = status;
+	}
+
+	//프로필 이미지 변경
+	public void changeProfileImage(String key, String url) {
+		this.profileImageKey = key;
+		this.profileImageUrl  = url;
 	}
 
 }

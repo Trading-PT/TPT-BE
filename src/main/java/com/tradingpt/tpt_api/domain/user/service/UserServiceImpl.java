@@ -1,5 +1,10 @@
 package com.tradingpt.tpt_api.domain.user.service;
 
+import com.tradingpt.tpt_api.domain.user.dto.response.ProfileImageResponseDTO;
+import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
+import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
+import com.tradingpt.tpt_api.global.infrastructure.s3.S3UploadResult;
 import java.util.List;
 
 import org.springframework.beans.factory.ObjectProvider;
@@ -24,14 +29,14 @@ import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.exception.AuthException;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
 	private static final int PASSWORD_HISTORY_CHECK_SIZE = 5;
-	private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
-	private final ObjectProvider<PersistentTokenRepository> persistentTokenRepositoryProvider;
+	private final S3FileService s3FileService;
 
 	private final UserRepository userRepository;
 	private final CustomerRepository customerRepository;
@@ -119,7 +124,33 @@ public class UserServiceImpl implements UserService {
 			.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
 
 		customerRepository.delete(customer);
-		;
+
 	}
 
+	@Transactional
+	@Override
+	public ProfileImageResponseDTO updateProfileImage(Long customerId, MultipartFile file) {
+		Customer customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 기존 이미지가 있으면 삭제 (실패해도 업로드는 계속)
+		String oldKey = customer.getProfileImageKey();
+		if (oldKey != null && !oldKey.isBlank()) {
+			try {
+				s3FileService.delete(oldKey);
+			} catch (Exception ignored) {
+
+			}
+		}
+
+		// 신규 업로드
+		S3UploadResult uploaded = s3FileService.upload(file, "mypage/image");
+
+		// 엔티티 반영 (DB에는 key+url 저장)
+		customer.changeProfileImage(uploaded.key(), uploaded.url());
+
+		return ProfileImageResponseDTO.builder()
+				.url(uploaded.url())
+				.build();
+	}
 }

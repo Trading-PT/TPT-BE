@@ -4,6 +4,7 @@ import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.user.dto.request.ChangePasswordRequest;
 import com.tradingpt.tpt_api.domain.user.dto.request.FindIdRequest;
 import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.ProfileImageResponseDTO;
 import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import com.tradingpt.tpt_api.global.web.cookie.CookieProps;
@@ -13,13 +14,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Validated
 @RestController
@@ -43,5 +48,15 @@ public class UserController {
         // 현재 요청도 로그아웃 + 쿠키 만료
         logoutHelper.logoutCurrentRequest(httpReq, httpRes, auth, CookieProps.defaults());
         return BaseResponse.onSuccess(null);
+    }
+
+    @PostMapping(value = "/profile-image", consumes = "multipart/form-data")
+    public BaseResponse<ProfileImageResponseDTO> updateProfileImage(
+            @AuthenticationPrincipal(expression = "id") Long customerId,
+            @NotNull @RequestPart("file") MultipartFile file
+    ) {
+
+        ProfileImageResponseDTO result = userService.updateProfileImage(customerId, file);
+        return BaseResponse.onSuccess(result);
     }
 }
