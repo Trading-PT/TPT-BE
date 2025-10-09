@@ -31,7 +31,7 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	FEEDBACK_REQUEST_READ_STATUS_CANNOT_BE_MINUS(HttpStatus.CONFLICT, "FEEDBACK4013",
 		"피드백 요청의 읽음 상태 여부의 개수는 음수일 수 없습니다."),
 
-	// ✅ 트레이딩 계산 관련 에러 추가
+	// 트레이딩 계산 관련 에러
 	INVALID_WIN_RATE_TOTAL_COUNT_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4014", "전체 매매 횟수는 null일 수 없습니다."),
 	INVALID_WIN_RATE_WIN_COUNT_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4015", "승리 횟수는 null일 수 없습니다."),
 	INVALID_WIN_RATE_TOTAL_COUNT_NEGATIVE(HttpStatus.BAD_REQUEST, "FEEDBACK4016", "전체 매매 횟수는 음수일 수 없습니다."),
@@ -40,6 +40,12 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	INVALID_RNR_PNL_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4019", "P&L은 null일 수 없습니다."),
 	INVALID_RNR_RISK_TAKING_NULL(HttpStatus.BAD_REQUEST, "FEEDBACK4020", "리스크 테이킹은 null일 수 없습니다."),
 	INVALID_RNR_RISK_TAKING_NEGATIVE(HttpStatus.BAD_REQUEST, "FEEDBACK4021", "리스크 테이킹은 음수일 수 없습니다."),
+
+	// ✅ 날짜/기간 검증 관련 에러 추가
+	FEEDBACK_PERIOD_MISMATCH(HttpStatus.BAD_REQUEST, "FEEDBACK4022",
+		"피드백 연/월/주차 정보가 요청 날짜와 일치하지 않습니다."),
+	INVALID_YEAR_MONTH(HttpStatus.BAD_REQUEST, "FEEDBACK4023",
+		"연도/월은 현재 또는 과거만 가능합니다."),
 	;
 
 	private final HttpStatus httpStatus;

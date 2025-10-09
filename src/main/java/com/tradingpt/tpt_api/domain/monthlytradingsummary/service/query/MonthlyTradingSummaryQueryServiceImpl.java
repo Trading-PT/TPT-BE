@@ -15,6 +15,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackStatusUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.TradingCalculationUtil;
@@ -59,6 +60,10 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 
 	@Override
 	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
+
+		// 연도 검증 ( 올해 or 과거만 가능 )
+		DateValidationUtil.validatePastOrPresentYear(year);
+
 		List<MonthlyFeedbackSummary> monthlySummaries = feedbackRequestRepository
 			.findMonthlySummaryByYear(customerId, year);
 
@@ -71,6 +76,9 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 
 	public MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId) {
 
+		// 연도/월 검증
+		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
+		
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
