@@ -19,11 +19,19 @@ public class QConsultationBlock extends EntityPathBase<ConsultationBlock> {
 
     public static final QConsultationBlock consultationBlock = new QConsultationBlock("consultationBlock");
 
+    public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
+
     public final DatePath<java.time.LocalDate> consultationBlockDate = createDate("consultationBlockDate", java.time.LocalDate.class);
 
     public final TimePath<java.time.LocalTime> consultationBlockTime = createTime("consultationBlockTime", java.time.LocalTime.class);
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public QConsultationBlock(String variable) {
         super(ConsultationBlock.class, forVariable(variable));

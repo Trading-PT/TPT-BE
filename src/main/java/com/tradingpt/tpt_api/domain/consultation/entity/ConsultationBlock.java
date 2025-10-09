@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.consultation.entity;
 
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,10 +18,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class ConsultationBlock {
+public class ConsultationBlock extends BaseEntity {
 
-    @Id @
-            GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDate consultationBlockDate;
