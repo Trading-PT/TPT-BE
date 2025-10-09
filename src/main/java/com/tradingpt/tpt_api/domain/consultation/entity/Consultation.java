@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.consultation.entity;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Consultation {
+public class Consultation extends BaseEntity {
 
     /**
      * 유저와 연관관계 매핑
@@ -44,4 +45,12 @@ public class Consultation {
 
     @Builder.Default
     private Boolean isProcessed = false; // 기본값 false
+
+    public void accept() {
+        this.isProcessed = true;
+    }
+
+    public void changeMemo(String memo) {
+        this.memo = (memo == null ? "" : memo);
+    }
 }

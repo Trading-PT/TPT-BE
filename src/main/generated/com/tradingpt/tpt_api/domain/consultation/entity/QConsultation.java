@@ -22,9 +22,14 @@ public class QConsultation extends EntityPathBase<Consultation> {
 
     public static final QConsultation consultation = new QConsultation("consultation");
 
+    public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
+
     public final DatePath<java.time.LocalDate> consultationDate = createDate("consultationDate", java.time.LocalDate.class);
 
     public final TimePath<java.time.LocalTime> consultationTime = createTime("consultationTime", java.time.LocalTime.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
@@ -33,6 +38,9 @@ public class QConsultation extends EntityPathBase<Consultation> {
     public final BooleanPath isProcessed = createBoolean("isProcessed");
 
     public final StringPath memo = createString("memo");
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public QConsultation(String variable) {
         this(Consultation.class, forVariable(variable), INITS);
