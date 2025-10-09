@@ -16,6 +16,10 @@ import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,25 +34,38 @@ public class CreateSwingRequestDetailRequestDTO {
 	// 공통 필드
 	// ========================================
 
-	@Schema(description = "완강 여부")
+	@NotNull(message = "완강 여부는 필수입니다.")
+	@Schema(description = "완강 여부", requiredMode = Schema.RequiredMode.REQUIRED)
 	private CourseStatus courseStatus;
 
-	@Schema(description = "멤버쉽")
+	@NotNull(message = "멤버십 레벨은 필수입니다.")
+	@Schema(description = "멤버십", requiredMode = Schema.RequiredMode.REQUIRED)
 	private MembershipLevel membershipLevel;
 
-	@Schema(description = "피드백 요청 연도")
+	@NotNull(message = "피드백 요청 연도는 필수입니다.")
+	@Min(value = 2020, message = "연도는 2020년 이상이어야 합니다.")
+	@Max(value = 2100, message = "연도는 2100년 이하여야 합니다.")
+	@Schema(description = "피드백 요청 연도", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer feedbackYear;
 
-	@Schema(description = "피드백 요청 월")
+	@NotNull(message = "피드백 요청 월은 필수입니다.")
+	@Min(value = 1, message = "월은 1 이상이어야 합니다.")
+	@Max(value = 12, message = "월은 12 이하여야 합니다.")
+	@Schema(description = "피드백 요청 월", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer feedbackMonth;
 
-	@Schema(description = "피드백 요청 주차")
+	@NotNull(message = "피드백 요청 주차는 필수입니다.")
+	@Min(value = 1, message = "주차는 1 이상이어야 합니다.")
+	@Max(value = 5, message = "주차는 5 이하여야 합니다.")
+	@Schema(description = "피드백 요청 주차", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer feedbackWeek;
 
-	@Schema(description = "요청 날짜")
+	@NotNull(message = "요청 날짜는 필수입니다.")
+	@Schema(description = "요청 날짜", requiredMode = Schema.RequiredMode.REQUIRED)
 	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
 	private LocalDate feedbackRequestDate;
 
+	@NotBlank(message = "종목은 필수입니다.")
 	@Schema(description = "종목", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String category;
 
@@ -58,18 +75,27 @@ public class CreateSwingRequestDetailRequestDTO {
 	@Schema(description = "스크린샷 이미지 파일")
 	private List<MultipartFile> screenshotFiles;
 
+	@NotNull(message = "포지션은 필수입니다.")
 	@Schema(description = "포지션 (LONG/SHORT)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Position position;
 
+	@NotNull(message = "리스크 테이킹은 필수입니다.")
+	@Min(value = 1, message = "리스크 테이킹은 1 이상이어야 합니다.")
+	@Max(value = 100, message = "리스크 테이킹은 100 이하여야 합니다.")
 	@Schema(description = "리스크 테이킹 (1-100)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer riskTaking;
 
+	@NotNull(message = "레버리지는 필수입니다.")
+	@Min(value = 1, message = "레버리지는 1 이상이어야 합니다.")
+	@Max(value = 1000, message = "레버리지는 1000 이하여야 합니다.")
 	@Schema(description = "레버리지 (1-1000)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer leverage;
 
+	@NotNull(message = "P&L은 필수입니다.")
 	@Schema(description = "P&L", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal pnl;
 
+	@NotNull(message = "손익비는 필수입니다.")
 	@Schema(description = "손익비 (R&R)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Double rnr;
 
