@@ -17,6 +17,6 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	@Override
 	public WeeklySummaryResponseDTO getWeeklyTradingSummary(Integer year, Integer month, Integer week,
 		Long customerId) {
-		return null;
+
 	}
 }
