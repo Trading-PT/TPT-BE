@@ -2,7 +2,9 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
 import java.time.LocalDateTime;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -55,7 +57,7 @@ public class FeedbackCardDTO {
 		return FeedbackCardDTO.builder()
 			.feedbackRequestId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
-			.contentPreview(generatePreview(feedbackRequest.getTradingReview()))
+			.contentPreview(generatePreview(feedbackRequest))
 			.createdAt(feedbackRequest.getCreatedAt())
 			.feedbackType(feedbackRequest.getFeedbackType())
 			.courseStatus(feedbackRequest.getCourseStatus())
@@ -66,14 +68,44 @@ public class FeedbackCardDTO {
 	}
 
 	/**
-	 * 매매 복기 내용에서 미리보기 텍스트 생성 (최대 50자)
+	 * 조건에 따라 적절한 내용을 미리보기로 생성
+	 *
+	 * 규칙:
+	 * 1. BEFORE_COMPLETION: tradingReview
+	 * 2. AFTER_COMPLETION + SCALPING: tradingReview
+	 * 3. AFTER_COMPLETION + (DAY or SWING): trainerFeedbackRequestContent
 	 */
-	private static String generatePreview(String tradingReview) {
-		if (tradingReview == null || tradingReview.isBlank()) {
+	private static String generatePreview(FeedbackRequest feedbackRequest) {
+		String contentToPreview = null;
+
+		// BEFORE_COMPLETION이면 무조건 tradingReview
+		if (feedbackRequest.getCourseStatus() == CourseStatus.BEFORE_COMPLETION
+			|| feedbackRequest.getCourseStatus() == CourseStatus.PENDING_COMPLETION) {
+			contentToPreview = feedbackRequest.getTradingReview();
+		}
+		// AFTER_COMPLETION
+		else if (feedbackRequest.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
+			// SCALPING이면 tradingReview
+			if (feedbackRequest.getFeedbackType() == FeedbackType.SCALPING) {
+				contentToPreview = feedbackRequest.getTradingReview();
+			}
+			// DAY or SWING이면 trainerFeedbackRequestContent
+			else if (feedbackRequest.getFeedbackType() == FeedbackType.DAY) {
+				DayRequestDetail dayRequest = (DayRequestDetail)feedbackRequest;
+				contentToPreview = dayRequest.getTrainerFeedbackRequestContent();
+			} else if (feedbackRequest.getFeedbackType() == FeedbackType.SWING) {
+				SwingRequestDetail swingRequest = (SwingRequestDetail)feedbackRequest;
+				contentToPreview = swingRequest.getTrainerFeedbackRequestContent();
+			}
+		}
+
+		// 내용이 없으면 기본 메시지
+		if (contentToPreview == null || contentToPreview.isBlank()) {
 			return "내용 없음";
 		}
 
-		String preview = tradingReview.trim();
+		// 최대 50자로 자르기
+		String preview = contentToPreview.trim();
 		if (preview.length() > 50) {
 			return preview.substring(0, 50) + "...";
 		}

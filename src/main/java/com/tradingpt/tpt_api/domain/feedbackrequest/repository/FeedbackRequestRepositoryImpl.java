@@ -132,36 +132,37 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 	/**
 	 * 피드백 목록을 정렬하고 Slice로 변환하는 공통 메서드
-	 * 정렬: 베스트 피드백 우선 → 생성일시 내림차순
+	 * 정렬: 베스트 피드백 우선 (최대 3개) → 생성일시 내림차순
 	 */
 	private Slice<FeedbackRequest> createSlice(
 		List<FeedbackRequest> allResults,
 		Pageable pageable
 	) {
-		// ✅ 정렬: 베스트 피드백 우선 → 생성일시 내림차순
-		allResults.sort((a, b) -> {
-			// 1. isBestFeedback 비교 (true가 먼저)
-			int bestCompare = Boolean.compare(
-				b.getIsBestFeedback() != null && b.getIsBestFeedback(),
-				a.getIsBestFeedback() != null && a.getIsBestFeedback()
-			);
+		// ✅ 1단계: 베스트 피드백과 일반 피드백 분리
+		List<FeedbackRequest> bestFeedbacks = allResults.stream()
+			.filter(fr -> fr.getIsBestFeedback() != null && fr.getIsBestFeedback())
+			.sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+			.limit(3)  // ✅ 베스트 피드백 최대 3개
+			.toList();
 
-			if (bestCompare != 0) {
-				return bestCompare;
-			}
+		List<FeedbackRequest> regularFeedbacks = allResults.stream()
+			.filter(fr -> fr.getIsBestFeedback() == null || !fr.getIsBestFeedback())
+			.sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+			.toList();
 
-			// 2. createdAt 비교 (최신이 먼저)
-			return b.getCreatedAt().compareTo(a.getCreatedAt());
-		});
+		// ✅ 2단계: 베스트 피드백 + 일반 피드백 순서로 결합
+		List<FeedbackRequest> sortedResults = new ArrayList<>();
+		sortedResults.addAll(bestFeedbacks);
+		sortedResults.addAll(regularFeedbacks);
 
-		// ✅ Slice 생성을 위한 페이징 처리
-		int start = Math.min((int)pageable.getOffset(), allResults.size());
-		int end = Math.min(start + pageable.getPageSize(), allResults.size());
+		// ✅ 3단계: Slice 생성을 위한 페이징 처리
+		int start = Math.min((int)pageable.getOffset(), sortedResults.size());
+		int end = Math.min(start + pageable.getPageSize(), sortedResults.size());
 
 		// 다음 페이지 존재 여부 확인
-		boolean hasNext = end < allResults.size();
+		boolean hasNext = end < sortedResults.size();
 
-		List<FeedbackRequest> sliceContent = allResults.subList(start, end);
+		List<FeedbackRequest> sliceContent = sortedResults.subList(start, end);
 
 		return new SliceImpl<>(sliceContent, pageable, hasNext);
 	}

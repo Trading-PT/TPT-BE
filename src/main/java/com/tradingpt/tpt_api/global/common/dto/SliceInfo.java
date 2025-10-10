@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.global.common.dto;
 
+import org.springframework.data.domain.Slice;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -28,7 +30,7 @@ public class SliceInfo {
 	@Schema(description = "마지막 페이지 여부", example = "false")
 	private Boolean isLast;
 
-	public static SliceInfo of(org.springframework.data.domain.Slice<?> slice) {
+	public static SliceInfo of(Slice<?> slice) {
 		return SliceInfo.builder()
 			.currentPage(slice.getNumber())
 			.pageSize(slice.getSize())

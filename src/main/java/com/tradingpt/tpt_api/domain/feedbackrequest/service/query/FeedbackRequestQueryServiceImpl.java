@@ -28,6 +28,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRe
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryService {
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType,
@@ -54,8 +56,8 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	@Override
 	public Slice<FeedbackCardDTO> getFeedbackListSlice(Pageable pageable) {
-		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
-			.findAllFeedbackRequestsSlice(pageable);
+		
+		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository.findAllFeedbackRequestsSlice(pageable);
 
 		return feedbackSlice.map(FeedbackCardDTO::from);
 	}

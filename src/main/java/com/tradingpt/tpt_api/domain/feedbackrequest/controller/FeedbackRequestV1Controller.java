@@ -85,6 +85,8 @@ public class FeedbackRequestV1Controller {
 			- 각 그룹 내에서 최신순으로 정렬됩니다
 			- page: 페이지 번호 (0부터 시작, 기본값: 0)
 			- size: 페이지 크기 (기본값: 12)
+			- 구독 고객: 모든 피드백 요청 조회 가능
+			- 미구독 고객: 베스트 피드백만 조회 가능
 			"""
 	)
 	@GetMapping

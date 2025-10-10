@@ -33,7 +33,8 @@ public interface FeedbackRequestQueryService {
 	/**
 	 * 모든 피드백 요청 목록 조회
 	 *
-	 * @param pageable 페이징 정보
+	 * @param pageable   페이징 정보
+	 * @param customerId
 	 * @return 피드백 카드 Slice
 	 */
 	Slice<FeedbackCardDTO> getFeedbackListSlice(Pageable pageable);
