@@ -133,6 +133,50 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		return null;
 	}
 
+	@Override
+	public Void updateBestFeedbacks(List<Long> feedbackIds) {
+		// 1. 개수 검증 (최대 3개)
+		if (feedbackIds.size() > 3) {
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.BEST_FEEDBACK_LIMIT_EXCEEDED
+			);
+		}
+
+		// 2. 기존 베스트 피드백 모두 해제
+		List<FeedbackRequest> currentBestFeedbacks = feedbackRequestRepository
+			.findByIsBestFeedbackTrue();
+
+		currentBestFeedbacks.forEach(feedback ->
+			feedback.updateIsBestFeedback(false)
+		);
+
+		// 3. 빈 배열이면 여기서 종료 (모든 베스트 해제만)
+		if (feedbackIds.isEmpty()) {
+			log.info("All best feedbacks have been cleared");
+			return null;
+		}
+
+		// 4. 새로운 베스트 피드백 지정
+		List<FeedbackRequest> newBestFeedbacks = feedbackRequestRepository
+			.findAllById(feedbackIds);
+
+		// 5. 요청된 ID가 모두 존재하는지 확인
+		if (newBestFeedbacks.size() != feedbackIds.size()) {
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND
+			);
+		}
+
+		// 6. 베스트로 지정
+		newBestFeedbacks.forEach(feedback ->
+			feedback.updateIsBestFeedback(true)
+		);
+
+		log.info("Best feedbacks updated: {} feedbacks selected", newBestFeedbacks.size());
+
+		return null;
+	}
+
 	// ========================================
 	// Private Helper Methods
 	// ========================================
