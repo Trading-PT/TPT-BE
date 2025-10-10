@@ -1,5 +1,9 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
+import java.time.LocalDate;
+
+import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,16 +17,21 @@ import lombok.experimental.SuperBuilder;
 @Schema(description = "피드백 요청 일별")
 public class DailyFeedbackSummaryDTO {
 
-	@Schema(description = "일")
-	private Integer day;
+	@Schema(description = "날짜")
+	private LocalDate date;
 
 	@Schema(description = "해당 주의 피드백 요청 수")
 	private Integer totalCount;
 
-	@Schema(description = "해당 월에 읽지 않은 피드백 답변이 존재하는지 여부")
-	private Boolean hasUnreadFeedbackResponse;
+	@Schema(description = "피드백 답변 읽음 상태")
+	private Status status;
 
-	@Schema(description = "해당 월에 트레이너 답변 대기 상태의 요청이 존재하는지 여부")
-	private Boolean hasPendingTrainerResponse;
+	public static DailyFeedbackSummaryDTO of(LocalDate date, Integer totalCount, Status status) {
+		return DailyFeedbackSummaryDTO.builder()
+			.date(date)
+			.totalCount(totalCount)
+			.status(status)
+			.build();
+	}
 
 }

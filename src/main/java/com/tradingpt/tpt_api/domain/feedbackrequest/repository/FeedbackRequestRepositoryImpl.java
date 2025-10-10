@@ -39,6 +39,9 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.Monthly
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
 
 import lombok.RequiredArgsConstructor;
 
@@ -659,6 +662,341 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.fetchFirst();
 
 		return Optional.ofNullable(result);
+	}
+
+	@Override
+	public List<DailyRawData> findDailyStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		switch (investmentType) {
+			case DAY -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(dayRequestDetail.customer.id.eq(customerId))
+					.and(dayRequestDetail.feedbackYear.eq(year))
+					.and(dayRequestDetail.feedbackMonth.eq(month))
+					.and(dayRequestDetail.feedbackWeek.eq(week))
+					.and(dayRequestDetail.courseStatus.eq(courseStatus));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(dayRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(dayRequestDetail.status.eq(Status.FN))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						DailyRawData.class,
+						dayRequestDetail.feedbackRequestDate,
+						dayRequestDetail.count().intValue(),
+						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),
+						fnCase.sum().coalesce(0)
+					))
+					.from(dayRequestDetail)
+					.where(predicate)
+					.groupBy(dayRequestDetail.feedbackRequestDate)
+					.orderBy(dayRequestDetail.feedbackRequestDate.asc())
+					.fetch();
+			}
+			case SWING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(swingRequestDetail.customer.id.eq(customerId))
+					.and(swingRequestDetail.feedbackYear.eq(year))
+					.and(swingRequestDetail.feedbackMonth.eq(month))
+					.and(swingRequestDetail.feedbackWeek.eq(week))
+					.and(swingRequestDetail.courseStatus.eq(courseStatus));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(swingRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(swingRequestDetail.status.eq(Status.FN))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						DailyRawData.class,
+						swingRequestDetail.feedbackRequestDate,
+						swingRequestDetail.count().intValue(),
+						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),
+						fnCase.sum().coalesce(0)
+					))
+					.from(swingRequestDetail)
+					.where(predicate)
+					.groupBy(swingRequestDetail.feedbackRequestDate)
+					.orderBy(swingRequestDetail.feedbackRequestDate.asc())
+					.fetch();
+			}
+			case SCALPING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(scalpingRequestDetail.customer.id.eq(customerId))
+					.and(scalpingRequestDetail.feedbackYear.eq(year))
+					.and(scalpingRequestDetail.feedbackMonth.eq(month))
+					.and(scalpingRequestDetail.feedbackWeek.eq(week))
+					.and(scalpingRequestDetail.courseStatus.eq(courseStatus));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(scalpingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> nCase = new CaseBuilder()
+					.when(scalpingRequestDetail.status.eq(Status.N))
+					.then(1)
+					.otherwise(0);
+
+				NumberExpression<Integer> fnCase = new CaseBuilder()
+					.when(scalpingRequestDetail.status.eq(Status.FN))
+					.then(1)
+					.otherwise(0);
+
+				return queryFactory
+					.select(Projections.constructor(
+						DailyRawData.class,
+						scalpingRequestDetail.feedbackRequestDate,
+						scalpingRequestDetail.count().intValue(),
+						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						winCase.sum().coalesce(0),
+						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class),
+						nCase.sum().coalesce(0),
+						fnCase.sum().coalesce(0)
+					))
+					.from(scalpingRequestDetail)
+					.where(predicate)
+					.groupBy(scalpingRequestDetail.feedbackRequestDate)
+					.orderBy(scalpingRequestDetail.feedbackRequestDate.asc())
+					.fetch();
+			}
+			default -> throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE
+			);
+		}
+	}
+
+	@Override
+	public WeeklyPerformanceSnapshot findWeeklyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		InvestmentType investmentType
+	) {
+		switch (investmentType) {
+			case DAY -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(dayRequestDetail.customer.id.eq(customerId))
+					.and(dayRequestDetail.feedbackYear.eq(year))
+					.and(dayRequestDetail.feedbackMonth.eq(month))
+					.and(dayRequestDetail.feedbackWeek.eq(week));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						dayRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					)
+					.from(dayRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				if (result == null) {
+					return new WeeklyPerformanceSnapshot(0.0, 0.0, BigDecimal.ZERO);
+				}
+
+				Integer totalCount = result.get(0, Integer.class);
+				Integer winCount = result.get(1, Integer.class);
+				BigDecimal totalPnl = result.get(2, BigDecimal.class);
+				BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
+
+				Double winRate = TradingCalculationUtil.calculateWinRate(totalCount, winCount);
+				Double avgRnr = TradingCalculationUtil.calculateAverageRnR(totalPnl, totalRiskTaking);
+
+				return new WeeklyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+			}
+			case SWING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(swingRequestDetail.customer.id.eq(customerId))
+					.and(swingRequestDetail.feedbackYear.eq(year))
+					.and(swingRequestDetail.feedbackMonth.eq(month))
+					.and(swingRequestDetail.feedbackWeek.eq(week));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						swingRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					)
+					.from(swingRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				if (result == null) {
+					return new WeeklyPerformanceSnapshot(0.0, 0.0, BigDecimal.ZERO);
+				}
+
+				Integer totalCount = result.get(0, Integer.class);
+				Integer winCount = result.get(1, Integer.class);
+				BigDecimal totalPnl = result.get(2, BigDecimal.class);
+				BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
+
+				Double winRate = TradingCalculationUtil.calculateWinRate(totalCount, winCount);
+				Double avgRnr = TradingCalculationUtil.calculateAverageRnR(totalPnl, totalRiskTaking);
+
+				return new WeeklyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+			}
+			case SCALPING -> {
+				BooleanBuilder predicate = new BooleanBuilder()
+					.and(scalpingRequestDetail.customer.id.eq(customerId))
+					.and(scalpingRequestDetail.feedbackYear.eq(year))
+					.and(scalpingRequestDetail.feedbackMonth.eq(month))
+					.and(scalpingRequestDetail.feedbackWeek.eq(week));
+
+				NumberExpression<Integer> winCase = new CaseBuilder()
+					.when(scalpingRequestDetail.pnl.gt(BigDecimal.ZERO))
+					.then(1)
+					.otherwise(0);
+
+				var result = queryFactory
+					.select(
+						scalpingRequestDetail.count().intValue(),
+						winCase.sum().coalesce(0),
+						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+					)
+					.from(scalpingRequestDetail)
+					.where(predicate)
+					.fetchOne();
+
+				if (result == null) {
+					return new WeeklyPerformanceSnapshot(0.0, 0.0, BigDecimal.ZERO);
+				}
+
+				Integer totalCount = result.get(0, Integer.class);
+				Integer winCount = result.get(1, Integer.class);
+				BigDecimal totalPnl = result.get(2, BigDecimal.class);
+				BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
+
+				Double winRate = TradingCalculationUtil.calculateWinRate(totalCount, winCount);
+				Double avgRnr = TradingCalculationUtil.calculateAverageRnR(totalPnl, totalRiskTaking);
+
+				return new WeeklyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+			}
+			default -> throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.UNSUPPORTED_REQUEST_FEEDBACK_TYPE);
+		}
+	}
+
+	@Override
+	public DirectionStatistics findDirectionStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		// 완강 후 데이 트레이딩만 해당 (directionFrameExists가 null이 아닌 것)
+		BooleanBuilder basePredicate = new BooleanBuilder()
+			.and(dayRequestDetail.customer.id.eq(customerId))
+			.and(dayRequestDetail.feedbackYear.eq(year))
+			.and(dayRequestDetail.feedbackMonth.eq(month))
+			.and(dayRequestDetail.feedbackWeek.eq(week))
+			.and(dayRequestDetail.directionFrameExists.isNotNull());  // ✅ null 제외
+
+		NumberExpression<Integer> winCase = new CaseBuilder()
+			.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
+			.then(1)
+			.otherwise(0);
+
+		// 방향성 O 통계
+		var directionOStats = queryFactory
+			.select(
+				dayRequestDetail.count().intValue(),
+				winCase.sum().coalesce(0),
+				dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+				dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+			)
+			.from(dayRequestDetail)
+			.where(basePredicate.and(dayRequestDetail.directionFrameExists.eq(true)))
+			.fetchOne();
+
+		// 방향성 X 통계
+		var directionXStats = queryFactory
+			.select(
+				dayRequestDetail.count().intValue(),
+				winCase.sum().coalesce(0),
+				dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+				dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
+			)
+			.from(dayRequestDetail)
+			.where(basePredicate.and(dayRequestDetail.directionFrameExists.eq(false)))
+			.fetchOne();
+
+		// 방향성 O 계산
+		Integer directionOCount = directionOStats != null ? directionOStats.get(0, Integer.class) : 0;
+		Integer directionOWinCount = directionOStats != null ? directionOStats.get(1, Integer.class) : 0;
+		BigDecimal directionOPnl = directionOStats != null ? directionOStats.get(2, BigDecimal.class) : BigDecimal.ZERO;
+		BigDecimal directionORiskTaking =
+			directionOStats != null ? directionOStats.get(3, BigDecimal.class) : BigDecimal.ZERO;
+
+		Double directionOWinRate = TradingCalculationUtil.calculateWinRate(directionOCount, directionOWinCount);
+		Double directionORnr = TradingCalculationUtil.calculateAverageRnR(directionOPnl, directionORiskTaking);
+
+		// 방향성 X 계산
+		Integer directionXCount = directionXStats != null ? directionXStats.get(0, Integer.class) : 0;
+		Integer directionXWinCount = directionXStats != null ? directionXStats.get(1, Integer.class) : 0;
+		BigDecimal directionXPnl = directionXStats != null ? directionXStats.get(2, BigDecimal.class) : BigDecimal.ZERO;
+		BigDecimal directionXRiskTaking =
+			directionXStats != null ? directionXStats.get(3, BigDecimal.class) : BigDecimal.ZERO;
+
+		Double directionXWinRate = TradingCalculationUtil.calculateWinRate(directionXCount, directionXWinCount);
+		Double directionXRnr = TradingCalculationUtil.calculateAverageRnR(directionXPnl, directionXRiskTaking);
+
+		return new DirectionStatistics(
+			directionOCount,
+			directionOWinRate,
+			directionORnr,
+			directionXCount,
+			directionXWinRate,
+			directionXRnr
+		);
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {

@@ -20,16 +20,23 @@ public class DirectionStatisticsResponseDTO {
 	@Schema(description = "방향성 x")
 	private DirectionDetail x;
 
+	public static DirectionStatisticsResponseDTO of(DirectionDetail o, DirectionDetail x) {
+		return DirectionStatisticsResponseDTO.builder()
+			.o(o)
+			.x(x)
+			.build();
+	}
+
 	@Getter
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class DirectionDetail {
 		private Integer count;
-		private Integer winRate;
+		private Double winRate;
 		private Double rnr;
 
-		public static DirectionDetail of(Integer count, Integer winRate, Double rnr) {
+		public static DirectionDetail of(Integer count, Double winRate, Double rnr) {
 			return DirectionDetail.builder()
 				.count(count)
 				.winRate(winRate)

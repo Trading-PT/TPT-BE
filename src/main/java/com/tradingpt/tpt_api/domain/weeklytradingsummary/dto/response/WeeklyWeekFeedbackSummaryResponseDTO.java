@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
+import java.time.LocalDate;
+
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +17,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Schema(description = "각 일별 통계 DTO")
 public class WeeklyWeekFeedbackSummaryResponseDTO {
+
+	@Schema(description = "날짜")
+	private LocalDate date;
 
 	@Schema(description = "매매 횟수")
 	private Integer tradingCount;

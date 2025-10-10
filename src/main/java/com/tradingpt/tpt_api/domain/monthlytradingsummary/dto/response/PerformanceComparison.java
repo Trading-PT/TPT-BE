@@ -64,11 +64,11 @@ public class PerformanceComparison<T> {
 	@AllArgsConstructor
 	public static class WeekSnapshot {
 		private Integer week;
-		private BigDecimal winRate;
+		private Double winRate;
 		private Double rnr;
 		private BigDecimal pnl;
 
-		public static WeekSnapshot of(Integer week, BigDecimal winRate, Double rnr, BigDecimal pnl) {
+		public static WeekSnapshot of(Integer week, Double winRate, Double rnr, BigDecimal pnl) {
 			return WeekSnapshot.builder()
 				.week(week)
 				.winRate(winRate)

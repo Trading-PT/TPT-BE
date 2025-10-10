@@ -16,6 +16,9 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.Monthly
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
 
 /**
  * FeedbackRequest 커스텀 Repository 인터페이스
@@ -123,5 +126,59 @@ public interface FeedbackRequestRepositoryCustom {
 	 * @return
 	 */
 	Optional<FeedbackRequest> findFirstByFeedbackYearAndFeedbackMonth(Long customerId, Integer year, Integer month);
+
+	/**
+	 * 주간 일별 통계 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @param courseStatus 완강 여부
+	 * @param investmentType 투자 타입
+	 * @return 일별 원시 데이터 리스트
+	 */
+	List<DailyRawData> findDailyStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	);
+
+	/**
+	 * 주간 성과 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @param investmentType 투자 타입
+	 * @return 주간 성과 스냅샷
+	 */
+	WeeklyPerformanceSnapshot findWeeklyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		InvestmentType investmentType
+	);
+
+	/**
+	 * 데이 트레이딩 방향성 통계 조회 (완강 후)
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 방향성 통계
+	 */
+	DirectionStatistics findDirectionStatistics(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
 
 }

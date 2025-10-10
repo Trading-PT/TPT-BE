@@ -1,6 +1,8 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -23,5 +25,27 @@ public class BeforeCompletedCourseWeeklySummaryDTO extends WeeklySummaryResponse
 
 	@Schema(description = "이번 주 나의 매매 중 가장 큰 문제점 메모하기")
 	private String memo;
+
+	public static BeforeCompletedCourseWeeklySummaryDTO of(
+		CourseStatus courseStatus,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month,
+		Integer week,
+		WeeklyFeedbackSummaryResponseDTO weeklyFeedbackSummaryResponseDTO,
+		PerformanceComparison<PerformanceComparison.WeekSnapshot> performanceComparison,
+		String memo
+	) {
+		return BeforeCompletedCourseWeeklySummaryDTO.builder()
+			.courseStatus(courseStatus)
+			.investmentType(investmentType)
+			.year(year)
+			.month(month)
+			.week(week)
+			.weeklyFeedbackSummaryResponseDTO(weeklyFeedbackSummaryResponseDTO)
+			.performanceComparison(performanceComparison)
+			.memo(memo)
+			.build();
+	}
 
 }
