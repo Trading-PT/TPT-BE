@@ -1,21 +1,45 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.service.query;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackStatusUtil;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.TradingCalculationUtil;
 import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryErrorStatus;
 import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryException;
 import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentTypeHistoryRepository;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedDayWeeklySummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedGeneralWeeklySummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.BeforeCompletedCourseWeeklySummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackSummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DirectionStatisticsResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklySummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyWeekFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.repository.WeeklyTradingSummaryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,52 +57,360 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	private final WeeklyTradingSummaryRepository weeklyTradingSummaryRepository;
 
 	@Override
-	public WeeklySummaryResponseDTO getWeeklyTradingSummary(Integer year, Integer month, Integer week,
-		Long customerId) {
+	public WeeklySummaryResponseDTO getWeeklyTradingSummary(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId
+	) {
+		// ✅ 연도/월 검증
+		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
 
-		// 고객 확인
 		Customer customer = (Customer)userRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 1. 해당 월의 CourseStatus 조회
 		CourseStatus courseStatus = feedbackRequestRepository
 			.findFirstByFeedbackYearAndFeedbackMonth(customerId, year, month)
-			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND))
+			.orElseThrow(() -> new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND))
 			.getCourseStatus();
 
 		// 2. 해당 시점의 InvestmentType 조회
-		InvestmentType investmentType = investmentTypeHistoryRepository.findActiveHistoryForMonth(customerId, year,
-				month)
-			.orElseThrow(
-				() -> new InvestmentHistoryException(InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
+		InvestmentType investmentType = investmentTypeHistoryRepository
+			.findActiveHistoryForMonth(customerId, year, month)
+			.orElseThrow(() -> new InvestmentHistoryException(
+				InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
 			.getInvestmentType();
 
 		// 3. CourseStatus에 따라 분기 처리
-		if (courseStatus == CourseStatus.BEFORE_COMPLETION || courseStatus == CourseStatus.PENDING_COMPLETION) {
-			return buildBeforeCompletionSummary(customerId, year, month, courseStatus, investmentType);
+		if (courseStatus == CourseStatus.BEFORE_COMPLETION
+			|| courseStatus == CourseStatus.PENDING_COMPLETION) {
+			return buildBeforeCompletionSummary(
+				customerId, year, month, week, courseStatus, investmentType);
 		} else {
 			// 완강 후
 			if (investmentType == InvestmentType.DAY) {
-				return buildAfterCompletionDaySummary(customerId, year, month, courseStatus, investmentType);
+				return buildAfterCompletionDaySummary(
+					customerId, year, month, week, courseStatus, investmentType);
 			} else {
-				return buildAfterCompletionGeneralSummary(customerId, year, month, courseStatus, investmentType);
+				return buildAfterCompletionGeneralSummary(
+					customerId, year, month, week, courseStatus, investmentType);
 			}
 		}
-
 	}
 
-	private WeeklySummaryResponseDTO buildBeforeCompletionSummary(Long customerId, Integer year, Integer month,
-		CourseStatus courseStatus, InvestmentType investmentType) {
-		return null;
+	/**
+	 * 완강 전 주간 요약 생성
+	 */
+	private BeforeCompletedCourseWeeklySummaryDTO buildBeforeCompletionSummary(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		// 1. 일별 통계 조회
+		List<DailyRawData> dailyStats = feedbackRequestRepository.findDailyStatistics(
+			customerId, year, month, week, courseStatus, investmentType
+		);
+
+		// 2. 모든 요일을 포함한 일별 DTO 생성
+		List<WeeklyWeekFeedbackSummaryResponseDTO> dailyDTOs = fillAllWeekdays(
+			dailyStats, year, month, week
+		);
+
+		// 3. 주간 집계 계산
+		Integer totalTradingCount = dailyStats.stream()
+			.mapToInt(DailyRawData::getTradingCount)
+			.sum();
+
+		Integer totalWinCount = dailyStats.stream()
+			.mapToInt(DailyRawData::getWinCount)
+			.sum();
+
+		BigDecimal weeklyPnl = dailyStats.stream()
+			.map(DailyRawData::getDailyPnl)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalRiskTaking = dailyStats.stream()
+			.map(DailyRawData::getTotalRiskTaking)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		Double winningRate = TradingCalculationUtil.calculateWinRate(
+			totalTradingCount, totalWinCount);
+		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnR(
+			weeklyPnl, totalRiskTaking);
+
+		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
+			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)
+			.winningRate(winningRate)
+			.weeklyAverageRnr(weeklyAverageRnr)
+			.weeklyPnl(weeklyPnl)
+			.build();
+
+		// 4. 이전 주와 현재 주 성과 비교
+		PerformanceComparison<PerformanceComparison.WeekSnapshot> performanceComparison =
+			buildWeeklyPerformanceComparison(customerId, year, month, week, investmentType);
+
+		// 5. 메모 조회
+		Optional<WeeklyTradingSummary> summary = weeklyTradingSummaryRepository
+			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
+				customerId, year, month, week);
+		String memo = summary.map(WeeklyTradingSummary::getMemo).orElse(null);
+
+		return BeforeCompletedCourseWeeklySummaryDTO.of(
+			courseStatus, investmentType, year, month, week, weeklyFeedback, performanceComparison, memo
+		);
 	}
 
-	private WeeklySummaryResponseDTO buildAfterCompletionDaySummary(Long customerId, Integer year, Integer month,
-		CourseStatus courseStatus, InvestmentType investmentType) {
-		return null;
+	/**
+	 * 완강 후 데이 트레이딩 주간 요약 생성
+	 */
+	private AfterCompletedDayWeeklySummaryDTO buildAfterCompletionDaySummary(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		// 1. 일별 통계 조회
+		List<DailyRawData> dailyStats = feedbackRequestRepository.findDailyStatistics(
+			customerId, year, month, week, courseStatus, investmentType
+		);
+
+		// 2. 모든 요일을 포함한 일별 DTO 생성
+		List<WeeklyWeekFeedbackSummaryResponseDTO> dailyDTOs = fillAllWeekdays(
+			dailyStats, year, month, week
+		);
+
+		// 3. 주간 집계 계산
+		Integer totalTradingCount = dailyStats.stream()
+			.mapToInt(DailyRawData::getTradingCount)
+			.sum();
+
+		Integer totalWinCount = dailyStats.stream()
+			.mapToInt(DailyRawData::getWinCount)
+			.sum();
+
+		BigDecimal weeklyPnl = dailyStats.stream()
+			.map(DailyRawData::getDailyPnl)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		BigDecimal totalRiskTaking = dailyStats.stream()
+			.map(DailyRawData::getTotalRiskTaking)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		Double winningRate = TradingCalculationUtil.calculateWinRate(
+			totalTradingCount, totalWinCount);
+		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnR(
+			weeklyPnl, totalRiskTaking);
+
+		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
+			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)
+			.winningRate(winningRate)
+			.weeklyAverageRnr(weeklyAverageRnr)
+			.weeklyPnl(weeklyPnl)
+			.build();
+
+		// 4. 방향성 통계 조회
+		DirectionStatistics directionStats = feedbackRequestRepository.findDirectionStatistics(
+			customerId, year, month, week
+		);
+
+		DirectionStatisticsResponseDTO directionDTO = DirectionStatisticsResponseDTO.builder()
+			.o(DirectionStatisticsResponseDTO.DirectionDetail.of(
+				directionStats.getDirectionOCount(),
+				directionStats.getDirectionOWinRate(),
+				directionStats.getDirectionORnr()
+			))
+			.x(DirectionStatisticsResponseDTO.DirectionDetail.of(
+				directionStats.getDirectionXCount(),
+				directionStats.getDirectionXWinRate(),
+				directionStats.getDirectionXRnr()
+			))
+			.build();
+
+		// 5. 트레이너 평가 조회
+		Optional<WeeklyTradingSummary> evaluation = weeklyTradingSummaryRepository
+			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
+				customerId, year, month, week);
+
+		String weeklyLossTradingAnalysis = evaluation
+			.map(WeeklyTradingSummary::getWeeklyLossTradingAnalysis).orElse(null);
+		String weeklyProfitableTradingAnalysis = evaluation
+			.map(WeeklyTradingSummary::getWeeklyProfitableTradingAnalysis).orElse(null);
+		String weeklyEvaluation = evaluation
+			.map(WeeklyTradingSummary::getWeeklyEvaluation).orElse(null);
+
+		return AfterCompletedDayWeeklySummaryDTO.builder()
+			.courseStatus(courseStatus)
+			.investmentType(investmentType)
+			.year(year)
+			.month(month)
+			.week(week)
+			.weeklyFeedbackSummaryResponseDTO(weeklyFeedback)
+			.directionStatisticsResponseDTO(directionDTO)
+			.weeklyLossTradingAnalysis(weeklyLossTradingAnalysis)
+			.weeklyProfitableTradingAnalysis(weeklyProfitableTradingAnalysis)
+			.weeklyEvaluation(weeklyEvaluation)
+			.build();
 	}
 
-	private WeeklySummaryResponseDTO buildAfterCompletionGeneralSummary(Long customerId, Integer year, Integer month,
-		CourseStatus courseStatus, InvestmentType investmentType) {
-		return null;
+	/**
+	 * 완강 후 스윙/스캘핑 주간 요약 생성
+	 */
+	private AfterCompletedGeneralWeeklySummaryDTO buildAfterCompletionGeneralSummary(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		// 1. 일별 통계 조회
+		List<DailyRawData> dailyStats = feedbackRequestRepository.findDailyStatistics(
+			customerId, year, month, week, courseStatus, investmentType
+		);
+
+		// 2. 일별 DTO 변환
+		List<DailyFeedbackSummaryDTO> dailyFeedbacks = dailyStats.stream()
+			.map(stat -> DailyFeedbackSummaryDTO.of(
+				stat.getDate(), stat.getTradingCount(), FeedbackStatusUtil.determineReadStatus(stat.getFnCount())
+			))
+			.toList();
+
+		return AfterCompletedGeneralWeeklySummaryDTO.builder()
+			.courseStatus(courseStatus)
+			.investmentType(investmentType)
+			.year(year)
+			.month(month)
+			.week(week)
+			.dailyFeedbackSummaryDTOS(dailyFeedbacks)
+			.build();
+	}
+
+	// ========================================
+	// Private Helper Methods
+	// ========================================
+
+	/**
+	 * 해당 주차의 모든 날짜를 채워서 DTO 리스트 생성
+	 * 빈 날짜는 null 값으로 채움
+	 *
+	 * @param dailyStats DB에서 조회한 일별 통계
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 해당 주차의 모든 날짜가 포함된 DTO 리스트
+	 */
+	private List<WeeklyWeekFeedbackSummaryResponseDTO> fillAllWeekdays(
+		List<DailyRawData> dailyStats,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		// 해당 주차의 날짜 범위 가져오기
+		FeedbackPeriodUtil.WeekDateRange weekRange =
+			FeedbackPeriodUtil.getWeekDateRange(year, month, week);
+
+		LocalDate startOfWeek = weekRange.startDate();
+		LocalDate endOfWeek = weekRange.endDate();
+
+		// DB 데이터를 Map으로 변환
+		Map<LocalDate, DailyRawData> dataMap = dailyStats.stream()
+			.collect(Collectors.toMap(
+				DailyRawData::getDate,
+				stat -> stat
+			));
+
+		// 해당 주차의 모든 날짜 생성
+		List<WeeklyWeekFeedbackSummaryResponseDTO> allDays = new ArrayList<>();
+		LocalDate current = startOfWeek;
+
+		while (!current.isAfter(endOfWeek)) {
+			DailyRawData data = dataMap.get(current);
+
+			if (data != null) {
+				// 데이터가 있는 날짜
+				Integer winCount = data.getWinCount();
+				Integer lossCount = data.getTradingCount() - winCount;
+
+				allDays.add(WeeklyWeekFeedbackSummaryResponseDTO.builder()
+					.date(data.getDate())
+					.tradingCount(data.getTradingCount())
+					.winCount(winCount)
+					.lossCount(lossCount)
+					.dailyPnl(data.getDailyPnl().doubleValue())
+					.status(FeedbackStatusUtil.determineReadStatus(data.getFnCount()))
+					.build());
+			} else {
+				// 데이터가 없는 날짜 - null 값으로 채움
+				allDays.add(WeeklyWeekFeedbackSummaryResponseDTO.builder()
+					.date(current)
+					.tradingCount(null)
+					.winCount(null)
+					.lossCount(null)
+					.dailyPnl(null)
+					.status(null)
+					.build());
+			}
+
+			current = current.plusDays(1);
+		}
+
+		return allDays;
+	}
+
+	/**
+	 * 주간 성과 비교 생성 (이전 주 vs 현재 주)
+	 */
+	private PerformanceComparison<PerformanceComparison.WeekSnapshot> buildWeeklyPerformanceComparison(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		InvestmentType investmentType
+	) {
+		// 현재 주 성과
+		WeeklyPerformanceSnapshot currentSnapshot = feedbackRequestRepository.findWeeklyPerformance(
+			customerId, year, month, week, investmentType
+		);
+
+		// 이전 주 계산
+		Integer previousWeek = week - 1;
+		Integer previousMonth = month;
+		Integer previousYear = year;
+
+		if (previousWeek < 1) {
+			// 이전 달의 마지막 주
+			LocalDate previousMonthDate = LocalDate.of(year, month, 1).minusMonths(1);
+			previousYear = previousMonthDate.getYear();
+			previousMonth = previousMonthDate.getMonthValue();
+			previousWeek = FeedbackPeriodUtil.getWeeksInMonth(previousYear, previousMonth);
+		}
+
+		// 이전 주 성과
+		WeeklyPerformanceSnapshot previousSnapshot = feedbackRequestRepository.findWeeklyPerformance(
+			customerId, previousYear, previousMonth, previousWeek, investmentType
+		);
+
+		PerformanceComparison.WeekSnapshot beforeWeek = PerformanceComparison.WeekSnapshot.of(
+			previousWeek,
+			previousSnapshot.getFinalWinRate(),
+			previousSnapshot.getAverageRnr(),
+			previousSnapshot.getFinalPnl()
+		);
+
+		PerformanceComparison.WeekSnapshot currentWeekSnapshot = PerformanceComparison.WeekSnapshot.of(
+			week,
+			currentSnapshot.getFinalWinRate(),
+			currentSnapshot.getAverageRnr(),
+			currentSnapshot.getFinalPnl()
+		);
+
+		return PerformanceComparison.of(beforeWeek, currentWeekSnapshot);
 	}
 }

@@ -8,9 +8,17 @@ import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSum
 
 public interface WeeklyTradingSummaryRepository
 	extends JpaRepository<WeeklyTradingSummary, Long>, WeeklyTradingSummaryRepositoryCustom {
-	
+
 	Optional<WeeklyTradingSummary> findTopByTrainer_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(
 		Long trainerId,
 		Long customerId
 	);
+
+	Optional<WeeklyTradingSummary> findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
+	
 }
