@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
+import java.util.List;
+
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
@@ -32,4 +34,14 @@ public interface FeedbackRequestCommandService {
 	 * @return
 	 */
 	Void deleteFeedbackRequest(Long feedbackRequestId, Long customerId);
+
+	/**
+	 * 베스트 피드백 일괄 업데이트
+	 * - 기존 베스트 피드백을 모두 해제하고
+	 * - 새로운 피드백들을 베스트로 지정
+	 *
+	 * @param feedbackIds 베스트로 지정할 피드백 ID 목록 (최대 3개)
+	 * @throws FeedbackRequestException 피드백을 찾을 수 없거나, 3개 초과 시
+	 */
+	Void updateBestFeedbacks(List<Long> feedbackIds);
 }

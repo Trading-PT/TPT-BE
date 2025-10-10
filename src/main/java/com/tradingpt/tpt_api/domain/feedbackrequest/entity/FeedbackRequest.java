@@ -142,4 +142,7 @@ public abstract class FeedbackRequest extends BaseEntity {
 		this.feedbackResponse = feedbackResponse;
 	}
 
+	public void updateIsBestFeedback(boolean b) {
+		this.isBestFeedback = b;
+	}
 }

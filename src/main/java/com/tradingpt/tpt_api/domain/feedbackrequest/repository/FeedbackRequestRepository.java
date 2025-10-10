@@ -17,4 +17,9 @@ public interface FeedbackRequestRepository
 	 */
 	List<FeedbackRequest> findTop3ByIsBestFeedbackTrueOrderByCreatedAtDesc();
 
+	/**
+	 * 베스트 피드백 전체 조회
+	 */
+	List<FeedbackRequest> findByIsBestFeedbackTrue();
+
 }

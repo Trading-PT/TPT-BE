@@ -4,15 +4,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateBestFeedbacksRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminFeedbackRequestV1Controller {
 
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
+	private final FeedbackRequestCommandService feedbackRequestCommandService;
 
 	@Operation(
 		summary = "전체 피드백 목록 조회 (어드민)",
@@ -39,4 +45,23 @@ public class AdminFeedbackRequestV1Controller {
 	) {
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getAdminFeedbackListSlice(pageable));
 	}
+
+	@Operation(
+		summary = "베스트 피드백 일괄 업데이트 (어드민)",
+		description = """
+			베스트 피드백을 일괄적으로 업데이트합니다.
+			- 기존 베스트 피드백은 모두 해제됩니다
+			- 선택된 피드백 ID들이 새로운 베스트로 지정됩니다
+			- 최대 3개까지만 선택 가능합니다
+			- 빈 배열 전송 시 모든 베스트 피드백이 해제됩니다
+			"""
+	)
+	@PatchMapping("/best")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<Void> updateBestFeedbacks(
+		@Valid @RequestBody UpdateBestFeedbacksRequestDTO request
+	) {
+		return BaseResponse.onSuccess(feedbackRequestCommandService.updateBestFeedbacks(request.getFeedbackIds()));
+	}
+
 }
