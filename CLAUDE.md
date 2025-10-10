@@ -3,161 +3,104 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
+This is a Spring Boot 3.5 trading platform API (TPT-API) using Java 17, Spring Security with OAuth2 (Kakao/Naver), JPA with QueryDSL, Redis for session management, and AWS services. The application follows domain-driven design with clear separation between business domains and shared infrastructure.
 
-TradingPT API is a Spring Boot 3.5.5 application using Java 17 that provides a trading education platform with feedback services. The application supports OAuth2 social login (Kakao, Naver), email/SMS verification, and feedback management for trading requests.
+## Development Commands
 
-## Build System & Dependencies
-
-**Build Tool**: Gradle with Gradle Wrapper
-**Java Version**: 17 (Amazon Corretto)
-**Spring Boot**: 3.5.5
-
-### Key Dependencies
-- **Spring Boot Starters**: Web, JPA, Security, OAuth2 Client, Validation, Redis, Mail, Actuator
-- **Database**: MySQL with HikariCP connection pooling
-- **Authentication**: Spring Security with OAuth2 (Kakao, Naver)
-- **SMS Service**: Solapi (net.nurigo:sdk:4.2.7)
-- **Documentation**: SpringDoc OpenAPI 3 (Swagger)
-- **Utilities**: Lombok for boilerplate reduction
-
-## Essential Commands
+### Build & Test
+- `./gradlew clean build` - Full build including tests and JAR packaging
+- `./gradlew test` - Run unit and integration tests only
+- `./gradlew clean` - Clean build artifacts and QueryDSL generated classes
+- `SPRING_PROFILES_ACTIVE=local ./gradlew bootRun` - Run locally with local profile
 
 ### Development
-```bash
-# Run locally with local profile
-./gradlew bootRun --args='--spring.profiles.active=local'
+- Local development uses `application-local.yml` profile
+- Swagger UI available at `/swagger-ui.html` when running
+- Health check at `/actuator/health`
 
-# Build the application
-./gradlew build
+## Architecture & Structure
 
-# Run tests
-./gradlew test
+### Package Organization
+- `src/main/java/com/tradingpt/tpt_api/`
+  - `domain/` - Business domains, each containing:
+    - Controllers, Services, Repositories
+    - DTOs (request/response), Entities, Exceptions
+    - Domain-specific infrastructure components
+  - `global/` - Shared infrastructure:
+    - `config/` - Spring configuration classes
+    - `security/` - Security configuration and filters
+    - `exception/` - Global exception handling
+    - `infrastructure/` - External service integrations
+    - `util/` - Common utilities
+    - `web/` - Web layer configuration
 
-# Clean build
-./gradlew clean build
-```
+### Core Domains
+- `auth` - Authentication, OAuth2, session management
+- `user` - User management (Customer/Trainer entities)
+- `feedbackrequest`/`feedbackresponse` - Trading feedback system
+- `weeklytradingsummary`/`monthlytradingsummary` - Trading performance analytics
+- `consultation` - Consultation booking system
+- `payment` - Payment method management
+- `complaint` - Customer complaint handling
 
-### Testing
-```bash
-# Run all tests
-./gradlew test
+### Key Technologies
+- **QueryDSL**: Q-classes auto-generated in `src/main/generated/` (managed by Gradle)
+- **Spring Security**: OAuth2 with Kakao/Naver, custom filters
+- **Redis**: Session storage and caching
+- **MySQL**: Primary database with HikariCP connection pooling
+- **AWS SDK**: S3 integration for file storage
+- **Swagger/OpenAPI**: API documentation
 
-# Run specific test class
-./gradlew test --tests "com.tradingpt.tpt_api.TradingPtApplicationTests"
+### Configuration
+- Environment-specific configs: `application.yml`, `application-local.yml`, `application-dev.yml`
+- Requires environment variables for secrets (OAuth credentials, database URL, AWS credentials)
+- CORS configured for frontend origins (localhost:3000, localhost:5173)
 
-# Test with coverage
-./gradlew test jacocoTestReport
-```
+### Testing Strategy
+- JUnit 5 with Spring Boot Test support
+- Use `@DataJpaTest` for repository tests
+- Use `@WebMvcTest` for controller tests
+- Use `@SpringBootTest` only for integration tests
+- Mock external services (AWS, Redis, mail) in tests
 
-### Docker & Deployment
-```bash
-# Build Docker image (requires built JAR)
-docker build -t tpt-api .
+## Important Implementation Notes
 
-# The application is deployed via AWS CodeDeploy using scripts in /scripts/
-# - before-install.sh: Environment setup
-# - start-server.sh: Docker container deployment from ECR
-# - stop-server.sh: Container cleanup
-# - validate-service.sh: Health check validation
-```
+### QueryDSL
+- Q-classes are generated automatically by Gradle into `src/main/generated/`
+- Never commit generated files
+- Run `./gradlew clean` to regenerate Q-classes after entity changes
 
-## Architecture & Code Structure
+### Security & Sessions
+- Redis-based session management with 7-day timeout
+- OAuth2 integration with custom success/failure handlers
+- Remember-me functionality configured
+- CSRF protection enabled with custom configuration
 
-### Domain-Driven Design
-The codebase follows DDD principles with clear domain separation:
+### Database
+- Uses JPA with Hibernate
+- Batch operations configured (batch_size: 20)
+- Connection pooling with HikariCP
+- Open-in-view disabled for performance
 
-```
-src/main/java/com/tradingpt/tpt_api/
-├── domain/
-│   ├── auth/           # Authentication & Authorization
-│   ├── feedbackrequest/ # Trading feedback requests
-│   ├── feedbackresponse/ # Trainer responses
-│   ├── user/           # User management (Customer, Trainer)
-│   ├── monthlytradingsummary/
-│   └── weeklytradingsummary/
-└── global/
-    ├── common/         # BaseEntity, BaseResponse
-    ├── config/         # Security, CORS, Mail, Swagger configs
-    ├── exception/      # Global exception handling
-    └── util/
-```
+### File Uploads
+- Multipart support enabled
+- Max file size: 200MB, max request size: 300MB
+- Files stored via AWS S3 integration
 
-### Domain Structure Pattern
-Each domain follows consistent structure:
-- `controller/` - REST API endpoints
-- `entity/` - JPA entities with inheritance hierarchies
-- `enums/` - Domain-specific enumerations
-- `service/` - Business logic (command/query separation)
-- `repository/` - Data access layer
-- `dto/` - Data transfer objects (request/response)
-
-### Key Architectural Patterns
-
-**Entity Inheritance**: `User` as base entity with `Customer` and `Trainer` subclasses using `@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`
-
-**Authentication Flow**:
-- Custom JSON-based username/password filter
-- OAuth2 integration for social login
-- Remember-me functionality with custom services
-- Session-based authentication with Redis backing
-
-**Feedback System**: 
-- `FeedbackRequest` with polymorphic request details (`DayRequestDetail`, `ScalpingRequestDetail`, `SwingRequestDetail`)
-- Attachment support for both requests and responses
-- Status tracking and grade assignment
-
-## Configuration & Environment
-
-### Profile Structure
-- **local**: Development with local MySQL
-- **dev**: AWS deployment environment
-- **Application properties**: Environment-specific configs in `application-{profile}.yml`
-
-### Required Environment Variables
-```
-# Database
-DB_URL, DB_USERNAME, DB_PASSWORD
-
-# OAuth2
-KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI
-NAVER_CLIENT_ID, NAVER_CLIENT_SECRET, NAVER_REDIRECT_URI
-
-# Email
-MAIL_NAME, MAIL_PASSWORD
-
-# SMS
-SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_PHONE_NUMBER
-
-# Security
-REMEMBER_ME_KEY
-```
-
-### AWS Integration
-- **Parameter Store**: Environment variables managed via AWS SSM
-- **ECR**: Docker images stored in Elastic Container Registry
-- **CodeDeploy**: Automated deployment with health checks
-- **CloudWatch**: Logging and monitoring
+### Error Handling
+- Global exception handling in `global.exception`
+- Custom exceptions per domain
+- Stack traces disabled in production (error.include-stacktrace: never)
 
 ## Development Guidelines
 
-### Code Patterns
-- Use Lombok `@SuperBuilder` for entity inheritance
-- Implement `BaseEntity` for common audit fields
-- Follow command/query separation in services
-- Use `@RequiredArgsConstructor` with final fields for dependency injection
-
-### Security Considerations
-- All sensitive data managed via environment variables
-- OAuth2 flows properly configured with redirect URIs
-- Session security with SameSite=None, Secure=true for cross-origin
-- File upload limits: 200MB max file, 300MB max request
-
-### API Documentation
-- Swagger UI available at `/swagger-ui.html`
-- OpenAPI docs at `/v3/api-docs`
-- All endpoints documented with SpringDoc annotations
-
-### Monitoring & Health Checks
-- Spring Boot Actuator endpoints: `/actuator/health`, `/actuator/info`
-- Health check script validates application startup
-- Container resource limits: 700MB memory, 1GB swap
+From AGENTS.md:
+- Use Java 17 with four-space indentation and Lombok
+- Constructor injection preferred over field injection
+- Use record DTOs where practical
+- Follow conventional-emoji commit style: `<emoji> type: short summary`
+- Branch naming: `feature/#issue-description`
+- Keep commits scoped to single concerns
+- Include tests for new functionality
+- Store secrets in environment variables, never hardcode in YAML files
+- Document IAM roles and rate limits when adding external integrations
