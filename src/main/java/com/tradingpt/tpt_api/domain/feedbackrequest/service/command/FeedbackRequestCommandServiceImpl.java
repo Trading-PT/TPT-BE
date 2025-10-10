@@ -18,7 +18,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
@@ -58,7 +57,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 거래 날짜를 기반으로 제목을 자동 생성함.
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), FeedbackType.DAY) + 1);
+				customerId, request.getFeedbackRequestDate(), InvestmentType.DAY) + 1);
 
 		// DayRequestDetail 생성
 		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
@@ -83,7 +82,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), FeedbackType.SCALPING) + 1);
+				customerId, request.getFeedbackRequestDate(), InvestmentType.SCALPING) + 1);
 
 		// ScalpingRequestDetail 생성
 		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);
@@ -106,7 +105,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), FeedbackType.SWING) + 1);
+				customerId, request.getFeedbackRequestDate(), InvestmentType.SWING) + 1);
 
 		// SwingRequestDetail 생성
 		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer, title);

@@ -54,8 +54,6 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     // inherited
     public final com.tradingpt.tpt_api.domain.feedbackresponse.entity.QFeedbackResponse feedbackResponse;
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType> feedbackType = createEnum("feedbackType", com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType.class);
-
     //inherited
     public final NumberPath<Integer> feedbackWeek;
 
@@ -64,6 +62,8 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     //inherited
     public final NumberPath<Long> id;
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
     //inherited
     public final BooleanPath isBestFeedback;

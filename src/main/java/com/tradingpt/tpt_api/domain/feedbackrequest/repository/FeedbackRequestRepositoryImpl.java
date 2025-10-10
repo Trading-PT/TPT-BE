@@ -28,7 +28,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -59,7 +58,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	@Override
 	public Page<FeedbackRequest> findFeedbackRequestsWithFilters(
 		Pageable pageable,
-		FeedbackType feedbackType,
+		InvestmentType investmentType,
 		Status status,
 		Long customerId
 	) {
@@ -68,8 +67,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		List<FeedbackRequest> allResults = new ArrayList<>();
 
-		// FeedbackType에 따라 해당하는 서브타입만 조회
-		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
+		// InvestmentType에 따라 해당하는 서브타입만 조회
+		if (investmentType == null || investmentType == InvestmentType.DAY) {
 			List<DayRequestDetail> dayRequests = queryFactory
 				.selectFrom(dayRequestDetail)
 				.where(predicate)
@@ -78,7 +77,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			allResults.addAll(dayRequests);
 		}
 
-		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
+		if (investmentType == null || investmentType == InvestmentType.SCALPING) {
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
 				.selectFrom(scalpingRequestDetail)
 				.where(predicate)
@@ -87,7 +86,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			allResults.addAll(scalpingRequests);
 		}
 
-		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
+		if (investmentType == null || investmentType == InvestmentType.SWING) {
 			List<SwingRequestDetail> swingRequests = queryFactory
 				.selectFrom(swingRequestDetail)
 				.where(predicate)
@@ -168,9 +167,41 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
+	public Slice<FeedbackRequest> findAllFeedbacksByCreatedAtDesc(Pageable pageable) {
+		List<FeedbackRequest> allResults = new ArrayList<>();
+
+		// 모든 타입의 피드백 조회
+		List<DayRequestDetail> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.fetch();
+		allResults.addAll(dayRequests);
+
+		List<ScalpingRequestDetail> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.fetch();
+		allResults.addAll(scalpingRequests);
+
+		List<SwingRequestDetail> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.fetch();
+		allResults.addAll(swingRequests);
+
+		// ✅ 최신순으로만 정렬 (베스트 우선 정렬 제거)
+		allResults.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+		// ✅ Slice 생성
+		int start = Math.min((int)pageable.getOffset(), allResults.size());
+		int end = Math.min(start + pageable.getPageSize(), allResults.size());
+		boolean hasNext = end < allResults.size();
+		List<FeedbackRequest> sliceContent = allResults.subList(start, end);
+
+		return new SliceImpl<>(sliceContent, pageable, hasNext);
+	}
+
+	@Override
 	public List<FeedbackRequest> findMyFeedbackRequests(
 		Long customerId,
-		FeedbackType feedbackType,
+		InvestmentType investmentType,
 		Status status
 	) {
 		BooleanBuilder predicate = new BooleanBuilder();
@@ -182,8 +213,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 		List<FeedbackRequest> allResults = new ArrayList<>();
 
-		// FeedbackType에 따라 해당하는 서브타입만 조회
-		if (feedbackType == null || feedbackType == FeedbackType.DAY) {
+		// InvestmentType에 따라 해당하는 서브타입만 조회
+		if (investmentType == null || investmentType == InvestmentType.DAY) {
 			List<DayRequestDetail> dayRequests = queryFactory
 				.selectFrom(dayRequestDetail)
 				.where(predicate)
@@ -192,7 +223,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			allResults.addAll(dayRequests);
 		}
 
-		if (feedbackType == null || feedbackType == FeedbackType.SCALPING) {
+		if (investmentType == null || investmentType == InvestmentType.SCALPING) {
 			List<ScalpingRequestDetail> scalpingRequests = queryFactory
 				.selectFrom(scalpingRequestDetail)
 				.where(predicate)
@@ -201,7 +232,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			allResults.addAll(scalpingRequests);
 		}
 
-		if (feedbackType == null || feedbackType == FeedbackType.SWING) {
+		if (investmentType == null || investmentType == InvestmentType.SWING) {
 			List<SwingRequestDetail> swingRequests = queryFactory
 				.selectFrom(swingRequestDetail)
 				.where(predicate)
@@ -291,11 +322,11 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	public long countRequestsByCustomerAndDateAndType(
 		Long customerId,
 		LocalDate feedbackDate,
-		FeedbackType feedbackType
+		InvestmentType investmentType
 	) {
 		Long count;
 
-		switch (feedbackType) {
+		switch (investmentType) {
 			case DAY -> {
 				count = queryFactory
 					.select(dayRequestDetail.count())

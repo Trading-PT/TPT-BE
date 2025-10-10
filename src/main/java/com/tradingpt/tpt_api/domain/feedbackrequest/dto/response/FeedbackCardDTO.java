@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -35,8 +35,8 @@ public class FeedbackCardDTO {
 	@Schema(description = "작성일시", example = "2025-08-03T21:54:00")
 	private LocalDateTime createdAt;
 
-	@Schema(description = "피드백 타입", example = "DAY")
-	private FeedbackType feedbackType;
+	@Schema(description = "투자 유형", example = "DAY")
+	private InvestmentType investmentType;
 
 	@Schema(description = "완강 여부", example = "BEFORE_COMPLETION")
 	private CourseStatus courseStatus;
@@ -59,7 +59,7 @@ public class FeedbackCardDTO {
 			.title(feedbackRequest.getTitle())
 			.contentPreview(generatePreview(feedbackRequest))
 			.createdAt(feedbackRequest.getCreatedAt())
-			.feedbackType(feedbackRequest.getFeedbackType())
+			.investmentType(feedbackRequest.getInvestmentType())
 			.courseStatus(feedbackRequest.getCourseStatus())
 			.status(feedbackRequest.getStatus())
 			.isBestFeedback(feedbackRequest.getIsBestFeedback())
@@ -86,14 +86,14 @@ public class FeedbackCardDTO {
 		// AFTER_COMPLETION
 		else if (feedbackRequest.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
 			// SCALPING이면 tradingReview
-			if (feedbackRequest.getFeedbackType() == FeedbackType.SCALPING) {
+			if (feedbackRequest.getInvestmentType() == InvestmentType.SCALPING) {
 				contentToPreview = feedbackRequest.getTradingReview();
 			}
 			// DAY or SWING이면 trainerFeedbackRequestContent
-			else if (feedbackRequest.getFeedbackType() == FeedbackType.DAY) {
+			else if (feedbackRequest.getInvestmentType() == InvestmentType.DAY) {
 				DayRequestDetail dayRequest = (DayRequestDetail)feedbackRequest;
 				contentToPreview = dayRequest.getTrainerFeedbackRequestContent();
-			} else if (feedbackRequest.getFeedbackType() == FeedbackType.SWING) {
+			} else if (feedbackRequest.getInvestmentType() == InvestmentType.SWING) {
 				SwingRequestDetail swingRequest = (SwingRequestDetail)feedbackRequest;
 				contentToPreview = swingRequest.getTrainerFeedbackRequestContent();
 			}

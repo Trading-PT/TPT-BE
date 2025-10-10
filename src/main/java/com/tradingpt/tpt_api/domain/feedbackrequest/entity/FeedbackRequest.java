@@ -5,12 +5,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
@@ -47,7 +47,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @Table(name = "feedback_request")
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "ftype", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorColumn(name = "investment_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class FeedbackRequest extends BaseEntity {
 
 	@Id
@@ -132,7 +132,7 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private Boolean isBestFeedback = false; // 베스트 피드백 여부
 
 	// 추상 메서드로 FeedbackType 반환
-	public abstract FeedbackType getFeedbackType();
+	public abstract InvestmentType getInvestmentType();
 
 	public void setStatus(Status status) {
 		this.status = status;

@@ -4,20 +4,21 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 public interface FeedbackRequestQueryService {
 
 	/**
 	 * 피드백 요청 목록 조회 (페이징)
 	 */
-	Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, FeedbackType feedbackType, Status status,
+	Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, InvestmentType investmentType,
+		Status status,
 		Long customerId);
 
 	/**
@@ -28,14 +29,25 @@ public interface FeedbackRequestQueryService {
 	/**
 	 * 내 피드백 요청 목록 조회
 	 */
-	List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, FeedbackType feedbackType, Status status);
+	List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, InvestmentType investmentType,
+		Status status);
 
 	/**
 	 * 모든 피드백 요청 목록 조회
 	 *
-	 * @param pageable   페이징 정보
-	 * @param customerId
-	 * @return 피드백 카드 Slice
+	 * @param pageable 페이징 정보
+	 * @return 피드백 리스트
 	 */
-	Slice<FeedbackCardDTO> getFeedbackListSlice(Pageable pageable);
+	FeedbackListResponseDTO getFeedbackListSlice(Pageable pageable);
+
+	/**
+	 * 어드민 페이지
+	 * 1. 현재 선정된 베스트 피드백
+	 * 2. 전체 피드백 요청 목록
+	 *
+	 * @param pageable
+	 * @return
+	 */
+	AdminFeedbackResponseDTO getAdminFeedbackListSlice(Pageable pageable);
+
 }

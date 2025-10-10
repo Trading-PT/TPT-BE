@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +18,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
@@ -27,7 +25,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
-import com.tradingpt.tpt_api.global.common.dto.SliceInfo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -93,15 +90,7 @@ public class FeedbackRequestV1Controller {
 	public BaseResponse<FeedbackListResponseDTO> getFeedbackList(
 		@PageableDefault(size = 12) Pageable pageable
 	) {
-		Slice<FeedbackCardDTO> feedbackSlice = feedbackRequestQueryService
-			.getFeedbackListSlice(pageable);
-
-		FeedbackListResponseDTO response = FeedbackListResponseDTO.of(
-			feedbackSlice.getContent(),
-			SliceInfo.of(feedbackSlice)
-		);
-
-		return BaseResponse.onSuccess(response);
+		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackListSlice(pageable));
 	}
 
 	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
