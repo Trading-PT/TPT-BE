@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
@@ -48,6 +50,14 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 		// Entity to DTO 변환
 		return feedbackRequestPage.map(FeedbackRequestResponseDTO::of);
+	}
+
+	@Override
+	public Slice<FeedbackCardDTO> getFeedbackListSlice(Pageable pageable) {
+		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
+			.findAllFeedbackRequestsSlice(pageable);
+
+		return feedbackSlice.map(FeedbackCardDTO::from);
 	}
 
 	@Override

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
@@ -41,6 +42,15 @@ public interface FeedbackRequestRepositoryCustom {
 		Status status,
 		Long customerId
 	);
+
+	/**
+	 * 모든 피드백 요청 목록 조회 (무한 스크롤)
+	 * 정렬: isBestFeedback DESC, createdAt DESC
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 피드백 요청 Slice
+	 */
+	Slice<FeedbackRequest> findAllFeedbackRequestsSlice(Pageable pageable);
 
 	/**
 	 * 특정 고객의 피드백 요청 목록을 동적 조건으로 조회

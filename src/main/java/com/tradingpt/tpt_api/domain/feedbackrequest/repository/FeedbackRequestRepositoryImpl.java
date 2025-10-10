@@ -15,6 +15,8 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -102,6 +104,66 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		List<FeedbackRequest> pageContent = allResults.subList(start, end);
 
 		return new PageImpl<>(pageContent, pageable, allResults.size());
+	}
+
+	@Override
+	public Slice<FeedbackRequest> findAllFeedbackRequestsSlice(Pageable pageable) {
+		List<FeedbackRequest> allResults = new ArrayList<>();
+
+		// 모든 타입의 피드백 조회
+		List<DayRequestDetail> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.fetch();
+		allResults.addAll(dayRequests);
+
+		List<ScalpingRequestDetail> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.fetch();
+		allResults.addAll(scalpingRequests);
+
+		List<SwingRequestDetail> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.fetch();
+		allResults.addAll(swingRequests);
+
+		// 정렬 및 Slice 생성
+		return createSlice(allResults, pageable);
+	}
+
+	/**
+	 * 피드백 목록을 정렬하고 Slice로 변환하는 공통 메서드
+	 * 정렬: 베스트 피드백 우선 → 생성일시 내림차순
+	 */
+	private Slice<FeedbackRequest> createSlice(
+		List<FeedbackRequest> allResults,
+		Pageable pageable
+	) {
+		// ✅ 정렬: 베스트 피드백 우선 → 생성일시 내림차순
+		allResults.sort((a, b) -> {
+			// 1. isBestFeedback 비교 (true가 먼저)
+			int bestCompare = Boolean.compare(
+				b.getIsBestFeedback() != null && b.getIsBestFeedback(),
+				a.getIsBestFeedback() != null && a.getIsBestFeedback()
+			);
+
+			if (bestCompare != 0) {
+				return bestCompare;
+			}
+
+			// 2. createdAt 비교 (최신이 먼저)
+			return b.getCreatedAt().compareTo(a.getCreatedAt());
+		});
+
+		// ✅ Slice 생성을 위한 페이징 처리
+		int start = Math.min((int)pageable.getOffset(), allResults.size());
+		int end = Math.min(start + pageable.getPageSize(), allResults.size());
+
+		// 다음 페이지 존재 여부 확인
+		boolean hasNext = end < allResults.size();
+
+		List<FeedbackRequest> sliceContent = allResults.subList(start, end);
+
+		return new SliceImpl<>(sliceContent, pageable, hasNext);
 	}
 
 	@Override
