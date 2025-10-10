@@ -2,11 +2,11 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.entity;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -120,8 +120,8 @@ public class DayRequestDetail extends FeedbackRequest {
 	}
 
 	@Override
-	public FeedbackType getFeedbackType() {
-		return FeedbackType.DAY;
+	public InvestmentType getInvestmentType() {
+		return InvestmentType.DAY;
 	}
 
 }

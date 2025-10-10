@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -80,8 +79,8 @@ public class DailyFeedbackRequestsResponseDTO {
 		@Schema(description = "피드백 제목")
 		private String title;
 
-		@Schema(description = "피드백 타입")
-		private FeedbackType feedbackType;
+		@Schema(description = "투자 유형")
+		private InvestmentType investmentType;
 
 		@Schema(description = "피드백 상태")
 		private Status status;
@@ -110,7 +109,7 @@ public class DailyFeedbackRequestsResponseDTO {
 				.feedbackRequestId(feedbackRequest.getId())
 				.dailySequence(dailySequence)
 				.title(feedbackRequest.getTitle())
-				.feedbackType(feedbackRequest.getFeedbackType())
+				.investmentType(feedbackRequest.getInvestmentType())
 				.status(status)
 				.createdAt(feedbackRequest.getCreatedAt())
 				.isResponded(responded)

@@ -26,7 +26,7 @@ public class BaseResponse<T> {
 	private final String message;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@Schema(description = "응답 데이터", example = "사용 가능한 이메일입니다.")
+	@Schema(description = "응답 데이터")
 	private T result;
 
 	//성공한 경우 응답 생성
