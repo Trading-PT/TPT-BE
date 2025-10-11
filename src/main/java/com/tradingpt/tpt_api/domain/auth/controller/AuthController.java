@@ -129,10 +129,8 @@ public class AuthController {
 		FindIdResponseDTO response = userService.findUserId(req.getEmail());
 
 		if (response == null) {
-			// enum -> BaseCode 로 꺼낸 뒤 문자열 code/message 사용
-			var reason = UserErrorStatus.USER_NOT_FOUND.getCode(); // BaseCode
-			return ResponseEntity.status(reason.getHttpStatus())
-					.body(BaseResponse.onFailure(reason.getCode(), reason.getMessage(), null));
+			return ResponseEntity.status(UserErrorStatus.USER_NOT_FOUND.getCode().getHttpStatus())
+					.body(BaseResponse.onFailure(UserErrorStatus.USER_NOT_FOUND, null));
 		}
 
 		return ResponseEntity.status(HttpStatus.CREATED)

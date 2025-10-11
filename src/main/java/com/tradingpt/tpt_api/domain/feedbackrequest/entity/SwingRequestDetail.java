@@ -4,10 +4,10 @@ import java.time.LocalDate;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
@@ -125,7 +125,7 @@ public class SwingRequestDetail extends FeedbackRequest {
 	}
 
 	@Override
-	public FeedbackType getFeedbackType() {
-		return FeedbackType.SWING;
+	public InvestmentType getInvestmentType() {
+		return InvestmentType.SWING;
 	}
 }

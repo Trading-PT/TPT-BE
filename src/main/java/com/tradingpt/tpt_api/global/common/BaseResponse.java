@@ -26,7 +26,7 @@ public class BaseResponse<T> {
 	private final String message;
 
 	@JsonInclude(JsonInclude.Include.NON_NULL)
-	@Schema(description = "응답 데이터", example = "사용 가능한 이메일입니다.")
+	@Schema(description = "응답 데이터")
 	private T result;
 
 	//성공한 경우 응답 생성
@@ -50,8 +50,8 @@ public class BaseResponse<T> {
 	}
 
 	// 실패한 경우 응답 생성
-	public static <T> BaseResponse<T> onFailure(String code, String message, T result) {
-		return new BaseResponse<>(code, message, result);
+	public static <T> BaseResponse<T> onFailure(BaseCodeInterface code, T result) {
+		return new BaseResponse<>(code.getCode().getCode(), code.getCode().getMessage(), result);
 	}
 
 }

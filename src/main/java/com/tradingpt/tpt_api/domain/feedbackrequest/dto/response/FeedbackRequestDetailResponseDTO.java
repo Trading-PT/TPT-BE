@@ -1,9 +1,9 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -22,8 +22,8 @@ public class FeedbackRequestDetailResponseDTO {
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
 
-	@Schema(description = "피드백 타입")
-	private FeedbackType feedbackType;
+	@Schema(description = "투자 유형")
+	private InvestmentType investmentType;
 
 	@Schema(description = "피드백 상태")
 	private Status status;

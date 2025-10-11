@@ -23,13 +23,14 @@ public enum AuthErrorStatus implements BaseCodeInterface {
     TOKEN_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "AUTH4006", "토큰 서명이 유효하지 않습니다."),
 
     // ========== 자격 증명 관련 에러 ==========
-    BAD_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4010", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    BAD_CREDENTIALS(HttpStatus.UNAUTHORIZED, "AUTH4010", "아이디 또는 비밀번호가 올바르지 않습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "AUTH4011", "사용자를 찾을 수 없습니다."),
     AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4012", "인증에 실패했습니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "AUTH4013", "접근 권한이 없습니다."),
     ACCOUNT_DISABLED(HttpStatus.UNAUTHORIZED, "AUTH4014", "비활성화된 계정입니다."),
     ACCOUNT_LOCKED(HttpStatus.UNAUTHORIZED, "AUTH4015", "잠긴 계정입니다."),
-    CREDENTIALS_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4016", "자격 증명이 만료되었습니다."),
+    CREDENTIALS_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4016", "비밀번호 유효 기간이 만료되었습니다."),
+    ACCOUNT_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH4017", "계정 유효 기간이 만료되었습니다."),
 
     // ========== 회원가입 관련 에러 ==========
     EMAIL_ALREADY_EXISTS(HttpStatus.CONFLICT, "AUTH4020", "이미 존재하는 이메일입니다."),
@@ -42,7 +43,7 @@ public enum AuthErrorStatus implements BaseCodeInterface {
     USERNAME_ALREADY_EXISTS(HttpStatus.CONFLICT, "AUTH4027", "이미 존재하는 사용자명입니다."),
 
     // ========== OAuth2 소셜 로그인 관련 에러 ==========
-    OAUTH2_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4030", "소셜 로그인 인증에 실패했습니다."),
+    OAUTH2_AUTHENTICATION_FAILED(HttpStatus.UNAUTHORIZED, "AUTH4030", "소셜 로그인 인증에 실패했습니다. 다시 시도해 주세요."),
     OAUTH2_PROVIDER_NOT_SUPPORTED(HttpStatus.BAD_REQUEST, "AUTH4031", "지원하지 않는 소셜 로그인 제공자입니다."),
     OAUTH2_USER_INFO_RETRIEVAL_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH4032", "소셜 로그인 사용자 정보를 가져오는데 실패했습니다."),
     OAUTH2_CALLBACK_ERROR(HttpStatus.BAD_REQUEST, "AUTH4033", "소셜 로그인 콜백 처리 중 오류가 발생했습니다."),
@@ -61,6 +62,12 @@ public enum AuthErrorStatus implements BaseCodeInterface {
     ADMIN_REQUIRED(HttpStatus.FORBIDDEN, "AUTH4051", "관리자 권한이 필요합니다."),
     USER_ROLE_REQUIRED(HttpStatus.FORBIDDEN, "AUTH4052", "사용자 권한이 필요합니다."),
     PREMIUM_REQUIRED(HttpStatus.FORBIDDEN, "AUTH4053", "프리미엄 권한이 필요합니다."),
+
+    // ========== Security Handler 전용 에러 ==========
+    AUTHENTICATION_REQUIRED(HttpStatus.UNAUTHORIZED, "AUTH4054", "인증이 필요합니다. 로그인 후 다시 시도해주세요."),
+    AUTHENTICATION_REQUIRED_ADMIN(HttpStatus.UNAUTHORIZED, "AUTH4055", "인증이 필요합니다. 로그인 후 ROLE_ADMIN 또는 ROLE_TRAINER 권한으로 접근해주세요."),
+    ACCESS_DENIED_GENERAL(HttpStatus.FORBIDDEN, "AUTH4056", "접근 권한이 없습니다. 필요한 권한을 확인해주세요."),
+    ACCESS_DENIED_ADMIN(HttpStatus.FORBIDDEN, "AUTH4057", "접근 권한이 없습니다. ROLE_ADMIN 또는 ROLE_TRAINER 권한이 필요합니다."),
 
     // ========== 계정 상태 관련 에러 ==========
     ACCOUNT_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "AUTH4060", "이메일 인증이 필요합니다."),

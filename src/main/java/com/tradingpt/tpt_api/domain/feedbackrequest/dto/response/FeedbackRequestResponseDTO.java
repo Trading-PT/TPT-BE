@@ -4,9 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -32,7 +32,7 @@ public class FeedbackRequestResponseDTO {
 	private String customerName;
 
 	@Schema(description = "피드백 타입")
-	private FeedbackType feedbackType;
+	private InvestmentType investmentType;
 
 	@Schema(description = "피드백 상태")
 	private Status status;
@@ -69,7 +69,7 @@ public class FeedbackRequestResponseDTO {
 			.id(feedbackRequest.getId())
 			.customerId(feedbackRequest.getCustomer().getId())
 			.customerName(feedbackRequest.getCustomer().getName())
-			.feedbackType(feedbackRequest.getFeedbackType())
+			.investmentType(feedbackRequest.getInvestmentType())
 			.status(feedbackRequest.getStatus())
 			.feedbackRequestDate(feedbackRequest.getFeedbackRequestDate())
 			.courseStatus(feedbackRequest.getCourseStatus())

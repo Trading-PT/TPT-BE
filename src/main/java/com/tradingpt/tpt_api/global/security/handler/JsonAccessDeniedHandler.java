@@ -8,8 +8,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
-import com.tradingpt.tpt_api.global.exception.code.GlobalErrorStatus;
+import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -30,13 +31,32 @@ public class JsonAccessDeniedHandler implements AccessDeniedHandler {
 		AccessDeniedException accessDeniedException
 	) throws IOException {
 
-		log.warn("[JsonAccessDeniedHandler] Access denied for URI: {}", request.getRequestURI());
+		String uri = request.getRequestURI();
+		String method = request.getMethod();
+		String username = request.getUserPrincipal() != null ? request.getUserPrincipal().getName() : "anonymous";
+
+		log.warn("[JsonAccessDeniedHandler] Access denied - User: {}, Method: {}, URI: {}",
+			username, method, uri);
 
 		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");
 
-		BaseResponse<Void> body = BaseResponse.of(GlobalErrorStatus._FORBIDDEN, null);
+		// URI에 따라 적절한 에러 코드 선택
+		BaseCodeInterface errorCode = selectErrorCode(uri);
+
+		BaseResponse<Void> body = BaseResponse.onFailure(errorCode, null);
+
 		response.getWriter().write(objectMapper.writeValueAsString(body));
+	}
+
+	private BaseCodeInterface selectErrorCode(String uri) {
+		// Admin 경로인 경우
+		if (uri.contains("/admin")) {
+			return AuthErrorStatus.ACCESS_DENIED_ADMIN;
+		}
+
+		// 일반적인 권한 부족
+		return AuthErrorStatus.ACCESS_DENIED_GENERAL;
 	}
 }

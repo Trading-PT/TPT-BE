@@ -7,10 +7,10 @@ import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.enums.FeedbackType;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -33,7 +33,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	private LocalDateTime createdAt;
 
 	@Schema(description = "피드백 타입")
-	private FeedbackType feedbackType;
+	private InvestmentType investmentType;
 
 	@Schema(description = "완강 여부")
 	private CourseStatus courseStatus;
@@ -111,7 +111,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 		return ScalpingFeedbackRequestDetailResponseDTO.builder()
 			.id(scalpingRequest.getId())
 			.createdAt(scalpingRequest.getCreatedAt())
-			.feedbackType(scalpingRequest.getFeedbackType())
+			.investmentType(scalpingRequest.getInvestmentType())
 			.courseStatus(scalpingRequest.getCourseStatus())
 			.feedbackYear(scalpingRequest.getFeedbackYear())
 			.feedbackMonth(scalpingRequest.getFeedbackMonth())
