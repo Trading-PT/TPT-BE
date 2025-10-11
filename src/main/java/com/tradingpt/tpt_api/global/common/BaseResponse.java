@@ -50,8 +50,8 @@ public class BaseResponse<T> {
 	}
 
 	// 실패한 경우 응답 생성
-	public static <T> BaseResponse<T> onFailure(String code, String message, T result) {
-		return new BaseResponse<>(code, message, result);
+	public static <T> BaseResponse<T> onFailure(BaseCodeInterface code, T result) {
+		return new BaseResponse<>(code.getCode().getCode(), code.getCode().getMessage(), result);
 	}
 
 }

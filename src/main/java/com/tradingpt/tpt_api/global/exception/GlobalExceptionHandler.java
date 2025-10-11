@@ -29,6 +29,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import com.tradingpt.tpt_api.global.exception.code.BaseCode;
+import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;
 import com.tradingpt.tpt_api.global.exception.code.GlobalErrorStatus;
 
 import jakarta.validation.ConstraintViolationException;
@@ -45,7 +46,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	 */
 	@ExceptionHandler(value = BaseException.class)
 	public ResponseEntity<BaseResponse<String>> handleRestApiException(BaseException e) {
-		BaseCode errorCode = e.getErrorCode();
+		BaseCodeInterface errorCode = e.getErrorCodeInterface();
 		log.error("[handleRestApiException] Domain Exception: {}", e.getMessage(), e);
 		return handleExceptionInternal(errorCode);
 	}
@@ -75,15 +76,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		log.error("[handleHttpMediaTypeNotSupported] Unsupported media type: {}", ex.getContentType());
 
-		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus.UNSUPPORTED_MEDIA_TYPE.getCode().getCode(),
-			String.format("지원하지 않는 미디어 타입입니다. 지원되는 타입: %s", supportedTypes),
-			null
-		);
+		String customMessage = String.format("지원하지 않는 미디어 타입입니다. 지원되는 타입: %s", supportedTypes);
 
-		return ResponseEntity
-			.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-			.body(response);
+		return handleExceptionInternalObject(GlobalErrorStatus.UNSUPPORTED_MEDIA_TYPE, customMessage);
 	}
 
 	/**
@@ -94,15 +89,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		MissingServletRequestParameterException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		log.error("[handleMissingServletRequestParameter] Missing parameter: {}", ex.getParameterName());
 
-		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus.MISSING_PARAMETER.getCode().getCode(),
-			String.format("필수 파라미터가 누락되었습니다: %s", ex.getParameterName()),
-			null
-		);
+		String customMessage = String.format("필수 파라미터가 누락되었습니다: %s", ex.getParameterName());
 
-		return ResponseEntity
-			.status(HttpStatus.BAD_REQUEST)
-			.body(response);
+		return handleExceptionInternalObject(GlobalErrorStatus.MISSING_PARAMETER, customMessage);
 	}
 
 	/**
@@ -113,15 +102,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		log.error("[handleMaxUploadSizeExceededException] 파일 크기 초과: {}", ex.getMessage());
 
-		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus._BAD_REQUEST.getCode().getCode(),
-			"업로드 파일 크기가 제한을 초과했습니다.",
-			null
-		);
-
-		return ResponseEntity
-			.status(HttpStatus.BAD_REQUEST)
-			.body(response);
+		return handleExceptionInternalObject(GlobalErrorStatus._BAD_REQUEST, "업로드 파일 크기가 제한을 초과했습니다.");
 	}
 
 	/**
@@ -137,7 +118,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			message = "중복된 데이터가 존재합니다.";
 		}
 
-		return handleExceptionInternal(GlobalErrorStatus.CONFLICT.getCode(), message);
+		return handleExceptionInternal(GlobalErrorStatus.CONFLICT, message);
 	}
 
 	/**
@@ -148,7 +129,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		log.error("[handleSQLException] Database error: {}", e.getMessage(), e);
 
 		// 프로덕션에서는 민감한 정보 숨김
-		return handleExceptionInternal(GlobalErrorStatus.DATABASE_ERROR.getCode());
+		return handleExceptionInternal(GlobalErrorStatus.DATABASE_ERROR);
 	}
 
 	/**
@@ -162,7 +143,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 			.map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
 			.collect(Collectors.joining(", "));
 
-		return handleExceptionInternal(GlobalErrorStatus.VALIDATION_ERROR.getCode(), errorMessage);
+		return handleExceptionInternal(GlobalErrorStatus.VALIDATION_ERROR, errorMessage);
 	}
 
 	/**
@@ -177,7 +158,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		String message = String.format("파라미터 '%s'의 타입이 올바르지 않습니다. 예상 타입: %s",
 			e.getName(), e.getRequiredType().getSimpleName());
 
-		return handleExceptionInternal(GlobalErrorStatus.INVALID_PARAMETER_TYPE.getCode(), message);
+		return handleExceptionInternal(GlobalErrorStatus.INVALID_PARAMETER_TYPE, message);
 	}
 
 	/**
@@ -208,7 +189,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		log.error("[handleMethodArgumentNotValid] Validation errors: {}", errors);
 
-		return handleExceptionInternalArgs(GlobalErrorStatus.VALIDATION_ERROR.getCode(), errors);
+		return handleExceptionInternalArgs(GlobalErrorStatus.VALIDATION_ERROR, errors);
 	}
 
 	/**
@@ -218,7 +199,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<BaseResponse<String>> handleAuthenticationException(AuthenticationException e) {
 		log.warn("[handleAuthenticationException] Authentication failed: {}", e.getMessage());
 		// ✅ GlobalErrorStatusCode의 _UNAUTHORIZED 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._UNAUTHORIZED.getCode());
+		return handleExceptionInternal(GlobalErrorStatus._UNAUTHORIZED);
 	}
 
 	/**
@@ -228,7 +209,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<BaseResponse<String>> handleAccessDeniedException(AccessDeniedException e) {
 		log.warn("[handleAccessDeniedException] Access denied: {}", e.getMessage());
 		// ✅ GlobalErrorStatusCode의 _FORBIDDEN 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._FORBIDDEN.getCode());
+		return handleExceptionInternal(GlobalErrorStatus._FORBIDDEN);
 	}
 
 	/**
@@ -256,15 +237,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		log.warn("[handleHttpRequestMethodNotSupported] Method not supported: {}", ex.getMessage());
 
-		BaseResponse<String> response = BaseResponse.onFailure(
-			GlobalErrorStatus.METHOD_NOT_ALLOWED.getCode().getCode(), // ✅ 기존 코드 유지 (올바름)
-			String.format("지원하지 않는 HTTP 메서드입니다. 지원되는 메서드: %s", supportedMethods),
-			null
-		);
+		String customMessage = String.format("지원하지 않는 HTTP 메서드입니다. 지원되는 메서드: %s", supportedMethods);
 
-		return ResponseEntity
-			.status(HttpStatus.METHOD_NOT_ALLOWED)
-			.body(response);
+		return handleExceptionInternalObject(GlobalErrorStatus.METHOD_NOT_ALLOWED, customMessage);
 	}
 
 	/**
@@ -278,7 +253,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 		String message = "서버 내부 오류가 발생했습니다. 관리자에게 문의해주세요.";
 
 		return handleExceptionInternalFalse(
-			GlobalErrorStatus._INTERNAL_SERVER_ERROR.getCode(), // ✅ 수정
+			GlobalErrorStatus._INTERNAL_SERVER_ERROR,
 			message
 		);
 	}
@@ -288,27 +263,45 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	 * 내부 메서드
 	 * ==============
 	 */
-	private ResponseEntity<BaseResponse<String>> handleExceptionInternal(BaseCode errorCode) {
+	private ResponseEntity<BaseResponse<String>> handleExceptionInternal(BaseCodeInterface errorCode) {
 		return ResponseEntity
-			.status(errorCode.getHttpStatus())
-			.body(BaseResponse.onFailure(errorCode.getCode(), errorCode.getMessage(), null));
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, null));
 	}
 
-	private ResponseEntity<BaseResponse<String>> handleExceptionInternal(BaseCode errorCode, String customMessage) {
+	private ResponseEntity<BaseResponse<String>> handleExceptionInternal(BaseCodeInterface errorCode,
+		String customMessage) {
 		return ResponseEntity
-			.status(errorCode.getHttpStatus())
-			.body(BaseResponse.onFailure(errorCode.getCode(), customMessage, null));
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, customMessage));
 	}
 
-	private ResponseEntity<Object> handleExceptionInternalArgs(BaseCode errorCode, Map<String, String> errorArgs) {
+	// @Override 메서드용 - ResponseEntity<Object> 반환
+	private ResponseEntity<Object> handleExceptionInternalObject(BaseCodeInterface errorCode) {
 		return ResponseEntity
-			.status(errorCode.getHttpStatus())
-			.body(BaseResponse.onFailure(errorCode.getCode(), errorCode.getMessage(), errorArgs));
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, null));
 	}
 
-	private ResponseEntity<BaseResponse<String>> handleExceptionInternalFalse(BaseCode errorCode, String errorPoint) {
+	// @Override 메서드용 - ResponseEntity<Object> 반환
+	private ResponseEntity<Object> handleExceptionInternalObject(BaseCodeInterface errorCode,
+		String customMessage) {
 		return ResponseEntity
-			.status(errorCode.getHttpStatus())
-			.body(BaseResponse.onFailure(errorCode.getCode(), errorCode.getMessage(), errorPoint));
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, customMessage));
+	}
+
+	private ResponseEntity<Object> handleExceptionInternalArgs(BaseCodeInterface errorCode,
+		Map<String, String> errorArgs) {
+		return ResponseEntity
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, errorArgs));
+	}
+
+	private ResponseEntity<BaseResponse<String>> handleExceptionInternalFalse(BaseCodeInterface errorCode,
+		String errorPoint) {
+		return ResponseEntity
+			.status(errorCode.getCode().getHttpStatus())
+			.body(BaseResponse.onFailure(errorCode, errorPoint));
 	}
 }
