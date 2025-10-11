@@ -27,7 +27,8 @@ public class MeResponse {
 	private UserStatus userStatus;
 	private Long trainerId;
 	private String trainerName;
-	private String profileImage;
+	private String myProfileImage;
+	private String trainerProfileImage;
 	private String investmentType;
 	private Boolean isCourseCompleted;
 	private Boolean isPremium;
@@ -75,7 +76,8 @@ public class MeResponse {
 			.userStatus(c.getUserStatus())
 			.trainerId(trainerId)
 			.trainerName(trainerName)
-			.profileImage((c.getTrainer() != null) ? c.getTrainer().getProfileImageUrl() : null)
+			.trainerProfileImage((c.getTrainer() != null) ? c.getTrainer().getProfileImageUrl() : null)
+				.myProfileImage(c.getProfileImageUrl())
 			.investmentType(investmentType)
 			.isCourseCompleted(isCourseCompleted)
 			.isPremium(isPremium)
