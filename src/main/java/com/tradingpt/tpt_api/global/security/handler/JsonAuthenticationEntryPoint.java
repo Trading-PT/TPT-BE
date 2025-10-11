@@ -17,6 +17,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * 인증되지 않은 사용자가 보호된 리소스에 접근하려 할 때 처리
+ * HTTP 401 (Unauthorized) 응답 반환
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

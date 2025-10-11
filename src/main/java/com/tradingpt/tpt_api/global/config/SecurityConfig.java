@@ -1,22 +1,10 @@
 package com.tradingpt.tpt_api.global.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tradingpt.tpt_api.domain.auth.filter.AdminJsonUsernamePasswordAuthFilter;
-import com.tradingpt.tpt_api.domain.auth.filter.CsrfTokenResponseHeaderBindingFilter;
-import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
-import com.tradingpt.tpt_api.domain.auth.handler.AdminSuccessHandler;
-import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
-import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
-import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
-import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
-import com.tradingpt.tpt_api.global.security.csrf.HeaderAndCookieCsrfTokenRepository;
-import com.tradingpt.tpt_api.global.security.handler.JsonAccessDeniedHandler;
-import com.tradingpt.tpt_api.global.security.handler.JsonAuthenticationEntryPoint;
-import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -36,6 +24,21 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tradingpt.tpt_api.domain.auth.filter.AdminJsonUsernamePasswordAuthFilter;
+import com.tradingpt.tpt_api.domain.auth.filter.CsrfTokenResponseHeaderBindingFilter;
+import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
+import com.tradingpt.tpt_api.domain.auth.handler.AdminSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
+import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
+import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
+import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
+import com.tradingpt.tpt_api.global.security.csrf.HeaderAndCookieCsrfTokenRepository;
+import com.tradingpt.tpt_api.global.security.handler.JsonAccessDeniedHandler;
+import com.tradingpt.tpt_api.global.security.handler.JsonAuthenticationEntryPoint;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -49,6 +52,11 @@ public class SecurityConfig {
 	private final JsonAccessDeniedHandler jsonAccessDeniedHandler;
 	private final ServerProperties serverProperties;
 
+	@Bean
+	public static HttpSessionEventPublisher httpSessionEventPublisher() {
+		return new HttpSessionEventPublisher();
+	}
+
 	/** AuthenticationManager */
 	@Bean
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
@@ -59,11 +67,6 @@ public class SecurityConfig {
 	@Bean
 	public SessionRegistry sessionRegistry(FindByIndexNameSessionRepository<? extends Session> sessionRepository) {
 		return new SpringSessionBackedSessionRegistry<>(sessionRepository);
-	}
-
-	@Bean
-	public static HttpSessionEventPublisher httpSessionEventPublisher() {
-		return new HttpSessionEventPublisher();
 	}
 
 	/** OAuth2 AuthorizationRequest를 세션 대신 쿠키에 저장 */
@@ -101,11 +104,14 @@ public class SecurityConfig {
 	public HeaderAndCookieCsrfTokenRepository csrfTokenRepository() {
 		HeaderAndCookieCsrfTokenRepository repo = new HeaderAndCookieCsrfTokenRepository();
 		var cookieProps = serverProperties.getServlet().getSession().getCookie();
-		if (cookieProps.getDomain() != null) repo.setCookieDomain(cookieProps.getDomain());
-		if (cookieProps.getPath() != null) repo.setCookiePath(cookieProps.getPath());
+		if (cookieProps.getDomain() != null)
+			repo.setCookieDomain(cookieProps.getDomain());
+		if (cookieProps.getPath() != null)
+			repo.setCookiePath(cookieProps.getPath());
 		repo.setCookieHttpOnly(false);
 		repo.setCookieCustomizer(builder -> {
-			if (cookieProps.getSecure() != null) builder.secure(cookieProps.getSecure());
+			if (cookieProps.getSecure() != null)
+				builder.secure(cookieProps.getSecure());
 			if (cookieProps.getSameSite() != null) {
 				String sameSite = switch (cookieProps.getSameSite()) {
 					case LAX -> "Lax";
@@ -114,7 +120,8 @@ public class SecurityConfig {
 					default -> "Lax";
 				};
 				builder.sameSite(sameSite);
-			} else builder.sameSite("Lax");
+			} else
+				builder.sameSite("Lax");
 		});
 		return repo;
 	}
@@ -122,10 +129,10 @@ public class SecurityConfig {
 	@Bean
 	@Order(0)
 	public SecurityFilterChain adminSecurityFilterChain(
-			HttpSecurity http,
-			SessionRegistry sessionRegistry,
-			AdminJsonUsernamePasswordAuthFilter adminJsonLoginFilter,
-			HeaderAndCookieCsrfTokenRepository csrfTokenRepository
+		HttpSecurity http,
+		SessionRegistry sessionRegistry,
+		AdminJsonUsernamePasswordAuthFilter adminJsonLoginFilter,
+		HeaderAndCookieCsrfTokenRepository csrfTokenRepository
 	) throws Exception {
 
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
@@ -134,34 +141,33 @@ public class SecurityConfig {
 		var adminMatcher = new RegexRequestMatcher("^/api/v1/admin(?:/.*)?$", null);
 
 		http.securityMatcher(adminMatcher)
-				.cors(Customizer.withDefaults())
-				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/api/v1/admin/login")
-						.csrfTokenRepository(csrfTokenRepository)
-						.csrfTokenRequestHandler(requestHandler)
-				)
-				.exceptionHandling(ex -> ex
-						.authenticationEntryPoint(jsonAuthenticationEntryPoint)
-						.accessDeniedHandler(jsonAccessDeniedHandler)
-				)
-				.sessionManagement(sm -> sm
-						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-						.sessionFixation(sf -> sf.migrateSession())
-						.sessionConcurrency(sc -> sc.maximumSessions(1)
-								.sessionRegistry(sessionRegistry))
-				)
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/admin/login").permitAll()
-						.anyRequest().hasAnyRole("ADMIN", "TRAINER")
-				)
-				.formLogin(AbstractHttpConfigurer::disable)
-				.httpBasic(AbstractHttpConfigurer::disable)
-				.rememberMe(rm -> rm
-						.rememberMeServices(rememberMeServices)
-						.useSecureCookie(true)
-				)
-				.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
-
+			.cors(Customizer.withDefaults())
+			.csrf(csrf -> csrf
+				.ignoringRequestMatchers("/api/v1/admin/login")
+				.csrfTokenRepository(csrfTokenRepository)
+				.csrfTokenRequestHandler(requestHandler)
+			)
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(jsonAuthenticationEntryPoint)
+				.accessDeniedHandler(jsonAccessDeniedHandler)
+			)
+			.sessionManagement(sm -> sm
+				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+				.sessionFixation(sf -> sf.migrateSession())
+				.sessionConcurrency(sc -> sc.maximumSessions(1)
+					.sessionRegistry(sessionRegistry))
+			)
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/api/v1/admin/login").permitAll()
+				.anyRequest().hasAnyRole("ADMIN", "TRAINER")
+			)
+			.formLogin(AbstractHttpConfigurer::disable)
+			.httpBasic(AbstractHttpConfigurer::disable)
+			.rememberMe(rm -> rm
+				.rememberMeServices(rememberMeServices)
+				.useSecureCookie(true)
+			)
+			.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
@@ -169,12 +175,12 @@ public class SecurityConfig {
 	@Bean
 	@Order(1)
 	public SecurityFilterChain userSecurityFilterChain(
-			HttpSecurity http,
-			SessionRegistry sessionRegistry,
-			JsonUsernamePasswordAuthFilter jsonLoginFilter,
-			CustomOAuth2UserService customOAuth2UserService,
-			AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository,
-			HeaderAndCookieCsrfTokenRepository csrfTokenRepository
+		HttpSecurity http,
+		SessionRegistry sessionRegistry,
+		JsonUsernamePasswordAuthFilter jsonLoginFilter,
+		CustomOAuth2UserService customOAuth2UserService,
+		AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository,
+		HeaderAndCookieCsrfTokenRepository csrfTokenRepository
 	) throws Exception {
 
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
@@ -183,40 +189,42 @@ public class SecurityConfig {
 		var userApiMatcher = new RegexRequestMatcher("^/api/(?!v1/admin(?:/|$)).*$", null);
 
 		http.securityMatcher(userApiMatcher)
-				.cors(Customizer.withDefaults())
-				.csrf(csrf -> csrf
-						.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/**")
-						.csrfTokenRepository(csrfTokenRepository)
-						.csrfTokenRequestHandler(requestHandler)
-				)
-				.exceptionHandling(ex -> ex
-						.authenticationEntryPoint(jsonAuthenticationEntryPoint)
-						.accessDeniedHandler(jsonAccessDeniedHandler)
-				)
-				.sessionManagement(sm -> sm
-						.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-						.sessionFixation(sf -> sf.migrateSession())
-						.sessionConcurrency(sc -> sc.maximumSessions(3).sessionRegistry(sessionRegistry))
-				)
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers(
-								"/api/v1/auth/**",
-								"/oauth2/**", "/login/oauth2/**"
-						).permitAll()
-						.anyRequest().authenticated()
-				)
-				.formLogin(AbstractHttpConfigurer::disable)
-				.httpBasic(AbstractHttpConfigurer::disable)
-				.oauth2Login(o -> o
-						.authorizationEndpoint(ae -> ae.authorizationRequestRepository(cookieAuthRequestRepository))
-						.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
-						.successHandler(customSuccessHandler)
-						.failureHandler(customFailureHandler)
-				)
-				.rememberMe(rm -> rm.rememberMeServices(rememberMeServices).useSecureCookie(true))
-				.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository),
-						UsernamePasswordAuthenticationFilter.class);
+			.cors(Customizer.withDefaults())
+			.csrf(csrf -> csrf
+				.ignoringRequestMatchers("/api/v1/auth/**", "/oauth2/**", "/login/**")
+				.csrfTokenRepository(csrfTokenRepository)
+				.csrfTokenRequestHandler(requestHandler)
+			)
+			.exceptionHandling(ex -> ex
+				.authenticationEntryPoint(jsonAuthenticationEntryPoint)
+				.accessDeniedHandler(jsonAccessDeniedHandler)
+			)
+			.sessionManagement(sm -> sm
+				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+				.sessionFixation(sf -> sf.migrateSession())
+				.sessionConcurrency(sc -> sc.maximumSessions(3).sessionRegistry(sessionRegistry))
+			)
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers(
+					"/api/v1/auth/**",
+					"/oauth2/**", "/login/oauth2/**"
+				).permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests").permitAll()  // 목록만 비로그인 허용
+				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests/*").authenticated()  // 상세는 로그인 필요
+				.anyRequest().authenticated()
+			)
+			.formLogin(AbstractHttpConfigurer::disable)
+			.httpBasic(AbstractHttpConfigurer::disable)
+			.oauth2Login(o -> o
+				.authorizationEndpoint(ae -> ae.authorizationRequestRepository(cookieAuthRequestRepository))
+				.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
+				.successHandler(customSuccessHandler)
+				.failureHandler(customFailureHandler)
+			)
+			.rememberMe(rm -> rm.rememberMeServices(rememberMeServices).useSecureCookie(true))
+			.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
+			.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository),
+				UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
 	}
