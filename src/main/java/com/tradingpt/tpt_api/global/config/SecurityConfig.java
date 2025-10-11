@@ -209,8 +209,9 @@ public class SecurityConfig {
 					"/api/v1/auth/**",
 					"/oauth2/**", "/login/oauth2/**"
 				).permitAll()
-				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests").permitAll()  // 목록만 비로그인 허용
-				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests/*").authenticated()  // 상세는 로그인 필요
+				// ✅ 피드백 목록 및 상세 모두 비로그인 허용 (Service에서 세밀한 권한 검증)
+				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests/*").permitAll()
 				.anyRequest().authenticated()
 			)
 			.formLogin(AbstractHttpConfigurer::disable)
