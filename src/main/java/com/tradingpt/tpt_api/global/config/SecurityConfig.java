@@ -16,8 +16,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -36,6 +46,8 @@ import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
 import org.springframework.session.security.SpringSessionBackedSessionRegistry;
 
+import java.util.Collection;
+
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -49,8 +61,12 @@ public class SecurityConfig {
 	private final JsonAccessDeniedHandler jsonAccessDeniedHandler;
 	private final ServerProperties serverProperties;
 
-	/** AuthenticationManager */
+	private final UserDetailsService userDetailsService;
+	private final PasswordEncoder passwordEncoder;
+
+	/** AuthenticationManager (전역) */
 	@Bean
+	@Primary
 	public AuthenticationManager authenticationManager(AuthenticationConfiguration cfg) throws Exception {
 		return cfg.getAuthenticationManager();
 	}
@@ -72,11 +88,37 @@ public class SecurityConfig {
 		return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper);
 	}
 
-	/** JSON 로그인 필터 (사용자용) */
+	/** ★ 사용자 전용 Provider: ADMIN/TRAINER 는 사용자 로그인에서 인증 실패 */
+	@Bean(name = "userAuthProvider")
+	public AuthenticationProvider userAuthProvider() {
+		DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+		p.setUserDetailsService(username -> {
+			UserDetails u = userDetailsService.loadUserByUsername(username);
+			for (GrantedAuthority a : u.getAuthorities()) {
+				String g = a.getAuthority();
+				if ("ROLE_ADMIN".equals(g) || "ROLE_TRAINER".equals(g)) {
+					throw new UsernameNotFoundException("User-only login endpoint");
+				}
+			}
+			return u;
+		});
+		p.setPasswordEncoder(passwordEncoder);
+		return p;
+	}
+
+	/** ★ 사용자 전용 AuthenticationManager */
+	@Bean(name = "userAuthenticationManager")
+	public AuthenticationManager userAuthenticationManager(
+			@Qualifier("userAuthProvider") AuthenticationProvider userProvider) {
+		return new ProviderManager(java.util.List.of(userProvider));
+	}
+
+	/** JSON 로그인 필터 (사용자용) — ★ 사용자 전용 매니저 주입 */
 	@Bean
-	public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
+	public JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter(
+			@Qualifier("userAuthenticationManager") AuthenticationManager authManager) {
 		var filter = new JsonUsernamePasswordAuthFilter(objectMapper);
-		filter.setFilterProcessesUrl("/api/v1/auth/login"); // 사용자 로그인 엔드포인트
+		filter.setFilterProcessesUrl("/api/v1/auth/login");
 		filter.setAuthenticationManager(authManager);
 		filter.setAuthenticationSuccessHandler(customSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
@@ -84,12 +126,36 @@ public class SecurityConfig {
 		return filter;
 	}
 
-	/** 관리자 로그인 필터 */
+	/** 관리자 전용 Provider */
+	@Bean(name = "adminAuthProvider")
+	public AuthenticationProvider adminAuthProvider() {
+		DaoAuthenticationProvider p = new DaoAuthenticationProvider();
+		p.setUserDetailsService(username -> {
+			UserDetails u = userDetailsService.loadUserByUsername(username);
+			if (!hasAdminOrTrainer(u.getAuthorities())) {
+				throw new UsernameNotFoundException("Admin-only login endpoint");
+			}
+			return u;
+		});
+		p.setPasswordEncoder(passwordEncoder);
+		return p;
+	}
+
+	/** 관리자 전용 AuthenticationManager */
+	@Bean(name = "adminAuthenticationManager")
+	public AuthenticationManager adminAuthenticationManager(
+			@Qualifier("adminAuthProvider") AuthenticationProvider adminProvider) {
+		return new ProviderManager(java.util.List.of(adminProvider));
+	}
+
+	/** 관리자 로그인 필터 — 관리자 전용 AuthenticationManager 주입 */
 	@Bean
-	public AdminJsonUsernamePasswordAuthFilter adminJsonUsernamePasswordAuthFilter(AuthenticationManager authManager) {
+	public AdminJsonUsernamePasswordAuthFilter adminJsonUsernamePasswordAuthFilter(
+			@Qualifier("adminAuthenticationManager") AuthenticationManager adminAuthManager
+	) {
 		var filter = new AdminJsonUsernamePasswordAuthFilter(objectMapper);
-		filter.setFilterProcessesUrl("/api/v1/admin/login"); // ★ 관리자 로그인 엔드포인트를 /api/v1/admin/login 으로 변경
-		filter.setAuthenticationManager(authManager);
+		filter.setFilterProcessesUrl("/api/v1/admin/login");
+		filter.setAuthenticationManager(adminAuthManager);
 		filter.setAuthenticationSuccessHandler(adminSuccessHandler);
 		filter.setAuthenticationFailureHandler(customFailureHandler);
 		filter.setRememberMeServices(rememberMeServices);
@@ -162,7 +228,6 @@ public class SecurityConfig {
 				)
 				.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
-
 		return http.build();
 	}
 
@@ -219,5 +284,13 @@ public class SecurityConfig {
 						UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
+	}
+
+	private boolean hasAdminOrTrainer(Collection<? extends GrantedAuthority> auths) {
+		for (GrantedAuthority a : auths) {
+			String g = a.getAuthority();
+			if ("ROLE_ADMIN".equals(g) || "ROLE_TRAINER".equals(g)) return true;
+		}
+		return false;
 	}
 }
