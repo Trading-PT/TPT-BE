@@ -93,14 +93,23 @@ public class FeedbackRequestV1Controller {
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackListSlice(pageable));
 	}
 
-	@Operation(summary = "피드백 요청 상세 조회", description = "특정 피드백 요청의 상세 정보를 조회합니다.")
+	@Operation(summary = "피드백 요청 상세 조회", description = """
+		특정 피드백 요청의 상세 정보를 조회합니다.
+		
+		접근 권한:
+		- 자신이 작성한 피드백
+		- 구독 중인 사용자는 모든 피드백 조회 가능
+		
+		미구독 사용자는 자신의 피드백만 조회 가능합니다.
+		""")
 	@GetMapping("/{feedbackRequestId}")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
 		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
-		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackRequestById(
-			feedbackRequestId, customerId));
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getFeedbackRequestById(feedbackRequestId, customerId)
+		);
 	}
 
 	@Operation(summary = "피드백 요청 삭제", description = "피드백 요청을 삭제합니다. (고객만 가능)")

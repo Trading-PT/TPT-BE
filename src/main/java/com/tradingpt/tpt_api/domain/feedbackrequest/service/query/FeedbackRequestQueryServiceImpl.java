@@ -31,8 +31,12 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestExc
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
+import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.common.dto.SliceInfo;
 
@@ -50,7 +54,6 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	@Override
 	public FeedbackListResponseDTO getFeedbackListSlice(Pageable pageable) {
-
 		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
 			.findAllFeedbackRequestsSlice(pageable);
 
@@ -67,11 +70,9 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	public Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, InvestmentType feedbackType,
 		Status status, Long customerId) {
 
-		// Repository의 QueryDSL 메서드 사용
 		Page<FeedbackRequest> feedbackRequestPage = feedbackRequestRepository
 			.findFeedbackRequestsWithFilters(pageable, feedbackType, status, customerId);
 
-		// Entity to DTO 변환
 		return feedbackRequestPage.map(FeedbackRequestResponseDTO::of);
 	}
 
@@ -124,20 +125,21 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	@Override
 	public FeedbackRequestDetailResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+		// 1. 피드백 조회
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
 			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
-		// 권한 체크: 고객은 자신의 피드백만, 트레이너는 모든 피드백 조회 가능
-		if (!hasAccessPermission(feedbackRequest, currentUserId)) {
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
-		}
+		// 2. 접근 권한 검증
+		validateFeedbackAccess(feedbackRequest, currentUserId);
 
+		// 3. 응답 DTO 생성
 		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
 			FeedbackRequestDetailResponseDTO.builder()
 				.id(feedbackRequest.getId())
 				.investmentType(feedbackRequest.getInvestmentType())
 				.status(feedbackRequest.getStatus());
 
+		// 4. 타입별 상세 정보 추가
 		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
 			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
 		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
@@ -146,8 +148,8 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
 		}
 
-		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse(); // 피드백 응답 조회
-
+		// 5. 피드백 응답 정보 추가
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
 		if (feedbackResponse != null) {
 			Trainer trainer = feedbackResponse.getTrainer();
 			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
@@ -160,26 +162,84 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	public List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, InvestmentType investmentType,
 		Status status) {
 
-		// Repository의 QueryDSL 메서드 사용
 		List<FeedbackRequest> feedbackRequests = feedbackRequestRepository
 			.findMyFeedbackRequests(customerId, investmentType, status);
 
-		// Entity to DTO 변환
 		return feedbackRequests.stream()
 			.map(FeedbackRequestResponseDTO::of)
 			.toList();
 	}
 
-	private boolean hasAccessPermission(FeedbackRequest feedbackRequest, Long currentUserId) {
-		// 고객은 자신의 피드백만, 트레이너는 모든 피드백 접근 가능
-		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
-			return true;
+	/**
+	 * 피드백 접근 권한 검증
+	 *
+	 * 접근 규칙:
+	 * 1. 베스트 피드백: 누구나 조회 가능 (로그인/비로그인 무관)
+	 * 2. 트레이너/어드민: 모든 피드백 조회 가능
+	 * 3. 일반 피드백 + 구독자(PREMIUM): 모든 피드백 조회 가능
+	 * 4. 일반 피드백 + 비구독자: 자신의 피드백만 조회 가능
+	 * 5. 비로그인 + 일반 피드백: 접근 불가
+	 *
+	 * @param feedbackRequest 조회할 피드백
+	 * @param currentUserId 현재 사용자 ID (null 가능)
+	 * @throws FeedbackRequestException 접근 권한이 없을 경우
+	 */
+	private void validateFeedbackAccess(FeedbackRequest feedbackRequest, Long currentUserId) {
+		// ✅ 1. 베스트 피드백은 누구나 접근 가능
+		if (Boolean.TRUE.equals(feedbackRequest.getIsBestFeedback())) {
+			log.debug("Best feedback access allowed for feedbackId: {}", feedbackRequest.getId());
+			return;
 		}
 
-		// 트레이너인 경우 모든 피드백 접근 가능
+		// 일반 피드백일 경우
+		// ✅ 2. 비로그인 사용자는 일반 피드백 접근 불가
+		if (currentUserId == null) {
+			log.warn("Unauthorized access attempt to feedback: {}", feedbackRequest.getId());
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+		}
+
+		// ✅ 3. 트레이너/어드민 권한 확인
+		if (isTrainerOrAdmin()) {
+			log.debug("Trainer/Admin access allowed for feedbackId: {}", feedbackRequest.getId());
+			return;
+		}
+
+		// ✅ 4. 자신의 피드백인 경우 접근 허용
+		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
+			log.debug("Owner access allowed for feedbackId: {}", feedbackRequest.getId());
+			return;
+		}
+
+		// ✅ 5. 구독자(PREMIUM)인 경우 모든 피드백 접근 가능
+		Customer customer = (Customer)userRepository.findById(currentUserId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		if (customer.getMembershipLevel() == MembershipLevel.PREMIUM) {
+			log.debug("Premium member access allowed for feedbackId: {}", feedbackRequest.getId());
+			return;
+		}
+
+		// ✅ 6. 그 외의 경우 접근 거부 (비구독자가 다른 사람의 피드백 조회 시도)
+		log.warn("Access denied for user {} to feedback {}", currentUserId, feedbackRequest.getId());
+		throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+	}
+
+	/**
+	 * 현재 사용자가 트레이너 또는 어드민 권한을 가지고 있는지 확인
+	 *
+	 * @return 트레이너/어드민이면 true, 아니면 false
+	 */
+	private boolean isTrainerOrAdmin() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		return authentication != null &&
-			authentication.getAuthorities().stream()
-				.anyMatch(authority -> authority.getAuthority().equals("ROLE_TRAINER"));
+
+		if (authentication == null || !authentication.isAuthenticated()) {
+			return false;
+		}
+
+		return authentication.getAuthorities().stream()
+			.anyMatch(authority ->
+				authority.getAuthority().equals("ROLE_TRAINER") ||
+					authority.getAuthority().equals("ROLE_ADMIN")
+			);
 	}
 }
