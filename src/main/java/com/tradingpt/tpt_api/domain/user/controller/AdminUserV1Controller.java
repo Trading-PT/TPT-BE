@@ -17,6 +17,7 @@ import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDT
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.service.command.AdminUserCommandService;
 import com.tradingpt.tpt_api.domain.user.service.query.AdminUserQueryService;
+import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,19 +36,20 @@ public class AdminUserV1Controller {
 	@Operation(summary = "신규 가입자 목록(UID 검토 중) 조회")
 	@GetMapping("/pending")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-	public ResponseEntity<List<PendingUserApprovalRowResponseDTO>> getPendingUsers() {
-		return ResponseEntity.ok(adminUserQueryService.getPendingApprovalRows());
+	public ResponseEntity<BaseResponse<List<PendingUserApprovalRowResponseDTO>>> getPendingUsers() {
+		List<PendingUserApprovalRowResponseDTO> result = adminUserQueryService.getPendingApprovalRows();
+		return ResponseEntity.ok(BaseResponse.onSuccess(result));
 	}
 
 	@Operation(summary = "신규 가입자 UID 승인 여부 처리 (승인/거절)")
 	@PatchMapping("/{userId}/status")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-	public ResponseEntity<UserStatusUpdateResponseDTO> updateUserStatus(
-		@PathVariable Long userId,
-		@RequestParam UserStatus status
+	public ResponseEntity<BaseResponse<UserStatusUpdateResponseDTO>> updateUserStatus(
+			@PathVariable Long userId,
+			@RequestParam UserStatus status
 	) {
 		adminUserCommandService.updateUserStatus(userId, status);
-		return ResponseEntity.ok(UserStatusUpdateResponseDTO.of(userId));
+		UserStatusUpdateResponseDTO response = UserStatusUpdateResponseDTO.of(userId);
+		return ResponseEntity.ok(BaseResponse.onSuccess(response));
 	}
-
 }

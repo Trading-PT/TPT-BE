@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Schema(description = "비밀번호 변경 요청 DTO")
-public class ChangePasswordRequest {
+public class ChangePasswordRequestDTO {
     @NotBlank
     private String currentPassword;
     @NotBlank

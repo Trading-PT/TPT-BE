@@ -24,7 +24,7 @@ import com.tradingpt.tpt_api.domain.auth.dto.response.SocialInfoResponse;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
 import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.auth.service.AuthService;
-import com.tradingpt.tpt_api.domain.user.dto.request.FindIdRequest;
+import com.tradingpt.tpt_api.domain.user.dto.request.FindIdRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
@@ -134,7 +134,7 @@ public class AuthController {
 
 	@Operation(summary = "이메일로 유저 ID 찾기", description = "email을 입력하면 해당 유저의 userName(ID)를 반환합니다.")
 	@PostMapping("/id/find")
-	public ResponseEntity<BaseResponse<FindIdResponseDTO>> findIdByEmail(@Valid @RequestBody FindIdRequest req) {
+	public ResponseEntity<BaseResponse<FindIdResponseDTO>> findIdByEmail(@Valid @RequestBody FindIdRequestDTO req) {
 		FindIdResponseDTO response = userService.findUserId(req.getEmail());
 
 		if (response == null) {

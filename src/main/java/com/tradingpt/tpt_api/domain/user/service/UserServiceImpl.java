@@ -7,17 +7,13 @@ import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
 import com.tradingpt.tpt_api.global.infrastructure.s3.S3UploadResult;
 import java.util.List;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
-import org.springframework.session.FindByIndexNameSessionRepository;
-import org.springframework.session.Session;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
 import com.tradingpt.tpt_api.domain.auth.exception.code.AuthErrorStatus;
-import com.tradingpt.tpt_api.domain.user.dto.request.ChangePasswordRequest;
+import com.tradingpt.tpt_api.domain.user.dto.request.ChangePasswordRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.PasswordHistory;
@@ -77,7 +73,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Transactional
-	public void changePassword(Long userId, ChangePasswordRequest req) {
+	public void changePassword(Long userId, ChangePasswordRequestDTO req) {
 		User user = userRepository.findById(userId)
 			.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
 
