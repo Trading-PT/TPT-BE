@@ -76,6 +76,7 @@ app:
     allowed-origins:
       - https://dev.tradingpt.shop
       - https://localhost:3000
+      - https://localhost:3001
       - https://www.tradingpt.kr
     
     exposed-headers:
