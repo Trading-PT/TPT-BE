@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @Validated
 @RestController
-@RequestMapping("admin/api/v1/users")
+@RequestMapping("/api/v1/admin/users")
 @RequiredArgsConstructor
 @Tag(name = "관리자 - 회원 관리", description = "관리자/트레이너 전용 회원 관리 API")
 public class AdminUserV1Controller {
