@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Schema(description = "ID 찾기 요청 DTO")
-public class FindIdRequest {
+public class FindIdRequestDTO {
     @Email
     @NotBlank
     private String email;
