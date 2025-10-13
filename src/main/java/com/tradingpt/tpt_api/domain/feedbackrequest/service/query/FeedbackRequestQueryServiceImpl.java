@@ -137,6 +137,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			FeedbackRequestDetailResponseDTO.builder()
 				.id(feedbackRequest.getId())
 				.investmentType(feedbackRequest.getInvestmentType())
+				.membershipLevel(feedbackRequest.getMembershipLevel())
 				.status(feedbackRequest.getStatus());
 
 		// 4. 타입별 상세 정보 추가
