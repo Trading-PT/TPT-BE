@@ -161,16 +161,38 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		);
 	}
 
+	/**
+	 * 피드백 요청 상세 조회
+	 *
+	 * ⚠️ 조회 시 자동으로 읽음 처리:
+	 * - FeedbackResponse가 존재하고 아직 읽지 않은 경우 (Status.FN)
+	 * - 자동으로 Status.FR로 변경 (읽음 처리)
+	 */
 	@Override
-	public FeedbackRequestDetailResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId) {
+	@Transactional  // ✅ 메서드 레벨에서 readOnly=false로 오버라이드
+	public FeedbackRequestDetailResponseDTO getFeedbackRequestById(
+		Long feedbackRequestId,
+		Long currentUserId
+	) {
+		log.info("Fetching feedback request detail: id={}, userId={}",
+			feedbackRequestId, currentUserId);
+
 		// 1. 피드백 조회
 		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
-			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
+			.orElseThrow(() -> new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
 		// 2. 접근 권한 검증
 		validateFeedbackAccess(feedbackRequest, currentUserId);
 
-		// 3. 응답 DTO 생성
+		// 3. ✅ 읽음 처리 (FeedbackResponse가 있고 아직 읽지 않은 경우)
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
+		if (feedbackResponse != null && feedbackRequest.getStatus() == Status.FN) {
+			feedbackRequest.setStatus(Status.FR);
+			log.info("Feedback request marked as read: id={}", feedbackRequestId);
+		}
+
+		// 4. 응답 DTO 생성
 		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
 			FeedbackRequestDetailResponseDTO.builder()
 				.id(feedbackRequest.getId())
@@ -178,7 +200,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 				.membershipLevel(feedbackRequest.getMembershipLevel())
 				.status(feedbackRequest.getStatus());
 
-		// 4. 타입별 상세 정보 추가
+		// 5. 타입별 상세 정보 추가
 		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
 			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
 		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
@@ -187,8 +209,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
 		}
 
-		// 5. 피드백 응답 정보 추가
-		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
+		// 6. 피드백 응답 정보 추가
 		if (feedbackResponse != null) {
 			Trainer trainer = feedbackResponse.getTrainer();
 			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
