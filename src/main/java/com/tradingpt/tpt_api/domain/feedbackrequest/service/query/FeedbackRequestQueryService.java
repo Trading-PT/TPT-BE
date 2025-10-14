@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
@@ -50,4 +51,19 @@ public interface FeedbackRequestQueryService {
 	 */
 	AdminFeedbackResponseDTO getAdminFeedbackListSlice(Pageable pageable);
 
+	/**
+	 * 특정 날짜의 피드백 요청 목록 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param day 일
+	 * @return 해당 날짜의 피드백 요청 목록
+	 */
+	List<FeedbackRequestListItemResponseDTO> getDailyFeedbackRequests(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer day
+	);
 }

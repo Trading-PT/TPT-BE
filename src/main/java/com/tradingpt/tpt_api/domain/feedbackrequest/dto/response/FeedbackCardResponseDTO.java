@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Schema(description = "피드백 카드 DTO (목록용)")
-public class FeedbackCardDTO {
+public class FeedbackCardResponseDTO {
 
 	@Schema(description = "피드백 요청 ID", example = "123")
 	private Long feedbackRequestId;
@@ -53,8 +53,8 @@ public class FeedbackCardDTO {
 	/**
 	 * FeedbackRequest 엔티티로부터 카드 DTO 생성
 	 */
-	public static FeedbackCardDTO from(FeedbackRequest feedbackRequest) {
-		return FeedbackCardDTO.builder()
+	public static FeedbackCardResponseDTO from(FeedbackRequest feedbackRequest) {
+		return FeedbackCardResponseDTO.builder()
 			.feedbackRequestId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
 			.contentPreview(generatePreview(feedbackRequest))

@@ -19,12 +19,12 @@ import lombok.NoArgsConstructor;
 public class FeedbackListResponseDTO {
 
 	@Schema(description = "피드백 요청 목록")
-	private List<FeedbackCardDTO> feedbacks;
+	private List<FeedbackCardResponseDTO> feedbacks;
 
 	@Schema(description = "슬라이스 정보")
 	private SliceInfo sliceInfo;
 
-	public static FeedbackListResponseDTO of(List<FeedbackCardDTO> feedbacks, SliceInfo sliceInfo) {
+	public static FeedbackListResponseDTO of(List<FeedbackCardResponseDTO> feedbacks, SliceInfo sliceInfo) {
 		return FeedbackListResponseDTO.builder()
 			.feedbacks(feedbacks)
 			.sliceInfo(sliceInfo)

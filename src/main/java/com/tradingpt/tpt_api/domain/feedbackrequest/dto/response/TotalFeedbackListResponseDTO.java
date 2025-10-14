@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class TotalFeedbackListResponseDTO {
 
 	@Schema(description = "피드백 요청 목록")
-	private List<AdminFeedbackCardDTO> adminFeedbackCardDTOS;
+	private List<AdminFeedbackCardResponseDTO> adminFeedbackCardResponseDTOS;
 
 	@Schema(description = "슬라이스 정보")
 	private SliceInfo sliceInfo;

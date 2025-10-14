@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.query;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -10,12 +11,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackCardDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SelectedBestFeedbackListResponseDTO;
@@ -29,6 +31,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -37,6 +40,7 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.common.dto.SliceInfo;
 
@@ -51,14 +55,15 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
 
 	@Override
 	public FeedbackListResponseDTO getFeedbackListSlice(Pageable pageable) {
 		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
 			.findAllFeedbackRequestsSlice(pageable);
 
-		Slice<FeedbackCardDTO> cardSlice = feedbackSlice
-			.map(FeedbackCardDTO::from);
+		Slice<FeedbackCardResponseDTO> cardSlice = feedbackSlice
+			.map(FeedbackCardResponseDTO::from);
 
 		return FeedbackListResponseDTO.of(
 			cardSlice.getContent(),
@@ -82,7 +87,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		List<FeedbackRequest> bestFeedbacks = feedbackRequestRepository
 			.findTop3ByIsBestFeedbackTrueOrderByCreatedAtDesc();
 
-		List<AdminFeedbackCardDTO> bestFeedbackCards = bestFeedbacks.stream()
+		List<AdminFeedbackCardResponseDTO> bestFeedbackCards = bestFeedbacks.stream()
 			.map(this::toAdminFeedbackCardDTO)
 			.toList();
 
@@ -93,11 +98,11 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		Slice<FeedbackRequest> allFeedbackSlice = feedbackRequestRepository
 			.findAllFeedbacksByCreatedAtDesc(pageable);
 
-		Slice<AdminFeedbackCardDTO> adminFeedbackCardSlice = allFeedbackSlice
+		Slice<AdminFeedbackCardResponseDTO> adminFeedbackCardSlice = allFeedbackSlice
 			.map(this::toAdminFeedbackCardDTO);
 
 		TotalFeedbackListResponseDTO totalFeedbacks = TotalFeedbackListResponseDTO.builder()
-			.adminFeedbackCardDTOS(adminFeedbackCardSlice.getContent())
+			.adminFeedbackCardResponseDTOS(adminFeedbackCardSlice.getContent())
 			.sliceInfo(SliceInfo.of(adminFeedbackCardSlice))
 			.build();
 
@@ -105,11 +110,44 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		return AdminFeedbackResponseDTO.of(selectedBestFeedbacks, totalFeedbacks);
 	}
 
+	@Override
+	public List<FeedbackRequestListItemResponseDTO> getDailyFeedbackRequests(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer day
+	) {
+		log.info("Fetching daily feedback requests for customerId={}, date={}-{}-{}",
+			customerId, year, month, day);
+
+		// 1. 날짜 유효성 검증
+		DateValidationUtil.validateDate(year, month, day);
+
+		// 2. 고객 존재 여부 확인
+		if (!customerRepository.existsById(customerId)) {
+			throw new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND);
+		}
+
+		// 3. LocalDate 생성
+		LocalDate targetDate = LocalDate.of(year, month, day);
+
+		// 4. 해당 날짜의 피드백 요청 조회
+		List<FeedbackRequest> requests = feedbackRequestRepository
+			.findByCustomerIdAndDate(customerId, targetDate);
+
+		log.info("Found {} feedback requests for date {}", requests.size(), targetDate);
+
+		// 5. DTO 변환
+		return requests.stream()
+			.map(FeedbackRequestListItemResponseDTO::from)
+			.toList();
+	}
+
 	/**
 	 * FeedbackRequest를 AdminFeedbackCardDTO로 변환하는 헬퍼 메서드
 	 */
-	private AdminFeedbackCardDTO toAdminFeedbackCardDTO(FeedbackRequest feedback) {
-		return AdminFeedbackCardDTO.of(
+	private AdminFeedbackCardResponseDTO toAdminFeedbackCardDTO(FeedbackRequest feedback) {
+		return AdminFeedbackCardResponseDTO.of(
 			feedback.getId(),
 			feedback.getIsBestFeedback(),
 			feedback.getCustomer().getUsername(),

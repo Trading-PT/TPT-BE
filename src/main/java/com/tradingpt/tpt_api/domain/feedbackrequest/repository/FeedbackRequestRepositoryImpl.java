@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -1100,9 +1101,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer month,
 		CourseStatus courseStatus
 	) {
-		// FeedbackRequest는 추상 클래스이므로 서브타입들을 모두 확인
-		// 하나라도 존재하면 true 반환
-
 		// Day 피드백 확인
 		Integer dayExists = queryFactory
 			.selectOne()
@@ -1148,6 +1146,59 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.fetchFirst();
 
 		return swingExists != null;
+	}
+
+	@Override
+	public List<FeedbackRequest> findByCustomerIdAndDate(
+		Long customerId,
+		LocalDate targetDate
+	) {
+		// Day 피드백 조회 (feedbackRequestDate로 필터링)
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackRequestDate.eq(targetDate)
+			)
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+
+		// Scalping 피드백 조회
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackRequestDate.eq(targetDate)
+			)
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// Swing 피드백 조회
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackRequestDate.eq(targetDate)
+			)
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// 모든 피드백을 합치고 생성 시간 순으로 정렬
+		List<FeedbackRequest> allRequests = new ArrayList<>();
+		allRequests.addAll(dayRequests);
+		allRequests.addAll(scalpingRequests);
+		allRequests.addAll(swingRequests);
+
+		// 생성 시간 오름차순 정렬 (오래된 것부터)
+		allRequests.sort(Comparator.comparing(FeedbackRequest::getCreatedAt));
+
+		return allRequests;
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {

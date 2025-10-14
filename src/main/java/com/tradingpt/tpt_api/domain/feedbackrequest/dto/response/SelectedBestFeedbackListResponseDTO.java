@@ -16,11 +16,12 @@ import lombok.NoArgsConstructor;
 @Schema(description = "현재 선정된 베스트 피드백")
 public class SelectedBestFeedbackListResponseDTO {
 
-	private List<AdminFeedbackCardDTO> adminFeedbackCardDTOS; // 최대 3개만 존재하기 때문에 페이징 정보 필요 없음.
+	private List<AdminFeedbackCardResponseDTO> adminFeedbackCardResponseDTOS; // 최대 3개만 존재하기 때문에 페이징 정보 필요 없음.
 
-	public static SelectedBestFeedbackListResponseDTO from(List<AdminFeedbackCardDTO> adminFeedbackCardDTOS) {
+	public static SelectedBestFeedbackListResponseDTO from(
+		List<AdminFeedbackCardResponseDTO> adminFeedbackCardResponseDTOS) {
 		return SelectedBestFeedbackListResponseDTO.builder()
-			.adminFeedbackCardDTOS(adminFeedbackCardDTOS)
+			.adminFeedbackCardResponseDTOS(adminFeedbackCardResponseDTOS)
 			.build();
 	}
 }

@@ -45,6 +45,8 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 		"피드백 연/월/주차 정보가 요청 날짜와 일치하지 않습니다."),
 	INVALID_YEAR_MONTH(HttpStatus.BAD_REQUEST, "FEEDBACK4023",
 		"연도/월은 현재 또는 과거만 가능합니다."),
+	INVALID_DATE(HttpStatus.BAD_REQUEST, "FEEDBACK4024",
+		"연도/월/일은 현재 또는 과거만 가능합니다."),
 	;
 
 	private final HttpStatus httpStatus;

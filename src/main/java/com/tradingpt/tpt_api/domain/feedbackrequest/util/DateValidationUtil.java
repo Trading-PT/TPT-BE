@@ -1,16 +1,20 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.util;
 
+import java.time.DateTimeException;
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 날짜 검증 유틸리티
  */
+@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class DateValidationUtil {
 
@@ -55,5 +59,87 @@ public final class DateValidationUtil {
 		if (year > currentYear) {
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_YEAR_MONTH);
 		}
+	}
+
+	/**
+	 * 연도/월/일이 유효한 날짜인지 검증합니다.
+	 *
+	 * @param year 검증할 연도
+	 * @param month 검증할 월
+	 * @param day 검증할 일
+	 * @throws FeedbackRequestException 유효하지 않은 날짜인 경우
+	 */
+	public static void validateDate(Integer year, Integer month, Integer day) {
+		if (year == null || month == null || day == null) {
+			log.warn("Date parameters cannot be null: year={}, month={}, day={}", year, month, day);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+		}
+
+		// 월 범위 검증
+		if (month < 1 || month > 12) {
+			log.warn("Invalid month: {}", month);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+		}
+
+		// 일 범위 기본 검증
+		if (day < 1 || day > 31) {
+			log.warn("Invalid day: {}", day);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+		}
+
+		try {
+			// 해당 연/월의 마지막 날 계산
+			YearMonth yearMonth = YearMonth.of(year, month);
+			int lastDayOfMonth = yearMonth.lengthOfMonth();
+
+			// 해당 월의 유효한 날짜인지 확인
+			if (day > lastDayOfMonth) {
+				log.warn("Invalid day {} for year-month {}-{} (max: {})",
+					day, year, month, lastDayOfMonth);
+				throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+			}
+
+			// 실제 날짜 생성 가능한지 최종 검증
+			LocalDate.of(year, month, day);
+		} catch (DateTimeException e) {
+			log.error("Invalid date: {}-{}-{}", year, month, day, e);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+		}
+	}
+
+	/**
+	 * 연도/월/일이 현재 또는 과거인지 검증합니다.
+	 *
+	 * @param year 검증할 연도
+	 * @param month 검증할 월
+	 * @param day 검증할 일
+	 * @throws FeedbackRequestException 미래 날짜이거나 유효하지 않은 날짜인 경우
+	 */
+	public static void validatePastOrPresentDate(Integer year, Integer month, Integer day) {
+		// 먼저 날짜 유효성 검증
+		validateDate(year, month, day);
+
+		// 현재 날짜와 비교
+		LocalDate now = LocalDate.now();
+		LocalDate target = LocalDate.of(year, month, day);
+
+		if (target.isAfter(now)) {
+			log.warn("Future date not allowed: {}", target);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_DATE);
+		}
+	}
+
+	/**
+	 * 유효한 날짜로 LocalDate 객체 생성
+	 *
+	 * @param year 연도
+	 * @param month 월
+	 * @param day 일
+	 * @return LocalDate 객체
+	 * @throws FeedbackRequestException 유효하지 않은 날짜인 경우
+	 */
+	public static LocalDate toLocalDate(Integer year, Integer month, Integer day) {
+		validateDate(year, month, day);
+		return LocalDate.of(year, month, day);
 	}
 }

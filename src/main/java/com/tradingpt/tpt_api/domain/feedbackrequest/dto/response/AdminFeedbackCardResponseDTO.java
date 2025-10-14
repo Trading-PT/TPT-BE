@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Schema(description = "어드민용 피드백 카드 DTO (목록용)")
-public class AdminFeedbackCardDTO {
+public class AdminFeedbackCardResponseDTO {
 
 	@Schema(description = "피드백 ID")
 	private Long id;
@@ -43,10 +43,10 @@ public class AdminFeedbackCardDTO {
 	@Schema(description = "제공 일자")
 	private LocalDateTime submittedAt;
 
-	public static AdminFeedbackCardDTO of(Long id, Boolean isBestFeedback, String username, String trainerName,
+	public static AdminFeedbackCardResponseDTO of(Long id, Boolean isBestFeedback, String username, String trainerName,
 		InvestmentType investmentType,
 		CourseStatus courseStatus, LocalDateTime createdAt, LocalDateTime submittedAt) {
-		return AdminFeedbackCardDTO.builder()
+		return AdminFeedbackCardResponseDTO.builder()
 			.id(id)
 			.isBestFeedback(isBestFeedback)
 			.username(username)

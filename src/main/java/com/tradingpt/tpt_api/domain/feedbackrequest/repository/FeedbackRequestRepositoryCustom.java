@@ -215,4 +215,18 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer month,
 		CourseStatus courseStatus
 	);
+
+	/**
+	 * 특정 날짜의 고객 피드백 요청 목록 조회 (시간 순 정렬)
+	 * feedbackRequestDate를 사용하여 날짜 필터링
+	 *
+	 * @param customerId 고객 ID
+	 * @param targetDate 조회할 날짜
+	 * @return 해당 날짜의 피드백 요청 목록 (작성 시간 오름차순)
+	 */
+	List<FeedbackRequest> findByCustomerIdAndDate(
+		Long customerId,
+		LocalDate targetDate
+	);
+	
 }
