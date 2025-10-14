@@ -113,8 +113,8 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			feedback.getId(),
 			feedback.getIsBestFeedback(),
 			feedback.getCustomer().getUsername(),
-			feedback.getCustomer().getTrainer() != null ?
-				feedback.getCustomer().getTrainer().getUsername() : null,
+			feedback.getCustomer().getAssignedTrainer() != null ?
+				feedback.getCustomer().getAssignedTrainer().getUsername() : null,
 			feedback.getInvestmentType(),
 			feedback.getCourseStatus(),
 			feedback.getCreatedAt(),
