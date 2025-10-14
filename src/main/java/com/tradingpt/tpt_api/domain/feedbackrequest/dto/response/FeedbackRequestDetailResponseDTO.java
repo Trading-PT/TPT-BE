@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AccessLevel;
@@ -24,6 +25,9 @@ public class FeedbackRequestDetailResponseDTO {
 
 	@Schema(description = "투자 유형")
 	private InvestmentType investmentType;
+
+	@Schema(description = "구독 여부")
+	private MembershipLevel membershipLevel;
 
 	@Schema(description = "피드백 상태")
 	private Status status;

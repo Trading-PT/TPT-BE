@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,9 +39,11 @@ public class DayRequestDetail extends FeedbackRequest {
 	private String subFrame;
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String trendAnalysis; // 추세 분석
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	@Enumerated(EnumType.STRING)

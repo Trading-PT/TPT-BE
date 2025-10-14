@@ -29,10 +29,10 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 피드백 요청 목록을 동적 조건으로 페이징 조회
 	 *
-	 * @param pageable 페이징 정보
+	 * @param pageable       페이징 정보
 	 * @param investmentType 투자 유형 필터 (nullable)
-	 * @param status 상태 필터 (nullable)
-	 * @param customerId 고객 ID 필터 (nullable)
+	 * @param status         상태 필터 (nullable)
+	 * @param customerId     고객 ID 필터 (nullable)
 	 * @return 페이징된 피드백 요청 목록
 	 */
 	Page<FeedbackRequest> findFeedbackRequestsWithFilters(
@@ -63,9 +63,9 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 특정 고객의 피드백 요청 목록을 동적 조건으로 조회
 	 *
-	 * @param customerId 고객 ID
+	 * @param customerId     고객 ID
 	 * @param investmentType 투자 유형 필터 (nullable)
-	 * @param status 상태 필터 (nullable)
+	 * @param status         상태 필터 (nullable)
 	 * @return 피드백 요청 목록
 	 */
 	List<FeedbackRequest> findMyFeedbackRequests(
@@ -77,7 +77,7 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 특정 고객이 특정 날짜에 생성한 모든 피드백 요청을 조회한다.
 	 *
-	 * @param customerId 고객 ID
+	 * @param customerId   고객 ID
 	 * @param feedbackDate 피드백 요청 날짜
 	 * @return 해당 날짜의 피드백 요청 목록 (생성 시간 오름차순)
 	 */
@@ -95,7 +95,7 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 특정 고객이 해당 날짜에 작성한 데이 피드백 요청 개수를 반환한다.
 	 *
-	 * @param customerId 고객 ID
+	 * @param customerId     고객 ID
 	 * @param investmentType 피드백 요청 날짜
 	 * @return 해당 날짜의 요청 수
 	 */
@@ -138,6 +138,7 @@ public interface FeedbackRequestRepositoryCustom {
 
 	/**
 	 * 고객의 ID와 특정 연/월에 대해서 가장 최근의 FeedbackRequest를 조회
+	 *
 	 * @param customerId
 	 * @param year
 	 * @param month
@@ -148,11 +149,11 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 주간 일별 통계 조회
 	 *
-	 * @param customerId 고객 ID
-	 * @param year 연도
-	 * @param month 월
-	 * @param week 주차
-	 * @param courseStatus 완강 여부
+	 * @param customerId     고객 ID
+	 * @param year           연도
+	 * @param month          월
+	 * @param week           주차
+	 * @param courseStatus   완강 여부
 	 * @param investmentType 투자 타입
 	 * @return 일별 원시 데이터 리스트
 	 */
@@ -168,10 +169,10 @@ public interface FeedbackRequestRepositoryCustom {
 	/**
 	 * 주간 성과 조회
 	 *
-	 * @param customerId 고객 ID
-	 * @param year 연도
-	 * @param month 월
-	 * @param week 주차
+	 * @param customerId     고객 ID
+	 * @param year           연도
+	 * @param month          월
+	 * @param week           주차
 	 * @param investmentType 투자 타입
 	 * @return 주간 성과 스냅샷
 	 */
@@ -187,9 +188,9 @@ public interface FeedbackRequestRepositoryCustom {
 	 * 데이 트레이딩 방향성 통계 조회 (완강 후)
 	 *
 	 * @param customerId 고객 ID
-	 * @param year 연도
-	 * @param month 월
-	 * @param week 주차
+	 * @param year       연도
+	 * @param month      월
+	 * @param week       주차
 	 * @return 방향성 통계
 	 */
 	DirectionStatistics findDirectionStatistics(
@@ -199,4 +200,19 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer week
 	);
 
+	/**
+	 * 해당 고객의 특정 연/월에 특정 CourseStatus를 가진 피드백이 존재하는지 확인
+	 *
+	 * @param customerId   고객 ID
+	 * @param year         연도
+	 * @param month        월
+	 * @param courseStatus 코스 상태
+	 * @return 존재하면 true, 없으면 false
+	 */
+	boolean existsByCustomerIdAndYearAndMonthAndCourseStatus(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus
+	);
 }
