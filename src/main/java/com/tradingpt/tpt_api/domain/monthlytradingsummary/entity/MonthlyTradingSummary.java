@@ -2,9 +2,9 @@ package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
 import java.time.LocalDateTime;
 
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.CreateMonthlyTradingSummaryRequestDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
@@ -55,6 +55,10 @@ public class MonthlyTradingSummary extends BaseEntity {
 	/**
 	 * 필드
 	 */
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private CourseStatus courseStatus = CourseStatus.AFTER_COMPLETION; // 월별 매매 일지의 리뷰는 완강 후만 존재한다.
+
 	@Embedded
 	private MonthlyPeriod period; // 요약 연/월
 
@@ -62,27 +66,57 @@ public class MonthlyTradingSummary extends BaseEntity {
 	private InvestmentType investmentType;
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String monthlyEvaluation; // 한달 회원 매매 평가
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String nextMonthGoal; // 다음달 회원 목표
 
 	@Builder.Default
 	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가 시각
 
-	public static MonthlyTradingSummary createFrom(CreateMonthlyTradingSummaryRequestDTO request, Customer customer,
-		Trainer trainer, Integer year, Integer month) {
-		
+	/**
+	 * 정적 팩토리 메서드: 처리된 콘텐츠로 MonthlyTradingSummary 생성
+	 *
+	 * @param processedEvaluation 처리된 평가 내용
+	 * @param processedGoal 처리된 목표 내용
+	 * @param customer 고객
+	 * @param trainer 트레이너
+	 * @param year 연도
+	 * @param month 월
+	 * @param investmentType 투자 타입 (반드시 DAY 또는 SWING)
+	 * @return MonthlyTradingSummary 엔티티
+	 */
+	public static MonthlyTradingSummary createFromProcessed(
+		String processedEvaluation,
+		String processedGoal,
+		Customer customer,
+		Trainer trainer,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	) {
 		MonthlyPeriod monthlyPeriod = MonthlyPeriod.of(year, month);
 
 		return MonthlyTradingSummary.builder()
 			.customer(customer)
 			.trainer(trainer)
 			.period(monthlyPeriod)
-			.investmentType(customer.getPrimaryInvestmentType())
-			.monthlyEvaluation(request.getMonthlyEvaluation())
-			.nextMonthGoal(request.getNextMonthGoal())
+			.investmentType(investmentType)
+			.monthlyEvaluation(processedEvaluation)
+			.nextMonthGoal(processedGoal)
+			.evaluatedAt(LocalDateTime.now())
 			.build();
+	}
+
+	/**
+	 * 평가 수정
+	 */
+	public void updateEvaluation(String monthlyEvaluation, String nextMonthGoal) {
+		this.monthlyEvaluation = monthlyEvaluation;
+		this.nextMonthGoal = nextMonthGoal;
+		this.evaluatedAt = LocalDateTime.now();
 	}
 
 }

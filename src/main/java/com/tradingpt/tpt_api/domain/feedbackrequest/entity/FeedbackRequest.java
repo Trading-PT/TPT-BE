@@ -110,9 +110,11 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private BigDecimal settingTakeProfit; // 설정 익절가
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String positionStartReason; // 포지션 진입 근거
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String positionEndReason; // 포지션 탈출 근거
 
 	@Builder.Default
@@ -120,6 +122,7 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private Status status = Status.N; // 피드백 답변 여부
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String tradingReview; // 매매 복기
 
 	@Builder.Default

@@ -62,9 +62,11 @@ public class FeedbackResponse extends BaseEntity {
 	private String title; // 피드백 제목
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String content; // 피드백 내용
 
-	private LocalDateTime submittedAt; // 피드백 제공 시각
+	@Builder.Default
+	private LocalDateTime submittedAt = LocalDateTime.now(); // 피드백 제공 시각
 
 	public static FeedbackResponse createFrom(FeedbackRequest feedbackRequest, Trainer trainer,
 		String title, String responseContent) {
@@ -73,7 +75,6 @@ public class FeedbackResponse extends BaseEntity {
 			.trainer(trainer)
 			.title(title)
 			.content(responseContent)
-			.submittedAt(LocalDateTime.now())
 			.build();
 
 		feedbackRequest.setFeedbackResponse(newFeedbackResponse);

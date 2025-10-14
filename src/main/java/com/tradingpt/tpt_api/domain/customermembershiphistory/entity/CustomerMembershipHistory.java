@@ -53,6 +53,7 @@ public class CustomerMembershipHistory extends BaseEntity {
 	private String reasonCode;
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String reasonDetail;
 
 	private LocalDateTime validFrom;

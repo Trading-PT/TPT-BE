@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
@@ -53,22 +54,37 @@ public class WeeklyTradingSummary extends BaseEntity {
 	/**
 	 * 필드
 	 */
+
+	/**
+	 * 주별 매매 일지는 BEFORE_COMPLETION일 경우 memo만 작성 가능하지만
+	 * AFTER_COMPLETION에 경우
+	 * DAY 투자 유형일 때만
+	 * weeklyEvaluation, weeklyProfitableTradingAnalysis, weeklyLossTradingAnalysis
+	 * 를 작성할 수 있다.
+	 */
 	@Enumerated(EnumType.STRING)
-	private InvestmentType investmentType; // 투자 유형 (DAY 전용)
+	private CourseStatus courseStatus;
+
+	@Enumerated(EnumType.STRING)
+	private InvestmentType investmentType; // 투자 유형
 
 	@Embedded
 	private WeeklyPeriod period; // 요약 연/월/주
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String memo; // 나의 문제점 메모하기
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String weeklyEvaluation; // 주간 회원 매매평가
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String weeklyProfitableTradingAnalysis; // 수익난 매매 분석
 
 	@Lob
+	@Column(columnDefinition = "TEXT")
 	private String weeklyLossTradingAnalysis; // 손실난 매매분석
 
 	@Builder.Default

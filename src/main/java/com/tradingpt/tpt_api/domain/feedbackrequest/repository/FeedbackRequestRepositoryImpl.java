@@ -1093,6 +1093,63 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		);
 	}
 
+	@Override
+	public boolean existsByCustomerIdAndYearAndMonthAndCourseStatus(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus
+	) {
+		// FeedbackRequest는 추상 클래스이므로 서브타입들을 모두 확인
+		// 하나라도 존재하면 true 반환
+
+		// Day 피드백 확인
+		Integer dayExists = queryFactory
+			.selectOne()
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month),
+				dayRequestDetail.courseStatus.eq(courseStatus)
+			)
+			.fetchFirst();
+
+		if (dayExists != null) {
+			return true;
+		}
+
+		// Scalping 피드백 확인
+		Integer scalpingExists = queryFactory
+			.selectOne()
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month),
+				scalpingRequestDetail.courseStatus.eq(courseStatus)
+			)
+			.fetchFirst();
+
+		if (scalpingExists != null) {
+			return true;
+		}
+
+		// Swing 피드백 확인
+		Integer swingExists = queryFactory
+			.selectOne()
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month),
+				swingRequestDetail.courseStatus.eq(courseStatus)
+			)
+			.fetchFirst();
+
+		return swingExists != null;
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
