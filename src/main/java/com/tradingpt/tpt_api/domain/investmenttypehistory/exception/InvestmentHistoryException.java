@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.investmenthistory.exception;
+package com.tradingpt.tpt_api.domain.investmenttypehistory.exception;
 
 import com.tradingpt.tpt_api.global.exception.BaseException;
 import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;

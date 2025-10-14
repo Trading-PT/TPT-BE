@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.investmenthistory.entity;
+package com.tradingpt.tpt_api.domain.investmenttypehistory.entity;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
@@ -16,7 +16,7 @@ import com.querydsl.core.types.dsl.PathInits;
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
 public class QInvestmentTypeHistory extends EntityPathBase<InvestmentTypeHistory> {
 
-    private static final long serialVersionUID = 1734165634L;
+    private static final long serialVersionUID = -1936242500L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 

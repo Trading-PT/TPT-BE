@@ -1,8 +1,8 @@
-package com.tradingpt.tpt_api.domain.investmenthistory.repository;
+package com.tradingpt.tpt_api.domain.investmenttypehistory.repository;
 
 import java.util.Optional;
 
-import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentTypeHistory;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
 
 public interface InvestmentTypeHistoryRepositoryCustom {
 

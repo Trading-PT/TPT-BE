@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.investmenthistory.entity;
+package com.tradingpt.tpt_api.domain.investmenttypehistory.entity;
 
 import java.time.LocalDate;
 
@@ -55,6 +55,26 @@ public class InvestmentTypeHistory extends BaseEntity {
 
 	@Column(name = "ended_at")
 	private LocalDate endDate;
+
+	/**
+	 * 정적 팩토리 메서드: 새로운 투자 타입 이력 생성
+	 */
+	public static InvestmentTypeHistory createFrom(
+		Customer customer,
+		InvestmentType investmentType,
+		LocalDate startDate
+	) {
+		InvestmentTypeHistory history = InvestmentTypeHistory.builder()
+			.customer(customer)
+			.investmentType(investmentType)
+			.startDate(startDate)
+			.endDate(null)  // 진행 중
+			.build();
+
+		customer.getInvestmentHistories().add(history);
+
+		return history;
+	}
 
 	public void assignCustomer(Customer customer) {
 		this.customer = customer;

@@ -19,9 +19,9 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackStatusUtil;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.TradingCalculationUtil;
-import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryErrorStatus;
-import com.tradingpt.tpt_api.domain.investmenthistory.exception.InvestmentHistoryException;
-import com.tradingpt.tpt_api.domain.investmenthistory.repository.InvestmentTypeHistoryRepository;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHistoryErrorStatus;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHistoryException;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.repository.InvestmentTypeHistoryRepository;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyFeedbackSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
@@ -78,7 +78,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 
 		// 연도/월 검증
 		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
-		
+
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 

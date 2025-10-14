@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
-import com.tradingpt.tpt_api.domain.user.enums.Role;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -11,12 +10,13 @@ import com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMem
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
-import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentTypeHistory;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
 import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -251,7 +251,10 @@ public class Customer extends User {
 	//프로필 이미지 변경
 	public void changeProfileImage(String key, String url) {
 		this.profileImageKey = key;
-		this.profileImageUrl  = url;
+		this.profileImageUrl = url;
 	}
 
+	public void updatePrimaryInvestmentType(InvestmentType requestedType) {
+		primaryInvestmentType = requestedType;
+	}
 }

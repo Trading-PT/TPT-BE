@@ -1,13 +1,13 @@
-package com.tradingpt.tpt_api.domain.investmenthistory.repository;
+package com.tradingpt.tpt_api.domain.investmenttypehistory.repository;
 
-import static com.tradingpt.tpt_api.domain.investmenthistory.entity.QInvestmentTypeHistory.*;
+import static com.tradingpt.tpt_api.domain.investmenttypehistory.entity.QInvestmentTypeHistory.*;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Optional;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.tradingpt.tpt_api.domain.investmenthistory.entity.InvestmentTypeHistory;
+import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
 
 import lombok.RequiredArgsConstructor;
 
