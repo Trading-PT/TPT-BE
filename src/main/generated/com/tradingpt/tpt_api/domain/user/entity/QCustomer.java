@@ -74,6 +74,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.AccountStatus> status = createEnum("status", com.tradingpt.tpt_api.domain.user.enums.AccountStatus.class);
 
+    public final NumberPath<Integer> token = createNumber("token", Integer.class);
+
     public final QTrainer trainer;
 
     public final QUid uid;

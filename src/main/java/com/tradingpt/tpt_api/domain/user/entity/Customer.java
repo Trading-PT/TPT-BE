@@ -117,6 +117,9 @@ public class Customer extends User {
 	@Column(name = "profileImageKey", length = 512)
 	private String profileImageKey;
 
+	@Builder.Default
+	private Integer token = 0; // 토큰의 개수
+
 	// ⭐ getRole() 구현
 	@Override
 	public Role getRole() {
@@ -256,5 +259,9 @@ public class Customer extends User {
 
 	public void updatePrimaryInvestmentType(InvestmentType requestedType) {
 		primaryInvestmentType = requestedType;
+	}
+
+	public void updateToken(Integer token) {
+		this.token = token;
 	}
 }

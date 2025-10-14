@@ -8,10 +8,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
@@ -21,6 +23,7 @@ import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @Validated
@@ -45,11 +48,21 @@ public class AdminUserV1Controller {
 	@PatchMapping("/{userId}/status")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<UserStatusUpdateResponseDTO>> updateUserStatus(
-			@PathVariable Long userId,
-			@RequestParam UserStatus status
+		@PathVariable Long userId,
+		@RequestParam UserStatus status
 	) {
 		adminUserCommandService.updateUserStatus(userId, status);
 		UserStatusUpdateResponseDTO response = UserStatusUpdateResponseDTO.of(userId);
 		return ResponseEntity.ok(BaseResponse.onSuccess(response));
+	}
+
+	@Operation(summary = "고객의 토큰 부여 기능", description = "고객에게 토큰을 일정 개수만큼 발급합니다.")
+	@PatchMapping("/{userId}/token")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<Void> giveUserTokens(
+		@PathVariable Long userId,
+		@Valid @RequestBody GiveUserTokenRequestDTO request
+	) {
+		return BaseResponse.onSuccess(adminUserCommandService.giveUserTokens(userId, request));
 	}
 }
