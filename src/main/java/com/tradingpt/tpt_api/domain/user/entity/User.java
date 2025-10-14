@@ -62,11 +62,33 @@ public abstract class User extends BaseEntity {
 	@Column(name = "provider_id")
 	private String providerId; // 소셜 id
 
+	@Column(name = "profileImageUrl", length = 512)
+	private String profileImageUrl;
+
+	@Column(name = "profileImageKey", length = 512)
+	private String profileImageKey;
+
+	//프로필 이미지 변경
+	public void changeProfileImage(String key, String url) {
+		this.profileImageKey = key;
+		this.profileImageUrl  = url;
+	}
+
+	public void changeName(String name) {
+		this.name = name;
+	}
+
+	public void changeUsername(String username) {
+		this.username = username;
+	}
+
+	public void changePassword(String password) {
+		this.password = password;
+	}
+
+
 	// 추상 메서드로 Role 반환
 	public abstract Role getRole();
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
 }
 

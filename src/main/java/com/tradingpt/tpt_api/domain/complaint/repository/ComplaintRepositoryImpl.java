@@ -58,16 +58,16 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
                         complaint.id,
                         customer.name,                // 성함
                         customer.phoneNumber,         // 전화번호
-                        trainer.trainerName,          // 담당 조교
+                        trainer.name,       // 담당 조교
                         complaint.title,              // 제목
                         answeredCond,                 // answered 여부
-                        answeredTrainer.trainerName,  // 답변 작성자(트레이너명)
+                        answeredTrainer.name,  // 답변 작성자(트레이너명)
                         complaint.answeredAt,         // 답변 시각
                         complaint.createdAt           // 등록 시각
                 ))
                 .from(complaint)
                 .join(complaint.customer, customer)          // 고객
-                .leftJoin(customer.trainer, trainer)         // 고객 담당 조교
+                .leftJoin(customer.assignedTrainer, trainer)         // 고객 담당 조교
                 .leftJoin(complaint.answeredBy, answeredTrainer) // 답변자(트레이너)
                 .where(where)
                 .orderBy(orders)
@@ -78,7 +78,7 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
         Long total = q.select(complaint.count())
                 .from(complaint)
                 .join(complaint.customer, customer)
-                .leftJoin(customer.trainer, trainer)
+                .leftJoin(customer.assignedTrainer, trainer)
                 .leftJoin(complaint.answeredBy, answeredTrainer)
                 .where(where)
                 .fetchOne();

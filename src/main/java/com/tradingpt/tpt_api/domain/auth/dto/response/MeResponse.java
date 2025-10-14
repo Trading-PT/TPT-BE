@@ -52,8 +52,8 @@ public class MeResponse {
 		String exchangeName = (c.getUid() != null) ? c.getUid().getExchangeName() : null;
 
 		// 트레이너 정보
-		String trainerName = (c.getTrainer() != null) ? c.getTrainer().getName() : null;
-		Long trainerId = (c.getTrainer() != null) ? c.getTrainer().getId() : null;
+		String trainerName = (c.getAssignedTrainer() != null) ? c.getAssignedTrainer().getName() : null;
+		Long trainerId = (c.getAssignedTrainer() != null) ? c.getAssignedTrainer().getId() : null;
 
 		// 결제수단 (활성 중인 것 1개)
 		String paymentMethod = null;
@@ -76,7 +76,7 @@ public class MeResponse {
 			.userStatus(c.getUserStatus())
 			.trainerId(trainerId)
 			.trainerName(trainerName)
-			.trainerProfileImage((c.getTrainer() != null) ? c.getTrainer().getProfileImageUrl() : null)
+			.trainerProfileImage((c.getAssignedTrainer() != null) ? c.getAssignedTrainer().getProfileImageUrl() : null)
 				.myProfileImage(c.getProfileImageUrl())
 			.investmentType(investmentType)
 			.isCourseCompleted(isCourseCompleted)

@@ -35,6 +35,10 @@ public class QUser extends EntityPathBase<User> {
 
     public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = this.<PasswordHistory, QPasswordHistory>createList("passwordHistories", PasswordHistory.class, QPasswordHistory.class, PathInits.DIRECT2);
 
+    public final StringPath profileImageKey = createString("profileImageKey");
+
+    public final StringPath profileImageUrl = createString("profileImageUrl");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.Provider> provider = createEnum("provider", com.tradingpt.tpt_api.domain.user.enums.Provider.class);
 
     public final StringPath providerId = createString("providerId");

@@ -106,7 +106,7 @@ public class UserServiceImpl implements UserService {
 		);
 
 		// 5) 비밀번호 변경
-		user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+		user.changePassword(passwordEncoder.encode(req.getNewPassword()));
 		userRepository.save(user); // 명시 저장 (안전)
 
 		// 6) 초과분 정리 (최근 N개만 유지)
