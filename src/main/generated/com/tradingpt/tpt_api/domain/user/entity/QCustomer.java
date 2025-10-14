@@ -24,6 +24,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final QUser _super = new QUser(this);
 
+    public final QTrainer assignedTrainer;
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
 
     //inherited
@@ -76,8 +78,6 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.AccountStatus> status = createEnum("status", com.tradingpt.tpt_api.domain.user.enums.AccountStatus.class);
 
-    public final QTrainer trainer;
-
     public final QUid uid;
 
     //inherited
@@ -106,7 +106,7 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public QCustomer(Class<? extends Customer> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.trainer = inits.isInitialized("trainer") ? new QTrainer(forProperty("trainer")) : null;
+        this.assignedTrainer = inits.isInitialized("assignedTrainer") ? new QTrainer(forProperty("assignedTrainer")) : null;
         this.uid = inits.isInitialized("uid") ? new QUid(forProperty("uid"), inits.get("uid")) : null;
     }
 

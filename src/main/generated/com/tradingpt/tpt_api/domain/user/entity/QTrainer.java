@@ -46,7 +46,8 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath profileImageKey = _super.profileImageKey;
 
-    public final StringPath profileImageUrl = createString("profileImageUrl");
+    //inherited
+    public final StringPath profileImageUrl = _super.profileImageUrl;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.Provider> provider = _super.provider;
