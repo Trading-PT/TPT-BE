@@ -88,6 +88,67 @@ public class WeeklyTradingSummary extends BaseEntity {
 	private String weeklyLossTradingAnalysis; // 손실난 매매분석
 
 	@Builder.Default
-	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가 시각
+	private LocalDateTime evaluatedAt = LocalDateTime.now(); // 트레이너 평가
+
+	/**
+	 * 정적 팩토리 메서드: 처리된 콘텐츠로 WeeklyTradingSummary 생성
+	 *
+	 * @param processedMemo           처리된 메모
+	 * @param processedEvaluation     처리된 주간 평가 (nullable)
+	 * @param processedProfitAnalysis 처리된 수익 분석 (nullable)
+	 * @param processedLossAnalysis   처리된 손실 분석 (nullable)
+	 * @param customer                고객
+	 * @param trainer                 트레이너
+	 * @param courseStatus            코스 상태
+	 * @param investmentType          투자 타입
+	 * @param year                    연도
+	 * @param month                   월
+	 * @param week                    주
+	 * @return WeeklyTradingSummary 엔티티
+	 */
+	public static WeeklyTradingSummary createFromProcessed(
+		String processedMemo,
+		String processedEvaluation,
+		String processedProfitAnalysis,
+		String processedLossAnalysis,
+		Customer customer,
+		Trainer trainer,
+		CourseStatus courseStatus,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		WeeklyPeriod weeklyPeriod = WeeklyPeriod.of(year, month, week);
+
+		return WeeklyTradingSummary.builder()
+			.customer(customer)
+			.trainer(trainer)
+			.courseStatus(courseStatus)
+			.investmentType(investmentType)
+			.period(weeklyPeriod)
+			.memo(processedMemo)
+			.weeklyEvaluation(processedEvaluation)
+			.weeklyProfitableTradingAnalysis(processedProfitAnalysis)
+			.weeklyLossTradingAnalysis(processedLossAnalysis)
+			.evaluatedAt(LocalDateTime.now())
+			.build();
+	}
+
+	/**
+	 * 주간 요약 수정
+	 */
+	public void updateSummary(
+		String memo,
+		String weeklyEvaluation,
+		String weeklyProfitableTradingAnalysis,
+		String weeklyLossTradingAnalysis
+	) {
+		this.memo = memo;
+		this.weeklyEvaluation = weeklyEvaluation;
+		this.weeklyProfitableTradingAnalysis = weeklyProfitableTradingAnalysis;
+		this.weeklyLossTradingAnalysis = weeklyLossTradingAnalysis;
+		this.evaluatedAt = LocalDateTime.now();
+	}
 
 }

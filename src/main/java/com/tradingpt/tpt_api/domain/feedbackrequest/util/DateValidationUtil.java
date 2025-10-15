@@ -21,7 +21,7 @@ public final class DateValidationUtil {
 	/**
 	 * 연도/월이 현재 또는 과거인지 검증합니다.
 	 *
-	 * @param year 검증할 연도
+	 * @param year  검증할 연도
 	 * @param month 검증할 월
 	 * @throws FeedbackRequestException 미래 날짜인 경우
 	 */
@@ -64,9 +64,9 @@ public final class DateValidationUtil {
 	/**
 	 * 연도/월/일이 유효한 날짜인지 검증합니다.
 	 *
-	 * @param year 검증할 연도
+	 * @param year  검증할 연도
 	 * @param month 검증할 월
-	 * @param day 검증할 일
+	 * @param day   검증할 일
 	 * @throws FeedbackRequestException 유효하지 않은 날짜인 경우
 	 */
 	public static void validateDate(Integer year, Integer month, Integer day) {
@@ -110,9 +110,9 @@ public final class DateValidationUtil {
 	/**
 	 * 연도/월/일이 현재 또는 과거인지 검증합니다.
 	 *
-	 * @param year 검증할 연도
+	 * @param year  검증할 연도
 	 * @param month 검증할 월
-	 * @param day 검증할 일
+	 * @param day   검증할 일
 	 * @throws FeedbackRequestException 미래 날짜이거나 유효하지 않은 날짜인 경우
 	 */
 	public static void validatePastOrPresentDate(Integer year, Integer month, Integer day) {
@@ -132,14 +132,33 @@ public final class DateValidationUtil {
 	/**
 	 * 유효한 날짜로 LocalDate 객체 생성
 	 *
-	 * @param year 연도
+	 * @param year  연도
 	 * @param month 월
-	 * @param day 일
+	 * @param day   일
 	 * @return LocalDate 객체
 	 * @throws FeedbackRequestException 유효하지 않은 날짜인 경우
 	 */
 	public static LocalDate toLocalDate(Integer year, Integer month, Integer day) {
 		validateDate(year, month, day);
 		return LocalDate.of(year, month, day);
+	}
+
+	/**
+	 * 연도/월/주가 유효한지 검증합니다.
+	 *
+	 * @param year  검증할 연도
+	 * @param month 검증할 월
+	 * @param week  검증할 주 (1-5)
+	 * @throws FeedbackRequestException 유효하지 않은 날짜인 경우
+	 */
+	public static void validateYearMonthWeek(Integer year, Integer month, Integer week) {
+		// 1. 연도/월 검증
+		validatePastOrPresentYearMonth(year, month);
+
+		// 2. 주 검증 (1-5)
+		if (week == null || week < 1 || week > 5) {
+			log.warn("Invalid week: {}", week);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.INVALID_YEAR_MONTH);
+		}
 	}
 }
