@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
@@ -228,5 +229,19 @@ public interface FeedbackRequestRepositoryCustom {
 		Long customerId,
 		LocalDate targetDate
 	);
-	
+
+	/**
+	 * 특정 연/월의 모든 피드백 요청 조회 (날짜별로 그룹핑하여 PnL 합산)
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @return 날짜별 PnL 프로젝션 리스트
+	 */
+	List<DailyPnlProjection> findDailyPnlByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	);
+
 }

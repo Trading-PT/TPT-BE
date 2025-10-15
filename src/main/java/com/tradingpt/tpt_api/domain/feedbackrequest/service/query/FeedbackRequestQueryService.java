@@ -10,6 +10,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListRes
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -66,4 +67,19 @@ public interface FeedbackRequestQueryService {
 		Integer month,
 		Integer day
 	);
+
+	/**
+	 * 월별 PnL 달력 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @return 월별 PnL 달력 데이터
+	 */
+	MonthlyPnlCalendarResponseDTO getMonthlyPnlCalendar(
+		Long customerId,
+		Integer year,
+		Integer month
+	);
+
 }

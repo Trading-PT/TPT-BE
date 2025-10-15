@@ -1,7 +1,9 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.query;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,14 +13,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyPnlDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SelectedBestFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
@@ -141,6 +146,62 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		return requests.stream()
 			.map(FeedbackRequestListItemResponseDTO::from)
 			.toList();
+	}
+
+	@Override
+	public MonthlyPnlCalendarResponseDTO getMonthlyPnlCalendar(
+		Long customerId,
+		Integer year,
+		Integer month
+	) {
+		log.info("Fetching monthly PnL calendar for customerId={}, year={}, month={}",
+			customerId, year, month);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
+
+		// 2. 고객 존재 여부 확인
+		if (!customerRepository.existsById(customerId)) {
+			throw new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND);
+		}
+
+		// 3. 일별 PnL 데이터 조회
+		List<DailyPnlProjection> projections = feedbackRequestRepository
+			.findDailyPnlByCustomerIdAndYearAndMonth(customerId, year, month);
+
+		// 4. DTO 변환
+		List<DailyPnlDTO> dailyPnls = projections.stream()
+			.map(projection -> DailyPnlDTO.builder()
+				.day(projection.getFeedbackRequestDate().getDayOfMonth())
+				.pnl(projection.getTotalPnl())
+				.pnlPercentage(projection.getAveragePnlPercentage())
+				.feedbackCount(projection.getFeedbackCount().intValue())
+				.build())
+			.collect(Collectors.toList());
+
+		// 5. 월 전체 통계 계산
+		BigDecimal totalPnl = projections.stream()
+			.map(DailyPnlProjection::getTotalPnl)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		Double averagePnlPercentage = projections.isEmpty() ? 0.0 :
+			projections.stream()
+				.mapToDouble(p -> p.getAveragePnlPercentage() != null ? p.getAveragePnlPercentage() : 0.0)
+				.average()
+				.orElse(0.0);
+
+		// 소수점 2자리까지 반올림
+		averagePnlPercentage = Math.round(averagePnlPercentage * 100.0) / 100.0;
+
+		log.info("Found {} days with PnL data for {}-{}", dailyPnls.size(), year, month);
+
+		return MonthlyPnlCalendarResponseDTO.builder()
+			.year(year)
+			.month(month)
+			.dailyPnls(dailyPnls)
+			.totalPnl(totalPnl)
+			.averagePnlPercentage(averagePnlPercentage)
+			.build();
 	}
 
 	/**

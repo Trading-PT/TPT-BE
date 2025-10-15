@@ -21,6 +21,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequ
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
@@ -158,5 +159,38 @@ public class FeedbackRequestV1Controller {
 
 		return BaseResponse.onSuccess(
 			feedbackRequestQueryService.getDailyFeedbackRequests(customerId, year, month, day));
+	}
+
+	@Operation(
+		summary = "월별 PnL 달력 조회",
+		description = """
+			특정 연/월의 모든 피드백 요청에 대한 PnL을 달력 형태로 조회합니다.
+			
+			특징:
+			- 일별로 그룹핑하여 PnL 합계와 평균 퍼센테이지 제공
+			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 하루에 여러 피드백이 있으면 합산하여 표시
+			- 월 전체 통계(총 PnL, 평균 퍼센테이지) 제공
+			
+			사용 시나리오:
+			- 달력 UI에서 각 날짜별 수익률 표시
+			- 초록색(수익), 빨간색(손실)로 시각화
+			- 날짜 클릭 시 해당 일의 상세 피드백 목록 조회
+			
+			예시:
+			- GET /api/v1/feedback-requests/customers/me/years/2025/months/9/pnl-calendar
+			"""
+	)
+	@GetMapping("/customers/me/years/{year}/months/{month}/pnl-calendar")
+	public BaseResponse<MonthlyPnlCalendarResponseDTO> getMonthlyPnlCalendar(
+		@Parameter(description = "연도", example = "2025", required = true)
+		@PathVariable Integer year,
+		@Parameter(description = "월 (1-12)", example = "9", required = true)
+		@PathVariable Integer month,
+		@AuthenticationPrincipal(expression = "id") Long customerId
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getMonthlyPnlCalendar(customerId, year, month)
+		);
 	}
 }

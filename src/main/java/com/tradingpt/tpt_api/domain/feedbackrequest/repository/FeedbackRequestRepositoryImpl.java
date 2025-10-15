@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,6 +25,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
@@ -1199,6 +1201,100 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		allRequests.sort(Comparator.comparing(FeedbackRequest::getCreatedAt));
 
 		return allRequests;
+	}
+
+	@Override
+	public List<DailyPnlProjection> findDailyPnlByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	) {
+		// 월의 시작일과 종료일 계산
+		LocalDate startDate = LocalDate.of(year, month, 1);
+		LocalDate endDate = startDate.plusMonths(1).minusDays(1);
+
+		// Day 피드백 조회
+		List<DailyPnlProjection> dayResults = queryFactory
+			.select(Projections.constructor(
+				DailyPnlProjection.class,
+				dayRequestDetail.feedbackRequestDate,
+				dayRequestDetail.pnl.sum(),
+				dayRequestDetail.rnr.avg(),
+				dayRequestDetail.count()
+			))
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackRequestDate.between(startDate, endDate)
+			)
+			.groupBy(dayRequestDetail.feedbackRequestDate)
+			.fetch();
+
+		// Scalping 피드백 조회
+		List<DailyPnlProjection> scalpingResults = queryFactory
+			.select(Projections.constructor(
+				DailyPnlProjection.class,
+				scalpingRequestDetail.feedbackRequestDate,
+				scalpingRequestDetail.pnl.sum(),
+				scalpingRequestDetail.rnr.avg(),
+				scalpingRequestDetail.count()
+			))
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackRequestDate.between(startDate, endDate)
+			)
+			.groupBy(scalpingRequestDetail.feedbackRequestDate)
+			.fetch();
+
+		// Swing 피드백 조회
+		List<DailyPnlProjection> swingResults = queryFactory
+			.select(Projections.constructor(
+				DailyPnlProjection.class,
+				swingRequestDetail.feedbackRequestDate,
+				swingRequestDetail.pnl.sum(),
+				swingRequestDetail.rnr.avg(),
+				swingRequestDetail.count()
+			))
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackRequestDate.between(startDate, endDate)
+			)
+			.groupBy(swingRequestDetail.feedbackRequestDate)
+			.fetch();
+
+		// 모든 결과 합치기
+		List<DailyPnlProjection> allResults = new ArrayList<>();
+		allResults.addAll(dayResults);
+		allResults.addAll(scalpingResults);
+		allResults.addAll(swingResults);
+
+		// 같은 날짜끼리 합산
+		return allResults.stream()
+			.collect(Collectors.groupingBy(DailyPnlProjection::getFeedbackRequestDate))
+			.entrySet().stream()
+			.map(entry -> {
+				LocalDate date = entry.getKey();
+				List<DailyPnlProjection> projections = entry.getValue();
+
+				java.math.BigDecimal totalPnl = projections.stream()
+					.map(DailyPnlProjection::getTotalPnl)
+					.reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+				Double avgPercentage = projections.stream()
+					.mapToDouble(p -> p.getAveragePnlPercentage() != null ? p.getAveragePnlPercentage() : 0.0)
+					.average()
+					.orElse(0.0);
+
+				Long totalCount = projections.stream()
+					.mapToLong(DailyPnlProjection::getFeedbackCount)
+					.sum();
+
+				return new DailyPnlProjection(date, totalPnl, avgPercentage, totalCount);
+			})
+			.sorted((a, b) -> a.getFeedbackRequestDate().compareTo(b.getFeedbackRequestDate()))
+			.collect(Collectors.toList());
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
