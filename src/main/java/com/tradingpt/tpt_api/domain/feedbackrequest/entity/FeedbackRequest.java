@@ -134,6 +134,11 @@ public abstract class FeedbackRequest extends BaseEntity {
 	@Builder.Default
 	private Boolean isBestFeedback = false; // 베스트 피드백 여부
 
+	@Builder.Default
+	private Boolean isTokenUsed = false; // 토큰을 사용한 피드백인지
+
+	private Integer tokenAmount; // 사용한 토큰 개수
+
 	// 추상 메서드로 FeedbackType 반환
 	public abstract InvestmentType getInvestmentType();
 
@@ -147,5 +152,10 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	public void updateIsBestFeedback(boolean b) {
 		this.isBestFeedback = b;
+	}
+
+	public void useToken(Integer tokenAmount) {
+		this.isTokenUsed = true;
+		this.tokenAmount = tokenAmount;
 	}
 }

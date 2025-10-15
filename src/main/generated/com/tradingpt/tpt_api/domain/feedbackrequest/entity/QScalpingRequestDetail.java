@@ -75,6 +75,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final BooleanPath isResponded;
 
     //inherited
+    public final BooleanPath isTokenUsed;
+
+    //inherited
     public final NumberPath<Integer> leverage;
 
     //inherited
@@ -117,6 +120,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final StringPath title;
 
     //inherited
+    public final NumberPath<Integer> tokenAmount;
+
+    //inherited
     public final StringPath tradingReview;
 
     //inherited
@@ -157,6 +163,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.isTokenUsed = _super.isTokenUsed;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
         this.operatingFundsRatio = _super.operatingFundsRatio;
@@ -171,6 +178,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.settingTakeProfit = _super.settingTakeProfit;
         this.status = _super.status;
         this.title = _super.title;
+        this.tokenAmount = _super.tokenAmount;
         this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }

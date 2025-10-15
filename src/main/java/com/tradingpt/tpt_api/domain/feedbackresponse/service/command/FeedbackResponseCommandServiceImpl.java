@@ -12,6 +12,7 @@ import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.CreateFeedbackR
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.UpdateFeedbackResponseRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -58,6 +59,8 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 
 		// 3. 트레이너 조회
 		Trainer trainer = getTrainerById(trainerId);
+
+		validateTrainerPermission(feedbackRequest, trainer);
 
 		// 4. ✅ 콘텐츠 처리 (저장 전에 처리 완료)
 		String processedContent = contentImageUploader.processContent(
@@ -129,6 +132,33 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		log.info("Feedback response updated successfully for feedbackRequestId={}", feedbackRequestId);
 
 		return FeedbackResponseDTO.of(feedbackResponse, trainer);
+	}
+
+	// ========================================
+	// Private Helper Methods
+	// ========================================
+
+	/**
+	 * ✅ 트레이너 권한 검증
+	 * - 토큰 사용 피드백: 모든 트레이너 응답 가능
+	 * - 일반 피드백: 배정된 트레이너만 응답 가능
+	 */
+	private void validateTrainerPermission(FeedbackRequest feedbackRequest, Trainer trainer) {
+		// 토큰 사용 피드백이면 모든 트레이너 응답 가능
+		if (Boolean.TRUE.equals(feedbackRequest.getIsTokenUsed())) {
+			log.info("Token-used feedback, any trainer can respond");
+			return;
+		}
+
+		// 일반 피드백이면 배정된 트레이너만 응답 가능
+		Customer customer = feedbackRequest.getCustomer();
+		if (customer.getAssignedTrainer() == null
+			|| !customer.getAssignedTrainer().getId().equals(trainer.getId())) {
+			log.warn("Trainer not assigned to this customer: trainerId={}, customerId={}",
+				trainer.getId(), customer.getId());
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.CANNOT_RESPOND_TO_NON_TOKEN_FEEDBACK_AS_UNASSIGNED_TRAINER);
+		}
 	}
 
 	/**

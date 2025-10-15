@@ -24,6 +24,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
@@ -51,6 +52,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.DAY);
 
+		// 토큰 검증 및 차감
+		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
@@ -65,6 +69,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), dayRequest);
 
+		if (Boolean.TRUE.equals(request.getUseToken())) {
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			dayRequest.useToken(tokenAmount);
+		}
+
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
 		return DayFeedbackRequestDetailResponseDTO.of(saved);
@@ -78,6 +87,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SCALPING);
 
+		// 토큰 검증 및 차감
+		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
@@ -89,6 +101,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), scalpingRequest);
+
+		if (Boolean.TRUE.equals(request.getUseToken())) {
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			scalpingRequest.useToken(tokenAmount);
+		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
@@ -103,6 +120,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SWING);
 
+		// 토큰 검증 및 차감
+		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
 				customerId, request.getFeedbackRequestDate(), InvestmentType.SWING) + 1);
@@ -112,6 +132,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), swingRequest);
+
+		if (Boolean.TRUE.equals(request.getUseToken())) {
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			swingRequest.useToken(tokenAmount);
+		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
@@ -196,6 +221,46 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			if (screenshotFile != null && !screenshotFile.isEmpty()) {
 				S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
 				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url());
+			}
+		}
+	}
+
+	/**
+	 * ✅ 토큰 검증 및 차감
+	 */
+	private void validateAndConsumeToken(Customer customer, Boolean useToken, Integer tokenAmount) {
+		MembershipLevel membershipLevel = customer.getMembershipLevel();
+
+		// BASIC 멤버십인 경우
+		if (membershipLevel == MembershipLevel.BASIC) {
+			// 토큰 사용 필수
+			if (!Boolean.TRUE.equals(useToken)) {
+				throw new FeedbackRequestException(
+					FeedbackRequestErrorStatus.TOKEN_REQUIRED_FOR_BASIC_MEMBERSHIP);
+			}
+
+			// 토큰 개수 기본값 설정
+			int requiredTokens = tokenAmount != null ? tokenAmount : 1;
+
+			// 토큰 부족 체크
+			if (customer.getToken() < requiredTokens) {
+				log.warn("Insufficient tokens: customerId={}, required={}, available={}",
+					customer.getId(), requiredTokens, customer.getToken());
+				throw new FeedbackRequestException(
+					FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
+			}
+
+			// 토큰 차감
+			customer.updateToken(customer.getToken() - requiredTokens);
+			log.info("Token consumed: customerId={}, amount={}, remaining={}",
+				customer.getId(), requiredTokens, customer.getToken());
+		}
+		// PREMIUM 멤버십인 경우
+		else {
+			// 토큰 사용 불가
+			if (Boolean.TRUE.equals(useToken)) {
+				throw new FeedbackRequestException(
+					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
 			}
 		}
 	}

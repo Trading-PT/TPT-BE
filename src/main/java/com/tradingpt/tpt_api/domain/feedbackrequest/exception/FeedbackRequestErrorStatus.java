@@ -47,6 +47,16 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 		"연도/월은 현재 또는 과거만 가능합니다."),
 	INVALID_DATE(HttpStatus.BAD_REQUEST, "FEEDBACK4024",
 		"연도/월/일은 현재 또는 과거만 가능합니다."),
+
+	// ✅ 토큰 관련 에러
+	INSUFFICIENT_TOKEN(HttpStatus.BAD_REQUEST, "FEEDBACK_REQUEST_400_20",
+		"토큰이 부족합니다."),
+	TOKEN_REQUIRED_FOR_BASIC_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQUEST_400_21",
+		"BASIC 멤버십은 토큰을 사용해야 피드백 요청이 가능합니다."),
+	TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQUEST_400_22",
+		"PREMIUM 멤버십은 토큰을 사용할 수 없습니다."),
+	CANNOT_RESPOND_TO_NON_TOKEN_FEEDBACK_AS_UNASSIGNED_TRAINER(HttpStatus.FORBIDDEN, "FEEDBACK_REQUEST_403_1",
+		"배정되지 않은 트레이너는 토큰 사용 피드백에만 응답할 수 있습니다."),
 	;
 
 	private final HttpStatus httpStatus;

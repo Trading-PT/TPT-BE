@@ -27,6 +27,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalen
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SelectedBestFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListItemDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TotalFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
@@ -202,6 +204,30 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.totalPnl(totalPnl)
 			.averagePnlPercentage(averagePnlPercentage)
 			.build();
+	}
+
+	@Override
+	public TokenUsedFeedbackListResponseDTO getTokenUsedFeedbackRequests(Pageable pageable) {
+		log.info("Fetching token-used feedback requests with page={}, size={}",
+			pageable.getPageNumber(), pageable.getPageSize());
+
+		// 1. Slice로 토큰 사용 피드백 조회
+		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
+			.findTokenUsedFeedbackRequests(pageable);
+
+		// 2. DTO 변환
+		List<TokenUsedFeedbackListItemDTO> feedbackDTOs = feedbackSlice.getContent()
+			.stream()
+			.map(TokenUsedFeedbackListItemDTO::from)
+			.collect(Collectors.toList());
+
+		// 3. SliceInfo 생성
+		SliceInfo sliceInfo = SliceInfo.of(feedbackSlice);
+
+		log.info("Found {} token-used feedback requests, hasNext={}",
+			feedbackDTOs.size(), sliceInfo.getHasNext());
+
+		return TokenUsedFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);
 	}
 
 	/**

@@ -1297,6 +1297,68 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.collect(Collectors.toList());
 	}
 
+	@Override
+	public Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable) {
+		// Day 피드백 조회 (페이지 크기 + 1개 조회하여 hasNext 판단)
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.where(dayRequestDetail.isTokenUsed.isTrue())
+			.orderBy(dayRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+
+		// Scalping 피드백 조회
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.where(scalpingRequestDetail.isTokenUsed.isTrue())
+			.orderBy(scalpingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// Swing 피드백 조회
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.where(swingRequestDetail.isTokenUsed.isTrue())
+			.orderBy(swingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// 모든 피드백 합치기
+		List<FeedbackRequest> allRequests = new ArrayList<>();
+		allRequests.addAll(dayRequests);
+		allRequests.addAll(scalpingRequests);
+		allRequests.addAll(swingRequests);
+
+		// 생성 시간 내림차순 정렬 (최신순)
+		allRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+		// Slice 처리 (pageSize + 1개를 조회해서 hasNext 판단)
+		int pageSize = pageable.getPageSize();
+		int offset = (int)pageable.getOffset();
+
+		// offset부터 pageSize + 1개 조회
+		int endIndex = Math.min(offset + pageSize + 1, allRequests.size());
+		List<FeedbackRequest> content = offset >= allRequests.size()
+			? new ArrayList<>()
+			: allRequests.subList(offset, endIndex);
+
+		// hasNext 판단: 실제로 pageSize + 1개가 조회되었으면 다음 페이지가 있음
+		boolean hasNext = content.size() > pageSize;
+
+		// 실제 반환할 컨텐츠는 pageSize만큼만
+		if (hasNext) {
+			content = content.subList(0, pageSize);
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
