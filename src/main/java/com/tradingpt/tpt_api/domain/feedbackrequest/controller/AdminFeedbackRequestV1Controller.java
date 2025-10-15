@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateBestFeedbacksRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -62,6 +64,42 @@ public class AdminFeedbackRequestV1Controller {
 		@Valid @RequestBody UpdateBestFeedbacksRequestDTO request
 	) {
 		return BaseResponse.onSuccess(feedbackRequestCommandService.updateBestFeedbacks(request.getFeedbackIds()));
+	}
+
+	@Operation(
+		summary = "토큰 사용 피드백 요청 목록 조회 (무한 스크롤)",
+		description = """
+			토큰을 사용하여 작성된 피드백 요청 목록을 무한 스크롤 방식으로 조회합니다.
+			
+			특징:
+			- BASIC 멤버십 고객이 토큰을 사용한 피드백만 조회
+			- 최신순 정렬
+			- 응답 여부 확인 가능 (status 필드)
+			- 응답한 트레이너 정보 포함
+			- Slice 기반 무한 스크롤 지원 (hasNext로 다음 페이지 여부 판단)
+			
+			사용 시나리오:
+			- 트레이너가 응답 가능한 피드백 목록 확인 (무한 스크롤)
+			- 어드민이 토큰 사용 현황 모니터링
+			
+			페이징 파라미터:
+			- page: 페이지 번호 (0부터 시작)
+			- size: 페이지 크기 (기본값: 12)
+			
+			예시:
+			- GET /api/v1/admin/feedback-requests/token-used
+			- GET /api/v1/admin/feedback-requests/token-used?page=0&size=12
+			- GET /api/v1/admin/feedback-requests/token-used?page=1&size=12
+			"""
+	)
+	@GetMapping("/token-used")
+	public BaseResponse<TokenUsedFeedbackListResponseDTO> getTokenUsedFeedbackRequests(
+		@PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC)
+		Pageable pageable
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getTokenUsedFeedbackRequests(pageable)
+		);
 	}
 
 }

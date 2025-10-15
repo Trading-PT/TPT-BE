@@ -11,6 +11,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -82,4 +83,6 @@ public interface FeedbackRequestQueryService {
 		Integer month
 	);
 
+	TokenUsedFeedbackListResponseDTO getTokenUsedFeedbackRequests(Pageable pageable);
+	
 }

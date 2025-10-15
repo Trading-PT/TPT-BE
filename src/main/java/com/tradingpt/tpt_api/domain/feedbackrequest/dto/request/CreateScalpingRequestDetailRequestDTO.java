@@ -82,6 +82,12 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
+	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
+	private Boolean useToken;
+
+	@Schema(description = "사용할 토큰 개수 (기본값: 1)", example = "1")
+	private Integer tokenAmount;
+
 	// ========================================
 	// ⭐ 스캘핑 특수 필드 (완강 전/후 모두 필수)
 	// ========================================

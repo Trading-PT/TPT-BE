@@ -244,4 +244,12 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer month
 	);
 
+	/**
+	 * ✅ 토큰 사용 피드백 요청 목록 조회 (무한 스크롤)
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 토큰 사용 피드백 요청 Slice
+	 */
+	Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable);
+
 }

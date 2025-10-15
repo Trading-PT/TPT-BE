@@ -83,6 +83,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final BooleanPath isResponded;
 
     //inherited
+    public final BooleanPath isTokenUsed;
+
+    //inherited
     public final NumberPath<Integer> leverage;
 
     public final StringPath mainFrame = createString("mainFrame");
@@ -129,6 +132,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final StringPath title;
 
     //inherited
+    public final NumberPath<Integer> tokenAmount;
+
+    //inherited
     public final StringPath tradingReview;
 
     public final StringPath trainerFeedbackRequestContent = createString("trainerFeedbackRequestContent");
@@ -173,6 +179,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.isBestFeedback = _super.isBestFeedback;
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
+        this.isTokenUsed = _super.isTokenUsed;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
         this.operatingFundsRatio = _super.operatingFundsRatio;
@@ -187,6 +194,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.settingTakeProfit = _super.settingTakeProfit;
         this.status = _super.status;
         this.title = _super.title;
+        this.tokenAmount = _super.tokenAmount;
         this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }
