@@ -64,11 +64,9 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> primaryInvestmentType = createEnum("primaryInvestmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
-    //inherited
-    public final StringPath profileImageKey = _super.profileImageKey;
+    public final StringPath profileImageKey = createString("profileImageKey");
 
-    //inherited
-    public final StringPath profileImageUrl = _super.profileImageUrl;
+    public final StringPath profileImageUrl = createString("profileImageUrl");
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.Provider> provider = _super.provider;
@@ -79,8 +77,6 @@ public class QCustomer extends EntityPathBase<Customer> {
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.AccountStatus> status = createEnum("status", com.tradingpt.tpt_api.domain.user.enums.AccountStatus.class);
 
     public final NumberPath<Integer> token = createNumber("token", Integer.class);
-
-    public final QTrainer trainer;
 
     public final QUid uid;
 
