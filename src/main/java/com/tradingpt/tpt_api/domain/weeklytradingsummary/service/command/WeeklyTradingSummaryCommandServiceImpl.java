@@ -181,7 +181,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		);
 
 		// 9. 트레이너는 임시로 고객과 동일하게 설정 (나중에 변경 가능)
-		Trainer trainer = (Trainer)userRepository.findById(customer.getTrainer().getId())
+		Trainer trainer = (Trainer)userRepository.findById(customer.getAssignedTrainer().getId())
 			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
 		WeeklyTradingSummary summary = WeeklyTradingSummary.createFromProcessed(
