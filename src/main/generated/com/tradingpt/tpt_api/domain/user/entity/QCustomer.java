@@ -80,8 +80,6 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final NumberPath<Integer> token = createNumber("token", Integer.class);
 
-    public final QTrainer trainer;
-
     public final QUid uid;
 
     //inherited
