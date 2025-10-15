@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
+import com.tradingpt.tpt_api.domain.user.service.command.AdminUserCommandService;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -17,7 +18,6 @@ import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
-import com.tradingpt.tpt_api.domain.user.service.command.AdminUserCommandService;
 import com.tradingpt.tpt_api.domain.user.service.query.AdminUserQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 

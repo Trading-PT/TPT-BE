@@ -50,7 +50,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		Trainer trainer = customer.getTrainer();
+		Trainer trainer = customer.getAssignedTrainer();
 		if (trainer == null) {
 			log.error("Customer {} has no assigned trainer", customerId);
 			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);

@@ -24,6 +24,7 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 	private final UserRepository userRepository;
 
 	@Transactional
+	@Override
 	public void updateUserStatus(Long userId, UserStatus newStatus) {
 		Customer customer = customerRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));

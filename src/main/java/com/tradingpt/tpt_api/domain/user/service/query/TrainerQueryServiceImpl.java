@@ -28,7 +28,7 @@ public class TrainerQueryServiceImpl implements TrainerQueryService {
 
 	@Override
 	public Page<CustomerEvaluationResponseDTO> getManagedCustomersEvaluations(Pageable pageable, Long trainerId) {
-		Page<Customer> customerPage = customerRepository.findByTrainer_Id(trainerId, pageable);
+		Page<Customer> customerPage = customerRepository.findByAssignedTrainer_Id(trainerId, pageable);
 
 		return customerPage.map(customer -> {
 			MonthlyTradingSummary latestMonthly = monthlyTradingSummaryRepository

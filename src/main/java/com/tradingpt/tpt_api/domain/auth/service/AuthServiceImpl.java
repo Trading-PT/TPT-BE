@@ -151,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
 		);
 
 		// 6) 비밀번호 변경(해시)
-		user.setPassword(passwordEncoder.encode(req.getNewPassword()));
+		user.changePassword(passwordEncoder.encode(req.getNewPassword()));
 		userRepository.save(user);
 
 		// 7) 초과분 정리 (최근 N개만 유지)

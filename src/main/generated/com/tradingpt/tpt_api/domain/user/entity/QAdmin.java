@@ -10,14 +10,14 @@ import com.querydsl.core.types.Path;
 
 
 /**
- * QTrainer is a Querydsl query type for Trainer
+ * QAdmin is a Querydsl query type for Admin
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QTrainer extends EntityPathBase<Trainer> {
+public class QAdmin extends EntityPathBase<Admin> {
 
-    private static final long serialVersionUID = -293729068L;
+    private static final long serialVersionUID = -1788088530L;
 
-    public static final QTrainer trainer = new QTrainer("trainer");
+    public static final QAdmin admin = new QAdmin("admin");
 
     public final QUser _super = new QUser(this);
 
@@ -61,16 +61,16 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath username = _super.username;
 
-    public QTrainer(String variable) {
-        super(Trainer.class, forVariable(variable));
+    public QAdmin(String variable) {
+        super(Admin.class, forVariable(variable));
     }
 
-    public QTrainer(Path<? extends Trainer> path) {
+    public QAdmin(Path<? extends Admin> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QTrainer(PathMetadata metadata) {
-        super(Trainer.class, metadata);
+    public QAdmin(PathMetadata metadata) {
+        super(Admin.class, metadata);
     }
 
 }

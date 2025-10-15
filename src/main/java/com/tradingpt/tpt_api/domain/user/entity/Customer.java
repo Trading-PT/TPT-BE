@@ -56,7 +56,7 @@ public class Customer extends User {
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trainer_id", nullable = true)
-	private Trainer trainer;
+	private Trainer assignedTrainer;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
