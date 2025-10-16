@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
 import com.tradingpt.tpt_api.domain.user.dto.request.TrainerRequestDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.AssignedCustomerDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.TrainerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.TrainerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.service.command.AdminTrainerCommandService;
@@ -70,9 +71,30 @@ public class AdminTrainerV1Controller {
 	@Operation(summary = "관리자/트레이너 목록 조회", description = "프로필/성함/전화/한줄소개/ID/배정고객(트레이너만) 포함")
 	@GetMapping
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
-	public ResponseEntity<BaseResponse<List<TrainerListResponseDTO>>> getManagers() {
-		var rows = adminTrainerQueryService.getTrainers();
-		return ResponseEntity.ok(BaseResponse.onSuccess(rows));
+	public ResponseEntity<BaseResponse<List<TrainerListResponseDTO>>> getTrainers() {
+		List<TrainerListResponseDTO> trainerListResponseDTO = adminTrainerQueryService.getTrainers();
+		return ResponseEntity.ok(BaseResponse.onSuccess(trainerListResponseDTO));
+	}
+	@Operation(summary = "트레이너별 배정 고객 목록 조회",
+			description = "특정 트레이너에게 배정된 고객 목록(고객 ID/이름)을 반환합니다.")
+	@GetMapping("/{trainerId}/customers")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseEntity<BaseResponse<List<AssignedCustomerDTO>>> getAssignedCustomers(
+			@PathVariable Long trainerId
+	) {
+		List<AssignedCustomerDTO> assignedCustomerDTO  = adminTrainerQueryService.getAssignedCustomers(trainerId);
+		return ResponseEntity.ok(BaseResponse.onSuccess(assignedCustomerDTO));
 	}
 
+	@Operation(summary = "고객의 배정 트레이너 변경",
+			description = "특정 고객의 배정 트레이너를 path의 {trainerId}로 변경합니다.")
+	@PutMapping("/{trainerId}/customers/{customerId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public ResponseEntity<BaseResponse<Long>> reassignCustomerToTrainer(
+			@PathVariable Long trainerId,
+			@PathVariable Long customerId
+	) {
+		Long updatedCustomerId = adminTrainerCommandService.reassignCustomerToTrainer(trainerId, customerId);
+		return ResponseEntity.ok(BaseResponse.onSuccess(updatedCustomerId));
+	}
 }
