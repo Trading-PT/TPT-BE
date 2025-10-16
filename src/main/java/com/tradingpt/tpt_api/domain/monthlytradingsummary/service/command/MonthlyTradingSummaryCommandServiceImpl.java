@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.service.command;
 
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,7 +51,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		Trainer trainer = customer.getAssignedTrainer();
+		User trainer = customer.getAssignedTrainer();
 		if (trainer == null) {
 			log.error("Customer {} has no assigned trainer", customerId);
 			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);

@@ -5,7 +5,6 @@ import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.*;
 import static com.tradingpt.tpt_api.domain.user.entity.QUid.*;
 
 import com.querydsl.core.Tuple;
-import com.tradingpt.tpt_api.domain.user.dto.response.TrainerListResponseDTO.AssignedCustomerDTO;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

@@ -56,7 +56,7 @@ public class Customer extends User {
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trainer_id", nullable = true)
-	private Trainer assignedTrainer;
+	private User assignedTrainer;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
@@ -130,6 +130,10 @@ public class Customer extends User {
 		if (uid != null) {
 			uid.setCustomer(this);
 		}
+	}
+
+	public void setAssignedTrainer(User trainer){
+		this.assignedTrainer = trainer;
 	}
 
 	/** 값으로 신규 생성(없으면 생성, 있으면 값만 변경) */

@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.complaint.repository;
 import static com.tradingpt.tpt_api.domain.complaint.entity.QComplaint.complaint;
 import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.customer;
 import static com.tradingpt.tpt_api.domain.user.entity.QTrainer.trainer;
+import static com.tradingpt.tpt_api.domain.user.entity.QUser.user;
 
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
@@ -67,7 +68,7 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
                 ))
                 .from(complaint)
                 .join(complaint.customer, customer)          // 고객
-                .leftJoin(customer.assignedTrainer, trainer)         // 고객 담당 조교
+                .leftJoin(customer.assignedTrainer, user)         // 고객 담당 조교
                 .leftJoin(complaint.answeredBy, answeredTrainer) // 답변자(트레이너)
                 .where(where)
                 .orderBy(orders)
@@ -78,7 +79,7 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
         Long total = q.select(complaint.count())
                 .from(complaint)
                 .join(complaint.customer, customer)
-                .leftJoin(customer.assignedTrainer, trainer)
+                .leftJoin(customer.assignedTrainer, user)
                 .leftJoin(complaint.answeredBy, answeredTrainer)
                 .where(where)
                 .fetchOne();

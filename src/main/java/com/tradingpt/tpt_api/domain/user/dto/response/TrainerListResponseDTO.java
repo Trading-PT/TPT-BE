@@ -31,14 +31,4 @@ public class TrainerListResponseDTO {
 
     @Schema(description = "트레이너 권한")
     private String role; // "ROLE_TRAINER" | "ROLE_ADMIN"
-
-    @Schema(description = "배정된 고객 목록")
-    private List<AssignedCustomerDTO> assignedCustomers;
-
-    @Getter
-    @Builder
-    public static class AssignedCustomerDTO {
-        private Long customerId;
-        private String name;
-    }
 }
