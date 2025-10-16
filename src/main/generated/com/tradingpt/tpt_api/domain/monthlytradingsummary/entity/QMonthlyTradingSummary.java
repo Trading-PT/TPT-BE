@@ -43,7 +43,7 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
 
     public final QMonthlyPeriod period;
 
-    public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
+    public final com.tradingpt.tpt_api.domain.user.entity.QUser trainer;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
@@ -68,7 +68,7 @@ public class QMonthlyTradingSummary extends EntityPathBase<MonthlyTradingSummary
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
         this.period = inits.isInitialized("period") ? new QMonthlyPeriod(forProperty("period")) : null;
-        this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QTrainer(forProperty("trainer")) : null;
+        this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QUser(forProperty("trainer")) : null;
     }
 
 }

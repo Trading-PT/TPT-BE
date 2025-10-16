@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -50,7 +51,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trainer_id")
-	private Trainer trainer;
+	private User trainer;
 
 	/**
 	 * 필드
@@ -92,7 +93,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 		String processedEvaluation,
 		String processedGoal,
 		Customer customer,
-		Trainer trainer,
+		User trainer,
 		Integer year,
 		Integer month,
 		InvestmentType investmentType
