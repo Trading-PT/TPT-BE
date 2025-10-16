@@ -3,12 +3,14 @@ package com.tradingpt.tpt_api.domain.user.service.command;
 import com.tradingpt.tpt_api.domain.user.dto.request.TrainerRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.TrainerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Admin;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AdminTrainerCommandServiceImpl implements AdminTrainerCommandService {
 
 	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
 	private final S3FileService s3FileService;
 	private final PasswordEncoder passwordEncoder;
 
@@ -193,11 +196,41 @@ public class AdminTrainerCommandServiceImpl implements AdminTrainerCommandServic
 
 		Trainer trainer = (Trainer) user;
 
+		// 트레이너에게 배정된 고객이 있는지 확인
+		boolean hasAssignedCustomers = customerRepository. existsByAssignedTrainer_Id(trainerId);
+		if (hasAssignedCustomers) {
+			throw new UserException(UserErrorStatus.HAS_ASSIGNED_CUSTOMERS);
+		}
+
+
 		// S3 정리
 		if ((trainer.getProfileImageKey() != null)) {
 			s3FileService.delete(trainer.getProfileImageKey());
 		}
 
 		userRepository.deleteById(trainerId);
+	}
+
+	@Transactional
+	@Override
+	public Long reassignCustomerToTrainer(Long trainerId, Long customerId) {
+		// 1) 트레이너 존재 및 타입 검증
+		User trainer = userRepository.findById(trainerId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		if (trainer.getRole() == null ||
+				trainer.getRole().equals("ROLE_CUSTOMER")) {
+			throw new UserException(UserErrorStatus.INVALID_USER_TYPE);
+		}
+
+		// 2) 고객 존재 검증
+		Customer customer = customerRepository.findById(customerId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3) 트레이너 재배정
+		customer.setAssignedTrainer(trainer);
+
+		// 5) 반환: 성공적으로 변경된 고객 ID
+		return customer.getId();
 	}
 }
