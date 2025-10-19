@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.command;
 
+import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestGradeRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestMultipleChoiceRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubjectiveRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
@@ -16,5 +17,7 @@ public interface AdminLeveltestCommandService {
 
     // ===== 삭제 =====
     LeveltestQuestionResponseDTO deleteQuestion(Long questionId);
+
+    void applyManualGrading(Long attemptId, LeveltestGradeRequestDTO request);
 
 }

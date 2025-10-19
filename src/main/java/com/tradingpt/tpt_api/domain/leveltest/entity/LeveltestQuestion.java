@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.entity;
 
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "leveltest_question")
-public class LeveltestQuestion {
+public class LeveltestQuestion extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

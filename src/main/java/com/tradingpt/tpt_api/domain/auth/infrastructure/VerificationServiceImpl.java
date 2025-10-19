@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class VerificationServiceImpl implements VerificationService {
 
 	// ===== 인메모리 OTP 저장 =====
-	private static final long CODE_TTL_MS = 180_000L; // 3분
+	private static final long CODE_TTL_MS = 300_000L; // 5분
 	private static final SecureRandom RND = new SecureRandom();
 	private final JavaMailSender mailSender;
 	private final SensSmsClient solapi; // 솔라피 클라이언트 사용
