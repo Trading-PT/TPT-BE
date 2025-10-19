@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandService {
 
     private final LeveltestQuestionRepository leveltestQuestionRepository;
@@ -25,6 +24,7 @@ public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandSe
     private static final String LEVELTEST_DIR = "leveltests/";
 
     @Override
+    @Transactional
     public LeveltestQuestionResponseDTO createMultipleChoiceQuestion(
             LeveltestMultipleChoiceRequestDTO req, MultipartFile image
     ) {
@@ -60,6 +60,7 @@ public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandSe
     }
 
     @Override
+    @Transactional
     public LeveltestQuestionResponseDTO createTextAnswerQuestion(
             LeveltestSubjectiveRequestDTO req, MultipartFile image
     ) {
@@ -92,6 +93,7 @@ public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandSe
 
 
     @Override
+    @Transactional
     public LeveltestQuestionResponseDTO updateMultipleChoiceQuestion(
             Long questionId, LeveltestMultipleChoiceRequestDTO req, MultipartFile image
     ) {
@@ -131,6 +133,7 @@ public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandSe
     }
 
     @Override
+    @Transactional
     public LeveltestQuestionResponseDTO updateTextAnswerQuestion(
             Long questionId, LeveltestSubjectiveRequestDTO req, MultipartFile image
     ) {
@@ -169,6 +172,7 @@ public class AdminLeveltestCommandServiceImpl implements AdminLeveltestCommandSe
     }
 
     @Override
+    @Transactional
     public LeveltestQuestionResponseDTO deleteQuestion(Long questionId) {
 
         LeveltestQuestion question = leveltestQuestionRepository.findById(questionId)
