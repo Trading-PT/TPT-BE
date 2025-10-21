@@ -25,6 +25,8 @@ public enum InvestmentHistoryErrorStatus implements BaseCodeInterface {
 		"이미 처리된 신청입니다."),
 	UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "INVESTMENT_CHANGE_403_1",
 		"해당 신청에 대한 권한이 없습니다."),
+	INVESTMENT_HISTORY_TYPE_CHANGE_CAN_BE_PROCEEDED_AT_FIRST_DATE(HttpStatus.BAD_REQUEST, "INVESTMENT_CHANGE_400_4",
+		"투자 타입 변경은 매월 1일에만 가능합니다."),
 	;
 
 	private final HttpStatus httpStatus;

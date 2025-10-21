@@ -87,6 +87,11 @@ public class InvestmentTypeChangeCommandServiceImpl implements InvestmentTypeCha
 		log.info("Processing change request: requestId={}, trainerId={}, approved={}",
 			requestId, trainerId, request.getApproved());
 
+		if (LocalDate.now().getDayOfMonth() != 1) {
+			throw new InvestmentHistoryException(
+				InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_TYPE_CHANGE_CAN_BE_PROCEEDED_AT_FIRST_DATE);
+		}
+
 		// 1. 신청 조회
 		InvestmentTypeChangeRequest changeRequest = investmentTypeChangeRequestRepository.findById(requestId)
 			.orElseThrow(() -> new InvestmentHistoryException(
