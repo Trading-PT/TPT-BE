@@ -33,9 +33,9 @@ public class QLeveltestResponse extends EntityPathBase<LeveltestResponse> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final QLeveltestAttempt leveltestAttempt;
+    public final QLevelTestAttempt leveltestAttempt;
 
-    public final QLeveltestQuestion leveltestQuestion;
+    public final QLevelTestQuestion leveltestQuestion;
 
     public final NumberPath<Integer> scoredAwarded = createNumber("scoredAwarded", Integer.class);
 
@@ -60,8 +60,8 @@ public class QLeveltestResponse extends EntityPathBase<LeveltestResponse> {
 
     public QLeveltestResponse(Class<? extends LeveltestResponse> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
-        this.leveltestAttempt = inits.isInitialized("leveltestAttempt") ? new QLeveltestAttempt(forProperty("leveltestAttempt"), inits.get("leveltestAttempt")) : null;
-        this.leveltestQuestion = inits.isInitialized("leveltestQuestion") ? new QLeveltestQuestion(forProperty("leveltestQuestion")) : null;
+        this.leveltestAttempt = inits.isInitialized("leveltestAttempt") ? new QLevelTestAttempt(forProperty("leveltestAttempt"), inits.get("leveltestAttempt")) : null;
+        this.leveltestQuestion = inits.isInitialized("leveltestQuestion") ? new QLevelTestQuestion(forProperty("leveltestQuestion")) : null;
     }
 
 }

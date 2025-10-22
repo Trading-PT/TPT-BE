@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QLeveltestAttempt is a Querydsl query type for LeveltestAttempt
+ * QLevelTestAttempt is a Querydsl query type for LevelTestAttempt
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QLeveltestAttempt extends EntityPathBase<LeveltestAttempt> {
+public class QLevelTestAttempt extends EntityPathBase<LevelTestAttempt> {
 
-    private static final long serialVersionUID = 164546897L;
+    private static final long serialVersionUID = 1832415537L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QLeveltestAttempt leveltestAttempt = new QLeveltestAttempt("leveltestAttempt");
+    public static final QLevelTestAttempt levelTestAttempt = new QLevelTestAttempt("levelTestAttempt");
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
@@ -40,23 +40,23 @@ public class QLeveltestAttempt extends EntityPathBase<LeveltestAttempt> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public QLeveltestAttempt(String variable) {
-        this(LeveltestAttempt.class, forVariable(variable), INITS);
+    public QLevelTestAttempt(String variable) {
+        this(LevelTestAttempt.class, forVariable(variable), INITS);
     }
 
-    public QLeveltestAttempt(Path<? extends LeveltestAttempt> path) {
+    public QLevelTestAttempt(Path<? extends LevelTestAttempt> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QLeveltestAttempt(PathMetadata metadata) {
+    public QLevelTestAttempt(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QLeveltestAttempt(PathMetadata metadata, PathInits inits) {
-        this(LeveltestAttempt.class, metadata, inits);
+    public QLevelTestAttempt(PathMetadata metadata, PathInits inits) {
+        this(LevelTestAttempt.class, metadata, inits);
     }
 
-    public QLeveltestAttempt(Class<? extends LeveltestAttempt> type, PathMetadata metadata, PathInits inits) {
+    public QLevelTestAttempt(Class<? extends LevelTestAttempt> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
     }

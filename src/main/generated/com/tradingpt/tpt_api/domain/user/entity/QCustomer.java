@@ -58,7 +58,7 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = _super.passwordHistories;
 
-    public final ListPath<com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod> paymentMethods = this.<com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod>createList("paymentMethods", com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod.class, com.tradingpt.tpt_api.domain.payment.entity.QPaymentMethod.class, PathInits.DIRECT2);
+    public final ListPath<com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod, com.tradingpt.tpt_api.domain.paymentmethod.entity.QPaymentMethod> paymentMethods = this.<com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod, com.tradingpt.tpt_api.domain.paymentmethod.entity.QPaymentMethod>createList("paymentMethods", com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod.class, com.tradingpt.tpt_api.domain.paymentmethod.entity.QPaymentMethod.class, PathInits.DIRECT2);
 
     public final StringPath phoneNumber = createString("phoneNumber");
 

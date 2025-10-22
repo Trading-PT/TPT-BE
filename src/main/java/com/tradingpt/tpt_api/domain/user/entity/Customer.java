@@ -11,7 +11,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
-import com.tradingpt.tpt_api.domain.payment.entity.PaymentMethod;
+import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
@@ -58,7 +58,7 @@ public class Customer extends User {
 	@JoinColumn(name = "trainer_id", nullable = true)
 	private User assignedTrainer;
 
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<PaymentMethod> paymentMethods = new ArrayList<>();
 
@@ -132,7 +132,7 @@ public class Customer extends User {
 		}
 	}
 
-	public void setAssignedTrainer(User trainer){
+	public void setAssignedTrainer(User trainer) {
 		this.assignedTrainer = trainer;
 	}
 
