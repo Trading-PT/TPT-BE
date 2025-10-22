@@ -10,7 +10,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubjectiveReq
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
-import com.tradingpt.tpt_api.domain.leveltest.entity.LeveltestResponse;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
@@ -210,7 +210,7 @@ public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandSe
 				throw new LeveltestException(LeveltestErrorStatus.INVALID_REQUEST);
 			}
 
-			LeveltestResponse response = leveltestResponseRepository.findById(dto.getResponseId())
+			LevelTestResponse response = leveltestResponseRepository.findById(dto.getResponseId())
 				.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.RESPONSE_NOT_FOUND));
 
 			//  응답이 해당 attempt 소속인지 검증

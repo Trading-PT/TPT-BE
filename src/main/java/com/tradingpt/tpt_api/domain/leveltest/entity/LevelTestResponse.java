@@ -23,13 +23,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "leveltest_response",
+@Table(name = "level_test_response",
 	uniqueConstraints = {
 		@UniqueConstraint(
 			columnNames = {"leveltest_attempt_id", "leveltest_question_id"}
 		)
 	})
-public class LeveltestResponse extends BaseEntity {
+public class LevelTestResponse extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "leveltest_question_id", nullable = false)

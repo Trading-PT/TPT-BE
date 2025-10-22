@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
-import com.tradingpt.tpt_api.domain.leveltest.entity.LeveltestResponse;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
@@ -40,10 +40,10 @@ public class GradingService {
 		LevelTestAttempt attempt = attemptRepository.findById(attemptId)
 			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_FOUND));
 
-		List<LeveltestResponse> responses = responseRepository.findAllByLeveltestAttempt_Id(attemptId);
+		List<LevelTestResponse> responses = responseRepository.findAllByLeveltestAttempt_Id(attemptId);
 
 		int total = 0;
-		for (LeveltestResponse r : responses) {
+		for (LevelTestResponse r : responses) {
 			LevelTestQuestion q = r.getLeveltestQuestion();
 			if (q.getProblemType() == ProblemType.MULTIPLE_CHOICE) {
 				boolean correct = q.getCorrectChoiceNum() != null &&

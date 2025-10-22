@@ -13,7 +13,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttempt
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
-import com.tradingpt.tpt_api.domain.leveltest.entity.LeveltestResponse;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
@@ -67,7 +67,7 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 		LevelTestAttempt attempt = leveltestAttemptRepository.findById(attemptId)
 			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_FOUND));
 
-		List<LeveltestResponse> responses = leveltestResponseRepository.findAllByLeveltestAttempt_Id(attemptId);
+		List<LevelTestResponse> responses = leveltestResponseRepository.findAllByLeveltestAttempt_Id(attemptId);
 
 		return AdminLeveltestAttemptDetailResponseDTO.from(attempt, responses);
 	}

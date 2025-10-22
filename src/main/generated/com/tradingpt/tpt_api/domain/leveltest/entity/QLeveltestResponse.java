@@ -11,16 +11,16 @@ import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
- * QLeveltestResponse is a Querydsl query type for LeveltestResponse
+ * QLevelTestResponse is a Querydsl query type for LevelTestResponse
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QLeveltestResponse extends EntityPathBase<LeveltestResponse> {
+public class QLevelTestResponse extends EntityPathBase<LevelTestResponse> {
 
-    private static final long serialVersionUID = -77074883L;
+    private static final long serialVersionUID = 87245405L;
 
     private static final PathInits INITS = PathInits.DIRECT2;
 
-    public static final QLeveltestResponse leveltestResponse = new QLeveltestResponse("leveltestResponse");
+    public static final QLevelTestResponse levelTestResponse = new QLevelTestResponse("levelTestResponse");
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
@@ -42,23 +42,23 @@ public class QLeveltestResponse extends EntityPathBase<LeveltestResponse> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public QLeveltestResponse(String variable) {
-        this(LeveltestResponse.class, forVariable(variable), INITS);
+    public QLevelTestResponse(String variable) {
+        this(LevelTestResponse.class, forVariable(variable), INITS);
     }
 
-    public QLeveltestResponse(Path<? extends LeveltestResponse> path) {
+    public QLevelTestResponse(Path<? extends LevelTestResponse> path) {
         this(path.getType(), path.getMetadata(), PathInits.getFor(path.getMetadata(), INITS));
     }
 
-    public QLeveltestResponse(PathMetadata metadata) {
+    public QLevelTestResponse(PathMetadata metadata) {
         this(metadata, PathInits.getFor(metadata, INITS));
     }
 
-    public QLeveltestResponse(PathMetadata metadata, PathInits inits) {
-        this(LeveltestResponse.class, metadata, inits);
+    public QLevelTestResponse(PathMetadata metadata, PathInits inits) {
+        this(LevelTestResponse.class, metadata, inits);
     }
 
-    public QLeveltestResponse(Class<? extends LeveltestResponse> type, PathMetadata metadata, PathInits inits) {
+    public QLevelTestResponse(Class<? extends LevelTestResponse> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.leveltestAttempt = inits.isInitialized("leveltestAttempt") ? new QLevelTestAttempt(forProperty("leveltestAttempt"), inits.get("leveltestAttempt")) : null;
         this.leveltestQuestion = inits.isInitialized("leveltestQuestion") ? new QLevelTestQuestion(forProperty("leveltestQuestion")) : null;

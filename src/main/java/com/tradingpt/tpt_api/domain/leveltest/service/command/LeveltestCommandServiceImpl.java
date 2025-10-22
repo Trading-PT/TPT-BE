@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubmitRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptSubmitResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
-import com.tradingpt.tpt_api.domain.leveltest.entity.LeveltestResponse;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
@@ -59,8 +59,8 @@ public class LeveltestCommandServiceImpl implements LeveltestCommandService {
 		attemptRepository.save(attempt);
 
 		// 4) 응답 벌크 저장
-		List<LeveltestResponse> responses = request.getAnswers().stream()
-			.map(a -> LeveltestResponse.builder()
+		List<LevelTestResponse> responses = request.getAnswers().stream()
+			.map(a -> LevelTestResponse.builder()
 				.leveltestAttempt(attempt)
 				.leveltestQuestion(
 					questionRepository.findById(a.getQuestionId())

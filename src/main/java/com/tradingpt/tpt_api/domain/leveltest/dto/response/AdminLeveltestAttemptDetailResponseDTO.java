@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
-import com.tradingpt.tpt_api.domain.leveltest.entity.LeveltestResponse;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -40,7 +40,7 @@ public class AdminLeveltestAttemptDetailResponseDTO {
 
 	// 시도 전체 변환 메서드
 	public static AdminLeveltestAttemptDetailResponseDTO from(LevelTestAttempt attempt,
-		List<LeveltestResponse> responses) {
+		List<LevelTestResponse> responses) {
 		List<QuestionResponseDetail> questionDetails = responses.stream()
 			.map(QuestionResponseDetail::from)
 			.toList();
@@ -73,7 +73,7 @@ public class AdminLeveltestAttemptDetailResponseDTO {
 		private TextAnswerPayload textAnswer;
 
 		// 개별 문제 변환 메서드
-		public static QuestionResponseDetail from(LeveltestResponse r) {
+		public static QuestionResponseDetail from(LevelTestResponse r) {
 			LevelTestQuestion q = r.getLeveltestQuestion();
 
 			QuestionResponseDetailBuilder builder = QuestionResponseDetail.builder()
