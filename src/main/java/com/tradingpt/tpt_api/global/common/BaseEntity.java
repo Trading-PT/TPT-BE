@@ -24,9 +24,10 @@ import lombok.experimental.SuperBuilder;
 public abstract class BaseEntity {            // AuditingEntityListener를 통해 자동으로 시간에 대한 정보를 관리
 
 	@CreatedDate
-	@Column(updatable = false)
+	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
 	@LastModifiedDate
+	@Column(nullable = false)
 	private LocalDateTime updatedAt;
 }

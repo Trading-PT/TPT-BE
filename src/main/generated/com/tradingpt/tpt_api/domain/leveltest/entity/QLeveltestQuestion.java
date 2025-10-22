@@ -10,14 +10,14 @@ import com.querydsl.core.types.Path;
 
 
 /**
- * QLeveltestQuestion is a Querydsl query type for LeveltestQuestion
+ * QLevelTestQuestion is a Querydsl query type for LevelTestQuestion
  */
 @Generated("com.querydsl.codegen.DefaultEntitySerializer")
-public class QLeveltestQuestion extends EntityPathBase<LeveltestQuestion> {
+public class QLevelTestQuestion extends EntityPathBase<LevelTestQuestion> {
 
-    private static final long serialVersionUID = -902621726L;
+    private static final long serialVersionUID = -738301438L;
 
-    public static final QLeveltestQuestion leveltestQuestion = new QLeveltestQuestion("leveltestQuestion");
+    public static final QLevelTestQuestion levelTestQuestion = new QLevelTestQuestion("levelTestQuestion");
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
@@ -53,16 +53,16 @@ public class QLeveltestQuestion extends EntityPathBase<LeveltestQuestion> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
-    public QLeveltestQuestion(String variable) {
-        super(LeveltestQuestion.class, forVariable(variable));
+    public QLevelTestQuestion(String variable) {
+        super(LevelTestQuestion.class, forVariable(variable));
     }
 
-    public QLeveltestQuestion(Path<? extends LeveltestQuestion> path) {
+    public QLevelTestQuestion(Path<? extends LevelTestQuestion> path) {
         super(path.getType(), path.getMetadata());
     }
 
-    public QLeveltestQuestion(PathMetadata metadata) {
-        super(LeveltestQuestion.class, metadata);
+    public QLevelTestQuestion(PathMetadata metadata) {
+        super(LevelTestQuestion.class, metadata);
     }
 
 }

@@ -1,7 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.entity;
 
-import com.fasterxml.jackson.databind.ser.Serializers.Base;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -24,37 +24,36 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "leveltest_response",
-        uniqueConstraints = {
-                @UniqueConstraint(
-                        columnNames = {"leveltest_attempt_id", "leveltest_question_id"}
-                )
-        })
+	uniqueConstraints = {
+		@UniqueConstraint(
+			columnNames = {"leveltest_attempt_id", "leveltest_question_id"}
+		)
+	})
 public class LeveltestResponse extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leveltest_question_id", nullable = false)
-    private LeveltestQuestion leveltestQuestion;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "leveltest_question_id", nullable = false)
+	private LevelTestQuestion leveltestQuestion;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "leveltest_attempt_id", nullable = false)
-    private LeveltestAttempt leveltestAttempt;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "leveltest_attempt_id", nullable = false)
+	private LevelTestAttempt leveltestAttempt;
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "leveltest_response_id")
+	private Long id;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "leveltest_response_id")
-    private Long id;
+	@Column(name = "answer_text")
+	private String answerText; // 주관식/단답형 답변
 
-    @Column(name = "answer_text")
-    private String answerText; // 주관식/단답형 답변
+	@Column(name = "choice_number")
+	private String choiceNumber; // 객관식 선택 번호 (ex. "1", "3", "1,2")
 
-    @Column(name = "choice_number")
-    private String choiceNumber; // 객관식 선택 번호 (ex. "1", "3", "1,2")
+	@Column(name = "scored_awarded")
+	private Integer scoredAwarded; // 획득 점수 (null = 미채점)
 
-    @Column(name = "scored_awarded")
-    private Integer scoredAwarded; // 획득 점수 (null = 미채점)
-
-    public void updateScore(int score) {
-        this.scoredAwarded = score;
-    }
+	public void updateScore(int score) {
+		this.scoredAwarded = score;
+	}
 }
