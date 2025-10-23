@@ -60,7 +60,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
 		// 리뷰가 이미 답변이 되어있으면 에러를 발생
-		if (review.isAnswered()) {
+		if (review.hasReply()) {
 			throw new ReviewException(ReviewErrorStatus.REVIEW_ALREADY_HAS_REPLY);
 		}
 

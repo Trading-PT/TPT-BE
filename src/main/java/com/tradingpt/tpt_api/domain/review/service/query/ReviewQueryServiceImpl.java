@@ -33,7 +33,7 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 			customerId);
 
 		return reviews.stream()
-			.map(ReviewResponseDTO.TrainerReplyResponseDTO::from)
+			.map(ReviewResponseDTO::from)
 			.toList();
 	}
 
@@ -49,7 +49,7 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 		}
 
 		// 본인 리뷰면 공개/비공개 상관없이 조회 가능
-		return ReviewResponseDTO.TrainerReplyResponseDTO.from(review);
+		return ReviewResponseDTO.from(review);
 	}
 
 	@Override
@@ -72,6 +72,6 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 		Review review = reviewRepository.findByIdAndStatus(reviewId, Status.PUBLIC)
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
-		return ReviewResponseDTO.TrainerReplyResponseDTO.from(review);
+		return ReviewResponseDTO.from(review);
 	}
 }

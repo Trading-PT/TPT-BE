@@ -81,7 +81,7 @@ public class Review extends BaseEntity {
 	/**
 	 * 사용자 편의 메서드
 	 */
-	public boolean isAnswered() {
+	public boolean hasReply() {
 		return this.trainer != null && this.replyContent != null;
 	}
 

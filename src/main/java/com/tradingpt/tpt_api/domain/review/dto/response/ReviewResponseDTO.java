@@ -39,15 +39,32 @@ public class ReviewResponseDTO {
 	@Schema(description = "고객 공개 허용 여부")
 	private Boolean isPublic;
 
+	/**
+	 * Review 엔티티를 DTO로 변환
+	 */
 	public static ReviewResponseDTO from(Review review) {
-		return ReviewResponseDTO.builder()
+		ReviewResponseDTOBuilder builder = ReviewResponseDTO.builder()
 			.id(review.getId())
 			.customerId(review.getCustomer().getId())
 			.customerName(review.getCustomer().getName())
 			.content(review.getContent())
 			.submittedAt(review.getSubmittedAt())
-			.isPublic(review.isPublic())
-			.build();
+			.isPublic(review.isPublic());
+
+		// 답변이 있는 경우 TrainerReply 추가
+		if (review.hasReply()) {
+			builder.trainerReply(TrainerReplyResponseDTO.builder()
+				.trainerId(review.getTrainer().getId())
+				.replyContent(review.getReplyContent())
+				.repliedAt(review.getRepliedAt())
+				.build());
+		}
+
+		return builder.build();
+	}
+
+	public boolean hasReply() {
+		return trainerReply != null;
 	}
 
 	@Getter
@@ -65,25 +82,6 @@ public class ReviewResponseDTO {
 
 		@Schema(description = "리뷰에 대한 트레이너의 답변 일시")
 		private LocalDateTime repliedAt;
-
-		public static ReviewResponseDTO from(Review review) {
-			ReviewResponseDTOBuilder builder = ReviewResponseDTO.builder()
-				.id(review.getId())
-				.customerId(review.getCustomer().getId())
-				.customerName(review.getCustomer().getName())
-				.content(review.getContent())
-				.submittedAt(review.getSubmittedAt());
-
-			if (review.isAnswered() && review.getReplyContent() != null) {
-				builder.trainerReply(TrainerReplyResponseDTO.builder()
-					.trainerId(review.getTrainer().getId())
-					.replyContent(review.getReplyContent())
-					.repliedAt(review.getRepliedAt())
-					.build());
-			}
-
-			return builder.build();
-		}
 	}
 
 }
