@@ -37,7 +37,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		// TODO: 구독 여부와 마지막 리뷰 작성일로부터 6개월이 지났을 경우에만 작성할 수 있도록 한다.
 
 		// 리뷰 내용 업로드
-		String processedContent = contentImageUploader.processContent(request.content(), "reviews");
+		String processedContent = contentImageUploader.processContent(request.getContent(), "reviews");
 
 		// 리뷰 생성 및 저장
 		Review newReview = Review.createFrom(request, customer);

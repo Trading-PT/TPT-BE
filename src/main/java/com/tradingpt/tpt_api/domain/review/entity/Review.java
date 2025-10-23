@@ -58,18 +58,15 @@ public class Review extends BaseEntity {
 
 	@Lob
 	@Column(columnDefinition = "TEXT")
-	private String reply; // 답변 내용
+	private String replyContent; // 답변 내용
 
 	@Builder.Default
 	private LocalDateTime submittedAt = LocalDateTime.now(); // 후기 작성 일시
 
-	private LocalDateTime answeredAt; // 답변 일시
+	private LocalDateTime repliedAt; // 답변 일시
 
 	@Builder.Default
 	private Status status = Status.PRIVATE; // 공개 여부
-
-	@Builder.Default
-	private Boolean isAnswered = Boolean.FALSE; // 답변 작성 여부
 
 	/**
 	 * 정적 팩토리 메서드
@@ -77,8 +74,14 @@ public class Review extends BaseEntity {
 	public static Review createFrom(CreateReviewRequestDTO request, Customer customer) {
 		return Review.builder()
 			.customer(customer)
-			.content(request.content())
+			.content(request.getContent())
 			.build();
 	}
 
+	/**
+	 * 사용자 편의 메서드
+	 */
+	public boolean isAnswered() {
+		return this.trainer != null && this.replyContent != null;
+	}
 }
