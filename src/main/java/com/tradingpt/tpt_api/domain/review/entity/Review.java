@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.review.entity;
 
 import java.time.LocalDateTime;
 
+import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
 import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
@@ -69,5 +70,15 @@ public class Review extends BaseEntity {
 
 	@Builder.Default
 	private Boolean isAnswered = Boolean.FALSE; // 답변 작성 여부
+
+	/**
+	 * 정적 팩토리 메서드
+	 */
+	public static Review createFrom(CreateReviewRequestDTO request, Customer customer) {
+		return Review.builder()
+			.customer(customer)
+			.content(request.content())
+			.build();
+	}
 
 }
