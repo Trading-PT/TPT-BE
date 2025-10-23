@@ -5,13 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 
 @Getter
-@Schema(description = "리뷰 작성 요청 DTO")
-public class CreateReviewRequestDTO {
+public class CreateReplyRequestDTO {
 
-	@Schema(description = "리뷰 본문 (HTML/Markdown)")
+	@Schema(description = "리뷰 답변 본문 (HTML/Markdown)")
 	@NotBlank
-	String content;
-
+	private String content;
+	
 }
-
-

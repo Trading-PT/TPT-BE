@@ -84,4 +84,10 @@ public class Review extends BaseEntity {
 	public boolean isAnswered() {
 		return this.trainer != null && this.replyContent != null;
 	}
+
+	public void addReply(Trainer trainer, String content) {
+		this.trainer = trainer;
+		this.replyContent = content;
+		this.repliedAt = LocalDateTime.now();
+	}
 }
