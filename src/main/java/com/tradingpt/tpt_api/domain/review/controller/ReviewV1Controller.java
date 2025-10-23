@@ -41,12 +41,12 @@ public class ReviewV1Controller {
 	}
 
 	@Operation(summary = "내 리뷰 내역 보기", description = "내가 작성한 리뷰들을 봅니다.")
-	@GetMapping
+	@GetMapping("/me")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<List<ReviewResponseDTO>> getMyReviews(
 		@AuthenticationPrincipal(expression = "id") Long customerId
 	) {
 		return BaseResponse.onSuccess(reviewQueryService.getMyReviews(customerId));
 	}
-	
+
 }
