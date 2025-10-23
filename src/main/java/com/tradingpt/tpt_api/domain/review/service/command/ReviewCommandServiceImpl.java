@@ -5,7 +5,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReplyRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
+import com.tradingpt.tpt_api.domain.review.dto.request.UpdateReviewVisibilityRequestDTO;
 import com.tradingpt.tpt_api.domain.review.entity.Review;
+import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewErrorStatus;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewException;
 import com.tradingpt.tpt_api.domain.review.repository.ReviewRepository;
@@ -57,6 +59,11 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
+		// 리뷰가 이미 답변이 되어있으면 에러를 발생
+		if (review.isAnswered()) {
+			throw new ReviewException(ReviewErrorStatus.REVIEW_ALREADY_HAS_REPLY);
+		}
+
 		// 트레이너 검색
 		Trainer trainer = (Trainer)userRepository.findById(trainerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
@@ -69,6 +76,17 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 
 		// 더티 체킹을 통한 리뷰 응답 저장
 		review.addReply(trainer, processedContent);
+
+		return null;
+	}
+
+	@Override
+	public Void updateReviewVisibility(Long reviewId, UpdateReviewVisibilityRequestDTO request) {
+		// 리뷰 검색
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		review.updateVisibility(request.getIsPublic() == true ? Status.PUBLIC : Status.PRIVATE);
 
 		return null;
 	}

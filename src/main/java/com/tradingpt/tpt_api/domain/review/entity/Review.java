@@ -85,9 +85,18 @@ public class Review extends BaseEntity {
 		return this.trainer != null && this.replyContent != null;
 	}
 
+	public boolean isPublic() {
+		return this.status == Status.PUBLIC;
+	}
+
+	public void updateVisibility(Status status) {
+		this.status = status;
+	}
+
 	public void addReply(Trainer trainer, String content) {
 		this.trainer = trainer;
 		this.replyContent = content;
 		this.repliedAt = LocalDateTime.now();
 	}
+
 }

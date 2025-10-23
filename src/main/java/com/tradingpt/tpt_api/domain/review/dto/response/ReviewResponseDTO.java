@@ -36,6 +36,9 @@ public class ReviewResponseDTO {
 	@Schema(description = "트레이너 답변 (답변이 있는 경우)")
 	private TrainerReplyResponseDTO trainerReply;
 
+	@Schema(description = "고객 공개 허용 여부")
+	private Boolean isPublic;
+
 	public static ReviewResponseDTO from(Review review) {
 		return ReviewResponseDTO.builder()
 			.id(review.getId())
@@ -43,11 +46,8 @@ public class ReviewResponseDTO {
 			.customerName(review.getCustomer().getName())
 			.content(review.getContent())
 			.submittedAt(review.getSubmittedAt())
+			.isPublic(review.isPublic())
 			.build();
-	}
-
-	public boolean hasReply() {
-		return trainerReply != null;
 	}
 
 	@Getter

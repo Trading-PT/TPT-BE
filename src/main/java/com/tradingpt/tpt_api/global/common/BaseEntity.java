@@ -30,4 +30,5 @@ public abstract class BaseEntity {            // AuditingEntityListener를 통�
 	@LastModifiedDate
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
+	
 }
