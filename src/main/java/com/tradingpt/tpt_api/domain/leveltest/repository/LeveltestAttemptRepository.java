@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.leveltest.repository;
 
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,4 +26,7 @@ public interface LeveltestAttemptRepository extends JpaRepository<LevelTestAttem
 		@Param("to") LeveltestStaus to);
 
 	Page<LevelTestAttempt> findAllByStatus(LeveltestStaus status, Pageable pageable);
+
+	List<LevelTestAttempt> findByCustomer_IdAndStatus(Long customerId, LeveltestStaus status);
+
 }

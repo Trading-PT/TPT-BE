@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.leveltest.controller;
 
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -27,7 +28,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestMultipleChoic
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubjectiveRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptListResponseDTO;
-import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
+
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.service.command.AdminLeveltestCommandService;

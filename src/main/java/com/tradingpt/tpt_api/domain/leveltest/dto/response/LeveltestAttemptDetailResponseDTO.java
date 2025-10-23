@@ -1,10 +1,16 @@
 package com.tradingpt.tpt_api.domain.leveltest.dto.response;
 
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @Builder
@@ -25,6 +31,26 @@ public class LeveltestAttemptDetailResponseDTO {
 
     @Schema(description = "문항별 응답 리스트")
     private List<QuestionResponse> responses;
+
+    /**
+     * B안(별도 조회)용 팩토리 메서드
+     * - attempt는 시도 메타 정보만 사용
+     * - responses는 레포지토리에서 attemptId로 fetch join하여 주입
+     */
+    public static LeveltestAttemptDetailResponseDTO from(LevelTestAttempt attempt,
+                                                         List<LevelTestResponse> responses) {
+        return LeveltestAttemptDetailResponseDTO.builder()
+                .attemptId(attempt.getId())
+                .totalScore(attempt.getTotalScore())
+                .grade(String.valueOf(attempt.getGrade()))
+                .customerId(attempt.getCustomer().getId())
+                .responses(
+                        responses.stream()
+                                .map(QuestionResponse::from)
+                                .collect(Collectors.toList())
+                )
+                .build();
+    }
 
     @Getter
     @Builder
@@ -55,7 +81,24 @@ public class LeveltestAttemptDetailResponseDTO {
         @Schema(description = "획득 점수", example = "5")
         private Integer scoreAwarded;
 
-        @Schema(description = "정답 여부 (객관식일 경우)", example = "true")
-        private Boolean isCorrect;
+        public static QuestionResponse from(LevelTestResponse response) {
+
+            LevelTestQuestion q = response.getLeveltestQuestion();
+
+            return QuestionResponse.builder()
+                    .questionId(q.getId())
+                    .content(q.getContent())
+                    .problemType(q.getProblemType().name())
+                    .imageUrl(q.getImageUrl())
+                    .choices(
+                            Stream.of(q.getChoice1(), q.getChoice2(), q.getChoice3(), q.getChoice4(), q.getChoice5())
+                                    .filter(Objects::nonNull)
+                                    .collect(Collectors.toList())
+                    )
+                    .choiceNumber(response.getChoiceNumber())
+                    .answerText(response.getAnswerText())
+                    .scoreAwarded(response.getScoredAwarded())
+                    .build();
+        }
     }
 }
