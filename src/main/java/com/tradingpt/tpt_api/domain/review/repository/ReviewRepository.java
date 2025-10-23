@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.review.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -22,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 		"LEFT JOIN FETCH r.trainer " +
 		"WHERE r.status = :status")
 	Slice<Review> findByStatusSlice(@Param("status") Status status, Pageable pageable);
+
+	Optional<Review> findByIdAndStatus(Long reviewId, Status status);
 }

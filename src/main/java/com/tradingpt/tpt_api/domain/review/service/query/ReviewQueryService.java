@@ -12,4 +12,6 @@ public interface ReviewQueryService {
 	List<ReviewResponseDTO> getMyReviews(Long customerId);
 
 	PublicReviewListResponseDTO getPublicReviews(Pageable pageable);
+
+	ReviewResponseDTO getPublicReview(Long reviewId);
 }

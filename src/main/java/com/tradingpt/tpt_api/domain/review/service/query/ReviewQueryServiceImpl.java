@@ -11,6 +11,8 @@ import com.tradingpt.tpt_api.domain.review.dto.response.PublicReviewListResponse
 import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
 import com.tradingpt.tpt_api.domain.review.entity.Review;
 import com.tradingpt.tpt_api.domain.review.enums.Status;
+import com.tradingpt.tpt_api.domain.review.exception.ReviewErrorStatus;
+import com.tradingpt.tpt_api.domain.review.exception.ReviewException;
 import com.tradingpt.tpt_api.domain.review.repository.ReviewRepository;
 import com.tradingpt.tpt_api.global.common.dto.SliceInfo;
 
@@ -48,5 +50,13 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 		SliceInfo sliceInfo = SliceInfo.of(reviewSlice);
 
 		return PublicReviewListResponseDTO.of(reviews, sliceInfo);
+	}
+
+	@Override
+	public ReviewResponseDTO getPublicReview(Long reviewId) {
+		Review review = reviewRepository.findByIdAndStatus(reviewId, Status.PUBLIC)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		return ReviewResponseDTO.TrainerReplyResponseDTO.from(review);
 	}
 }

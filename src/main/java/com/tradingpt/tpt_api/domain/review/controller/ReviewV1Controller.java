@@ -8,6 +8,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -82,5 +83,9 @@ public class ReviewV1Controller {
 		description = "특정 리뷰의 상세 정보를 조회합니다. (공개 리뷰만)"
 	)
 	@GetMapping("/{reviewId}")
-	public BaseResponse<ReviewResponseDTO>
+	public BaseResponse<ReviewResponseDTO> getPublicReview(
+		@PathVariable Long reviewId
+	) {
+		return BaseResponse.onSuccess(reviewQueryService.getPublicReview(reviewId));
+	}
 }
