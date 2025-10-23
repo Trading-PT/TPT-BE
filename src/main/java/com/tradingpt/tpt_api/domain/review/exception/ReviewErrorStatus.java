@@ -12,6 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ReviewErrorStatus implements BaseCodeInterface {
 	REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW_404_1", "리뷰를 찾을 수 없습니다."),
+	UNAUTHORIZED_REVIEW_ACCESS(HttpStatus.UNAUTHORIZED, "REVIEW_401_1", "리뷰 접근 권한이 없습니다."),
 	;
 
 	private final HttpStatus httpStatus;

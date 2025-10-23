@@ -61,6 +61,23 @@ public class ReviewV1Controller {
 	}
 
 	@Operation(
+		summary = "내 리뷰 상세 조회",
+		description = """
+			로그인한 사용자가 자신이 작성한 특정 리뷰를 상세 조회합니다.
+			- 본인의 리뷰만 조회 가능
+			- 공개/비공개 상관없이 조회 가능
+			"""
+	)
+	@GetMapping("/me/{reviewId}")
+	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
+	public BaseResponse<ReviewResponseDTO> getMyReview(
+		@PathVariable Long reviewId,
+		@AuthenticationPrincipal(expression = "id") Long customerId
+	) {
+		return BaseResponse.onSuccess(reviewQueryService.getMyReview(reviewId, customerId));
+	}
+
+	@Operation(
 		summary = "공개 리뷰 목록 조회 (무한 스크롤)",
 		description = """
 			모든 사용자(비회원 포함)가 공개된 리뷰 목록을 조회합니다.
@@ -79,7 +96,7 @@ public class ReviewV1Controller {
 	}
 
 	@Operation(
-		summary = "리뷰 상세 조회",
+		summary = "리뷰 상세 조회(공개용)",
 		description = "특정 리뷰의 상세 정보를 조회합니다. (공개 리뷰만)"
 	)
 	@GetMapping("/{reviewId}")
@@ -88,4 +105,5 @@ public class ReviewV1Controller {
 	) {
 		return BaseResponse.onSuccess(reviewQueryService.getPublicReview(reviewId));
 	}
+
 }

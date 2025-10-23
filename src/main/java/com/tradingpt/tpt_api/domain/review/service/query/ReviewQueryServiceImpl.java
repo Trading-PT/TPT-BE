@@ -38,6 +38,21 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 	}
 
 	@Override
+	public ReviewResponseDTO getMyReview(Long reviewId, Long customerId) {
+		// 리뷰 조회
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		// 본인 리뷰인지 확인
+		if (!review.getCustomer().getId().equals(customerId)) {
+			throw new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND);
+		}
+
+		// 본인 리뷰면 공개/비공개 상관없이 조회 가능
+		return ReviewResponseDTO.TrainerReplyResponseDTO.from(review);
+	}
+
+	@Override
 	public PublicReviewListResponseDTO getPublicReviews(Pageable pageable) {
 
 		Slice<Review> reviewSlice = reviewRepository.findByStatusSlice(Status.PUBLIC, pageable);
