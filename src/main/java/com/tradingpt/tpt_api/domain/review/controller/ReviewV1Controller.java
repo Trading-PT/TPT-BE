@@ -2,6 +2,9 @@ package com.tradingpt.tpt_api.domain.review.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.PublicReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
 import com.tradingpt.tpt_api.domain.review.service.command.ReviewCommandService;
 import com.tradingpt.tpt_api.domain.review.service.query.ReviewQueryService;
@@ -40,7 +44,13 @@ public class ReviewV1Controller {
 		return BaseResponse.onSuccessCreate(reviewCommandService.createReview(customerId, request));
 	}
 
-	@Operation(summary = "내 리뷰 내역 보기", description = "내가 작성한 리뷰들을 봅니다.")
+	@Operation(
+		summary = "내 리뷰 목록 조회",
+		description = """
+			로그인한 사용자가 자신이 작성한 리뷰 목록을 조회합니다.
+			- 공개/비공개 리뷰 모두 조회 가능
+			"""
+	)
 	@GetMapping("/me")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
 	public BaseResponse<List<ReviewResponseDTO>> getMyReviews(
@@ -49,4 +59,21 @@ public class ReviewV1Controller {
 		return BaseResponse.onSuccess(reviewQueryService.getMyReviews(customerId));
 	}
 
+	@Operation(
+		summary = "공개 리뷰 목록 조회 (무한 스크롤)",
+		description = """
+			모든 사용자(비회원 포함)가 공개된 리뷰 목록을 조회합니다.
+			- 무한 스크롤 방식 (다음 페이지 여부만 제공)
+			- 최신순으로 정렬
+			- page: 페이지 번호 (0부터 시작, 기본값: 0)
+			- size: 페이지 크기 (기본값: 12)
+			"""
+	)
+	@GetMapping
+	public BaseResponse<PublicReviewListResponseDTO> getPublicReviews(
+		@PageableDefault(size = 12, sort = "submittedAt", direction = Sort.Direction.DESC)
+		Pageable pageable
+	) {
+		return BaseResponse.onSuccess(reviewQueryService.getPublicReviews(pageable));
+	}
 }
