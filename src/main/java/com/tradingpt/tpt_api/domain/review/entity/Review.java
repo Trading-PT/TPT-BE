@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.review.entity;
 
 import java.time.LocalDateTime;
 
+import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
 import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
@@ -57,17 +58,45 @@ public class Review extends BaseEntity {
 
 	@Lob
 	@Column(columnDefinition = "TEXT")
-	private String reply; // 답변 내용
+	private String replyContent; // 답변 내용
 
 	@Builder.Default
 	private LocalDateTime submittedAt = LocalDateTime.now(); // 후기 작성 일시
 
-	private LocalDateTime answeredAt; // 답변 일시
+	private LocalDateTime repliedAt; // 답변 일시
 
 	@Builder.Default
 	private Status status = Status.PRIVATE; // 공개 여부
 
-	@Builder.Default
-	private Boolean isAnswered = Boolean.FALSE; // 답변 작성 여부
+	/**
+	 * 정적 팩토리 메서드
+	 */
+	public static Review createFrom(CreateReviewRequestDTO request, Customer customer) {
+		return Review.builder()
+			.customer(customer)
+			.content(request.getContent())
+			.build();
+	}
+
+	/**
+	 * 사용자 편의 메서드
+	 */
+	public boolean hasReply() {
+		return this.trainer != null && this.replyContent != null;
+	}
+
+	public boolean isPublic() {
+		return this.status == Status.PUBLIC;
+	}
+
+	public void updateVisibility(Status status) {
+		this.status = status;
+	}
+
+	public void addReply(Trainer trainer, String content) {
+		this.trainer = trainer;
+		this.replyContent = content;
+		this.repliedAt = LocalDateTime.now();
+	}
 
 }
