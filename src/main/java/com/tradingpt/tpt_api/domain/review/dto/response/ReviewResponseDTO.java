@@ -36,6 +36,16 @@ public class ReviewResponseDTO {
 	@Schema(description = "트레이너 답변 (답변이 있는 경우)")
 	private TrainerReplyResponseDTO trainerReply;
 
+	public static ReviewResponseDTO from(Review review) {
+		return ReviewResponseDTO.builder()
+			.id(review.getId())
+			.customerId(review.getCustomer().getId())
+			.customerName(review.getCustomer().getName())
+			.content(review.getContent())
+			.submittedAt(review.getSubmittedAt())
+			.build();
+	}
+
 	public boolean hasReply() {
 		return trainerReply != null;
 	}

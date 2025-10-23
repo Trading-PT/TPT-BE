@@ -76,4 +76,11 @@ public class ReviewV1Controller {
 	) {
 		return BaseResponse.onSuccess(reviewQueryService.getPublicReviews(pageable));
 	}
+
+	@Operation(
+		summary = "리뷰 상세 조회",
+		description = "특정 리뷰의 상세 정보를 조회합니다. (공개 리뷰만)"
+	)
+	@GetMapping("/{reviewId}")
+	public BaseResponse<ReviewResponseDTO>
 }

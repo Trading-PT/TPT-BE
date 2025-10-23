@@ -42,7 +42,7 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 
 		List<ReviewResponseDTO> reviews = reviewSlice.getContent()
 			.stream()
-			.map(ReviewResponseDTO.TrainerReplyResponseDTO::from)
+			.map(ReviewResponseDTO::from)
 			.toList();
 
 		SliceInfo sliceInfo = SliceInfo.of(reviewSlice);
