@@ -39,9 +39,8 @@ public class AdminSuccessHandler implements AuthenticationSuccessHandler {
         new HttpSessionSecurityContextRepository().saveContext(ctx, req, res);
 
         // (2) ★ CSRF 토큰 강제 발급 (빈 주입 대신 직접 생성)
-        HeaderAndCookieCsrfTokenRepository repo = new HeaderAndCookieCsrfTokenRepository();
-        CsrfToken token = repo.generateToken(req);
-        repo.saveToken(token, req, res);
+        CsrfToken token = csrfTokenRepository.generateToken(req);
+        csrfTokenRepository.saveToken(token, req, res);
 
         // (3) 응답 바디 작성
         var body = new AdminLoginResponse(

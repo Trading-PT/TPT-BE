@@ -245,9 +245,7 @@ public class SecurityConfig {
 						.rememberMeServices(rememberMeServices)
 						.useSecureCookie(true)
 				)
-				.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository),
-						UsernamePasswordAuthenticationFilter.class);
+				.addFilterAt(adminJsonLoginFilter, UsernamePasswordAuthenticationFilter.class);
 
 
 
