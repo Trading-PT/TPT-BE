@@ -38,16 +38,6 @@ public class AdminSuccessHandler implements AuthenticationSuccessHandler {
         ctx.setAuthentication(auth2);
         new HttpSessionSecurityContextRepository().saveContext(ctx, req, res);
 
-        // (2) ★ CSRF 토큰 강제 발급 (빈 주입 대신 직접 생성)
-        HeaderAndCookieCsrfTokenRepository repo = new HeaderAndCookieCsrfTokenRepository();
-        repo.setCookieHttpOnly(false);
-        repo.setCookieCustomizer(b -> {
-            b.sameSite("None");   // 크로스사이트 허용
-            b.secure(true);       // SameSite=None이면 HTTPS 필수
-        });
-        CsrfToken token = repo.generateToken(req);
-        repo.saveToken(token, req, res);
-
 
 
         // (3) 응답 바디 작성
