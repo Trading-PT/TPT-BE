@@ -28,12 +28,13 @@ public class CsrfTokenResponseHeaderBindingFilter extends OncePerRequestFilter {
 		FilterChain filterChain
 	) throws ServletException, IOException {
 
-		filterChain.doFilter(request, response);
 
 		CsrfToken token = csrfTokenRepository.loadToken(request);
 		if (token == null) {
 			token = csrfTokenRepository.generateToken(request);
 		}
 		csrfTokenRepository.saveToken(token, request, response);
+
+		filterChain.doFilter(request, response);
 	}
 }
