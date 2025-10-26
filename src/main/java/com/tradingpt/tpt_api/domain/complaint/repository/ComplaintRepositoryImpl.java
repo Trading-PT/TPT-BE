@@ -69,7 +69,7 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
                 .from(complaint)
                 .join(complaint.customer, customer)          // 고객
                 .leftJoin(customer.assignedTrainer, user)         // 고객 담당 조교
-                .leftJoin(complaint.answeredBy, answeredTrainer) // 답변자(트레이너)
+                .leftJoin(complaint.trainer, answeredTrainer) // 답변자(트레이너)
                 .where(where)
                 .orderBy(orders)
                 .offset(pageable.getOffset())
@@ -80,7 +80,7 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
                 .from(complaint)
                 .join(complaint.customer, customer)
                 .leftJoin(customer.assignedTrainer, user)
-                .leftJoin(complaint.answeredBy, answeredTrainer)
+                .leftJoin(complaint.trainer, answeredTrainer)
                 .where(where)
                 .fetchOne();
 

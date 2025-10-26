@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.complaint.entity;
 
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.complaint.enums.Status;
@@ -39,7 +40,7 @@ public class Complaint extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "answered_id")
-	private Trainer answeredBy; // 답변 작성자
+	private Trainer trainer; // 답변 작성자
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -67,7 +68,7 @@ public class Complaint extends BaseEntity {
 
 	/** 답변 등록/수정: 연관된 트레이너/답변 내용/시간/상태를 일괄 갱신 */
 	public void upsertReply(Trainer answeredBy, String reply, LocalDateTime answeredTime) {
-		this.answeredBy = answeredBy;
+		this.trainer = answeredBy;
 		this.complaintReply = reply;
 		this.answeredAt = answeredTime;
 		this.status = Status.ANSWERED;
@@ -76,7 +77,7 @@ public class Complaint extends BaseEntity {
 	/** 답변 삭제: 답변/작성자/시간 초기화 + 미답변 상태로 변경 */
 	public void deleteReply(LocalDateTime now) {
 		this.complaintReply = null;
-		this.answeredBy = null;
+		this.trainer = null;
 		this.answeredAt = null;
 		this.status = Status.UNANSWERED;
 	}
