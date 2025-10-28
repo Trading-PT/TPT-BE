@@ -20,7 +20,9 @@ public enum ColumnErrorStatus implements BaseCodeInterface {
     // 기타 권한/상태 관련 에러
     DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "COLUMN4005", "칼럼 삭제 권한이 없습니다."),
     DUPLICATE_TITLE(HttpStatus.CONFLICT, "COLUMN4006", "동일한 제목의 칼럼이 이미 존재합니다."),
-    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "COLUMN4007", "해당 카테고리를 찾을 수 없습니다");
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "COLUMN4007", "해당 카테고리를 찾을 수 없습니다"),
+    LIKE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "COLUMN4008", "좋아요 수는 10,000을 초과할 수 없습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COLUMN4008", "해당 댓글을 찾을 수 없습니다");
 
     private final HttpStatus httpStatus;
     private final boolean isSuccess = false;
