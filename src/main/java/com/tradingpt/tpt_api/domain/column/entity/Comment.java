@@ -39,4 +39,8 @@ public class Comment {
 
     @Column(name = "content")
     private String content;
+
+    public void updateContent(String content) {
+        this.content = content;
+    }
 }

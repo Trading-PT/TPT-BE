@@ -58,4 +58,8 @@ public class Columns {
             this.user = newUser;
         }
     }
+
+    public void incrementLikeCount(int newCount) {
+        this.likeCount = newCount;
+    }
 }
