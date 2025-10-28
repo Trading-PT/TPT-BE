@@ -4,6 +4,7 @@ import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QDayRequestDet
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QSwingRequestDetail.*;
+import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -1349,6 +1350,82 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			: allRequests.subList(offset, endIndex);
 
 		// hasNext 판단: 실제로 pageSize + 1개가 조회되었으면 다음 페이지가 있음
+		boolean hasNext = content.size() > pageSize;
+
+		// 실제 반환할 컨텐츠는 pageSize만큼만
+		if (hasNext) {
+			content = content.subList(0, pageSize);
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public Slice<FeedbackRequest> findNewFeedbackRequestsByTrainer(
+		Long trainerId,
+		Pageable pageable
+	) {
+		// Day 피드백 조회
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.join(dayRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				dayRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(dayRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+
+		// Scalping 피드백 조회
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.join(scalpingRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				scalpingRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(scalpingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// Swing 피드백 조회
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.join(swingRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				swingRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(swingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// 모든 피드백 합치기
+		List<FeedbackRequest> allRequests = new ArrayList<>();
+		allRequests.addAll(dayRequests);
+		allRequests.addAll(scalpingRequests);
+		allRequests.addAll(swingRequests);
+
+		// 생성 시간 내림차순 정렬 (최신순)
+		allRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+		// Slice 처리 (pageSize + 1개를 조회해서 hasNext 판단)
+		int pageSize = pageable.getPageSize();
+		int offset = (int)pageable.getOffset();
+
+		int endIndex = Math.min(offset + pageSize + 1, allRequests.size());
+		List<FeedbackRequest> content = offset >= allRequests.size()
+			? new ArrayList<>()
+			: allRequests.subList(offset, endIndex);
+
+		// hasNext 판단
 		boolean hasNext = content.size() > pageSize;
 
 		// 실제 반환할 컨텐츠는 pageSize만큼만

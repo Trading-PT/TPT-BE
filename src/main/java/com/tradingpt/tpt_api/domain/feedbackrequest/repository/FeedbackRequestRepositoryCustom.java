@@ -252,4 +252,18 @@ public interface FeedbackRequestRepositoryCustom {
 	 */
 	Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable);
 
+	/**
+	 * ✅ 특정 트레이너의 담당 고객들의 새로운 피드백 요청 목록 조회 (무한 스크롤)
+	 * - status가 N (피드백 대기)인 것만 조회
+	 * - 최신순 정렬
+	 *
+	 * @param trainerId 트레이너 ID
+	 * @param pageable 페이징 정보
+	 * @return 새로운 피드백 요청 Slice
+	 */
+	Slice<FeedbackRequest> findNewFeedbackRequestsByTrainer(
+		Long trainerId,
+		Pageable pageable
+	);
+
 }

@@ -11,6 +11,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
@@ -84,5 +85,17 @@ public interface FeedbackRequestQueryService {
 	);
 
 	TokenUsedFeedbackListResponseDTO getTokenUsedFeedbackRequests(Pageable pageable);
-	
+
+	/**
+	 * ✅ 내 담당 고객의 새로운 피드백 요청 목록 조회 (무한 스크롤)
+	 *
+	 * @param trainerId 트레이너 ID
+	 * @param pageable 페이징 정보
+	 * @return 새로운 피드백 요청 목록 (Slice)
+	 */
+	MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(
+		Long trainerId,
+		Pageable pageable
+	);
+
 }
