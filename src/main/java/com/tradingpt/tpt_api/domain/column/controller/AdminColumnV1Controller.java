@@ -5,7 +5,6 @@ import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCategoryRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCreateRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnUpdateRequestDTO;
 import com.tradingpt.tpt_api.domain.column.service.command.AdminColumnCommandService;
-import com.tradingpt.tpt_api.domain.column.service.query.AdminColumnQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/admin/columns")
 @RequiredArgsConstructor
 @Tag(name = "칼럼(어드민)", description = "칼럼 관리 API (작성/수정은 관리자·트레이너, 삭제는 관리자 전용)")
-public class AdminV1ColumnController {
+public class AdminColumnV1Controller {
 
     private final AdminColumnCommandService commandService;
 //    private final AdminColumnQueryService queryService;
