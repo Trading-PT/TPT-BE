@@ -1491,6 +1491,65 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.collect(Collectors.toList());
 	}
 
+	@Override
+	public List<Integer> findDaysByCustomerIdAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		// Day 피드백의 날짜(일) 조회
+		List<Integer> dayDays = queryFactory
+			.select(dayRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month),
+				dayRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// Scalping 피드백의 날짜(일) 조회
+		List<Integer> scalpingDays = queryFactory
+			.select(scalpingRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month),
+				scalpingRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// Swing 피드백의 날짜(일) 조회
+		List<Integer> swingDays = queryFactory
+			.select(swingRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month),
+				swingRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// 모든 날짜 합치기 및 중복 제거
+		List<Integer> allDays = new ArrayList<>();
+		allDays.addAll(dayDays);
+		allDays.addAll(scalpingDays);
+		allDays.addAll(swingDays);
+
+		// 중복 제거 + 오름차순 정렬
+		return allDays.stream()
+			.distinct()
+			.sorted()
+			.collect(Collectors.toList());
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);

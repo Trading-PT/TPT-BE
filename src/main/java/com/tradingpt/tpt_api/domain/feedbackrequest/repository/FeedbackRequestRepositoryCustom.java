@@ -280,4 +280,20 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer month
 	);
 
+	/**
+	 * ✅ 특정 고객의 특정 연/월/주에 피드백 요청이 존재하는 날짜(일) 목록 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 피드백이 존재하는 날짜 목록 (오름차순 정렬)
+	 */
+	List<Integer> findDaysByCustomerIdAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
+
 }

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
@@ -23,19 +24,24 @@ import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHi
 import com.tradingpt.tpt_api.domain.investmenttypehistory.repository.InvestmentTypeHistoryRepository;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedDayWeeklySummaryDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedGeneralWeeklySummaryDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.BeforeCompletedCourseWeeklySummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackListItemDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackSummaryDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DirectionStatisticsResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyDayFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyWeekFeedbackSummaryResponseDTO;
@@ -51,7 +57,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummaryQueryService {
 
-	private final UserRepository userRepository;
+	private final CustomerRepository customerRepository;
+	private final TrainerRepository trainerRepository;
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final WeeklyTradingSummaryRepository weeklyTradingSummaryRepository;
@@ -66,7 +73,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		// ✅ 연도/월 검증
 		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
 
-		Customer customer = (Customer)userRepository.findById(customerId)
+		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 1. 해당 월의 CourseStatus 조회
@@ -97,6 +104,98 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 				return buildAfterCompletionGeneralSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			}
+		}
+	}
+
+	@Override
+	public WeeklyDayFeedbackResponseDTO getWeeklyDayFeedback(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId,
+		Long trainerId
+	) {
+		log.info("Fetching days with feedback for customerId={}, year={}, month={}, week={}",
+			customerId, year, month, week);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+
+		// 2. 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 트레이너 조회
+		Trainer trainer = trainerRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 4. 트레이너 배정 검증
+		validateTrainerAssignment(customer, trainer);
+
+		// 5. 피드백이 존재하는 날짜 목록 조회
+		List<Integer> days = feedbackRequestRepository
+			.findDaysByCustomerIdAndYearAndMonthAndWeek(customerId, year, month, week);
+
+		log.info("Found {} days with feedback for {}-{}-W{}: {}",
+			days.size(), year, month, week, days);
+
+		return WeeklyDayFeedbackResponseDTO.of(year, month, week, days);
+	}
+
+	@Override
+	public DailyFeedbackListResponseDTO getDailyFeedbackList(
+		Integer year,
+		Integer month,
+		Integer week,
+		Integer day,
+		Long customerId,
+		Long trainerId
+	) {
+		log.info("Fetching feedbacks for customerId={}, date={}-{}-{} (week {})",
+			customerId, year, month, day, week);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+		LocalDate date = LocalDate.of(year, month, day);
+
+		// 2. 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 트레이너 조회
+		Trainer trainer = trainerRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 4. 트레이너 배정 검증
+		validateTrainerAssignment(customer, trainer);
+
+		// 5. 특정 날짜의 피드백 목록 조회
+		List<FeedbackRequest> feedbackRequests = feedbackRequestRepository
+			.findByCustomerIdAndDate(customerId, date);
+
+		// 6. DTO 변환
+		List<DailyFeedbackListItemDTO> feedbackDTOs = feedbackRequests.stream()
+			.map(DailyFeedbackListItemDTO::from)
+			.collect(Collectors.toList());
+
+		log.info("Found {} feedbacks for date {}-{}-{}",
+			feedbackDTOs.size(), year, month, day);
+
+		return DailyFeedbackListResponseDTO.of(year, month, week, day, feedbackDTOs);
+	}
+
+	/**
+	 * 트레이너 배정 검증
+	 */
+	private void validateTrainerAssignment(Customer customer, Trainer trainer) {
+		if (customer.getAssignedTrainer() == null) {
+			throw new UserException(UserErrorStatus.TRAINER_NOT_ASSIGNED);
+		}
+
+		if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
+			log.warn("Trainer {} tried to access customer {} who is assigned to trainer {}",
+				trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
+			throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
 		}
 	}
 
