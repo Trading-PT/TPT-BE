@@ -255,6 +255,43 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		return MyCustomerNewFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);
 	}
 
+	@Override
+	public FeedbackRequestDetailResponseDTO getAdminFeedbackDetail(Long feedbackRequestId) {
+		// 1. 피드백 조회
+		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
+			.orElseThrow(() -> new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
+
+		// 2. 피드백 답변 조회
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
+
+		// 3. 응답 DTO 생성
+		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
+			FeedbackRequestDetailResponseDTO.builder()
+				.id(feedbackRequest.getId())
+				.investmentType(feedbackRequest.getInvestmentType())
+				.membershipLevel(feedbackRequest.getMembershipLevel())
+				.status(feedbackRequest.getStatus());
+
+		// 4. 타입별 상세 정보 추가
+		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
+			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
+		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
+			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
+		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
+			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
+		}
+
+		// 5. 피드백 응답 정보 추가
+		if (feedbackResponse != null) {
+			Trainer trainer = feedbackResponse.getTrainer();
+			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
+		}
+
+		return builder.build();
+
+	}
+
 	/**
 	 * FeedbackRequest를 AdminFeedbackCardDTO로 변환하는 헬퍼 메서드
 	 */

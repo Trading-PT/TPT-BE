@@ -7,12 +7,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateBestFeedbacksRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
@@ -143,6 +145,36 @@ public class AdminFeedbackRequestV1Controller {
 	) {
 		return BaseResponse.onSuccess(
 			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(trainerId, pageable)
+		);
+	}
+
+	@Operation(
+		summary = "피드백 요청 상세 조회 (어드민)",
+		description = """
+			특정 피드백 요청의 상세 정보를 조회합니다.
+			
+			특징:
+			- 투자 유형별 상세 정보 포함 (DAY/SCALPING/SWING)
+			- 고객 정보 및 트레이너 응답 내용 포함
+			- 매매 내역, 손익 정보, 차트 이미지 등 모든 데이터 조회
+			
+			사용 시나리오:
+			- 트레이너가 피드백 응답 작성 시
+			- 어드민이 피드백 내용 확인 시
+			- 베스트 피드백 선정 시 상세 내용 검토
+			
+			예시:
+			- GET /api/v1/admin/feedback-requests/123
+			"""
+	)
+	@GetMapping("/{feedbackRequestId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequestDetail(
+		@Parameter(description = "피드백 요청 ID", required = true)
+		@PathVariable Long feedbackRequestId
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getAdminFeedbackDetail(feedbackRequestId)
 		);
 	}
 }

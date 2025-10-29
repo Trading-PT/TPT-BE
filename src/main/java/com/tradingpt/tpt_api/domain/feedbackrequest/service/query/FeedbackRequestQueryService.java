@@ -98,4 +98,6 @@ public interface FeedbackRequestQueryService {
 		Pageable pageable
 	);
 
+	FeedbackRequestDetailResponseDTO getAdminFeedbackDetail(Long feedbackRequestId);
+
 }
