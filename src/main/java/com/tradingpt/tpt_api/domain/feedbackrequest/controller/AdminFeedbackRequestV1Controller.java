@@ -4,20 +4,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateBestFeedbacksRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +37,7 @@ public class AdminFeedbackRequestV1Controller {
 	private final FeedbackRequestCommandService feedbackRequestCommandService;
 
 	@Operation(
-		summary = "전체 피드백 목록 조회 (어드민)",
+		summary = "베스트 피드백 관리 (어드민)",
 		description = """
 			모든 피드백 요청 목록을 조회합니다.
 			- 베스트 피드백 최대 3개가 먼저 표시됩니다 (왕관 아이콘)
@@ -102,4 +107,74 @@ public class AdminFeedbackRequestV1Controller {
 		);
 	}
 
+	@Operation(
+		summary = "내 담당 고객의 새로운 피드백 요청 리스트 (무한 스크롤)",
+		description = """
+			내 담당 고객들의 새로운 피드백 요청 목록을 무한 스크롤 방식으로 조회합니다.
+			
+			특징:
+			- 트레이너가 담당하는 고객들의 피드백만 조회
+			- status가 N (피드백 대기)인 것만 조회
+			- 최신순 정렬
+			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- Slice 기반 무한 스크롤 지원
+			
+			사용 시나리오:
+			- 트레이너가 아직 응답하지 않은 피드백 확인
+			- 담당 고객의 새로운 피드백 알림 표시
+			- 우선 순위로 응답할 피드백 파악
+			
+			페이징 파라미터:
+			- page: 페이지 번호 (0부터 시작)
+			- size: 페이지 크기 (기본값: 12)
+			
+			예시:
+			- GET /api/v1/admin/feedback-requests/my-customers/new
+			- GET /api/v1/admin/feedback-requests/my-customers/new?page=0&size=12
+			- GET /api/v1/admin/feedback-requests/my-customers/new?page=1&size=12
+			"""
+	)
+	@GetMapping("/my-customers/new")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<MyCustomerNewFeedbackListResponseDTO> getMyCustomerNewFeedbackRequests(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal(expression = "id") Long trainerId,
+		@PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC)
+		Pageable pageable
+
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(trainerId, pageable)
+		);
+	}
+
+	@Operation(
+		summary = "피드백 요청 상세 조회 (어드민)",
+		description = """
+			특정 피드백 요청의 상세 정보를 조회합니다.
+			
+			특징:
+			- 투자 유형별 상세 정보 포함 (DAY/SCALPING/SWING)
+			- 고객 정보 및 트레이너 응답 내용 포함
+			- 매매 내역, 손익 정보, 차트 이미지 등 모든 데이터 조회
+			
+			사용 시나리오:
+			- 트레이너가 피드백 응답 작성 시
+			- 어드민이 피드백 내용 확인 시
+			- 베스트 피드백 선정 시 상세 내용 검토
+			
+			예시:
+			- GET /api/v1/admin/feedback-requests/123
+			"""
+	)
+	@GetMapping("/{feedbackRequestId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequestDetail(
+		@Parameter(description = "피드백 요청 ID", required = true)
+		@PathVariable Long feedbackRequestId
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getAdminFeedbackDetail(feedbackRequestId)
+		);
+	}
 }

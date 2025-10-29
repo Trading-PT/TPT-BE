@@ -24,6 +24,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListItemDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SelectedBestFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
@@ -228,6 +230,66 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			feedbackDTOs.size(), sliceInfo.getHasNext());
 
 		return TokenUsedFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);
+	}
+
+	@Override
+	public MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(Long trainerId, Pageable pageable) {
+		// 1. 트레이너 존재 여부 확인
+		if (!userRepository.existsById(trainerId)) {
+			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
+		}
+
+		// 2. Slice로 새로운 피드백 요청 조회
+		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
+			.findNewFeedbackRequestsByTrainer(trainerId, pageable);
+
+		// 3. DTO 변환
+		List<MyCustomerNewFeedbackListItemDTO> feedbackDTOs = feedbackSlice.getContent()
+			.stream()
+			.map(MyCustomerNewFeedbackListItemDTO::from)
+			.toList();
+
+		// 4. SliceInfo 생성
+		SliceInfo sliceInfo = SliceInfo.of(feedbackSlice);
+
+		return MyCustomerNewFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);
+	}
+
+	@Override
+	public FeedbackRequestDetailResponseDTO getAdminFeedbackDetail(Long feedbackRequestId) {
+		// 1. 피드백 조회
+		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
+			.orElseThrow(() -> new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
+
+		// 2. 피드백 답변 조회
+		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
+
+		// 3. 응답 DTO 생성
+		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
+			FeedbackRequestDetailResponseDTO.builder()
+				.id(feedbackRequest.getId())
+				.investmentType(feedbackRequest.getInvestmentType())
+				.membershipLevel(feedbackRequest.getMembershipLevel())
+				.status(feedbackRequest.getStatus());
+
+		// 4. 타입별 상세 정보 추가
+		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
+			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
+		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
+			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
+		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
+			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
+		}
+
+		// 5. 피드백 응답 정보 추가
+		if (feedbackResponse != null) {
+			Trainer trainer = feedbackResponse.getTrainer();
+			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
+		}
+
+		return builder.build();
+
 	}
 
 	/**
