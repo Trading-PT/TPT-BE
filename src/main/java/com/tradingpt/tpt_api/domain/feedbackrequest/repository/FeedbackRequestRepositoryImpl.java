@@ -1436,6 +1436,61 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		return new SliceImpl<>(content, pageable, hasNext);
 	}
 
+	@Override
+	public List<Integer> findWeeksByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	) {
+		// Day 피드백의 주차 조회
+		List<Integer> dayWeeks = queryFactory
+			.select(dayRequestDetail.feedbackWeek)
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// Scalping 피드백의 주차 조회
+		List<Integer> scalpingWeeks = queryFactory
+			.select(scalpingRequestDetail.feedbackWeek)
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// Swing 피드백의 주차 조회
+		List<Integer> swingWeeks = queryFactory
+			.select(swingRequestDetail.feedbackWeek)
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// 모든 주차 합치기 및 중복 제거
+		List<Integer> allWeeks = new ArrayList<>();
+		allWeeks.addAll(dayWeeks);
+		allWeeks.addAll(scalpingWeeks);
+		allWeeks.addAll(swingWeeks);
+
+		// 중복 제거 + 오름차순 정렬
+		return allWeeks.stream()
+			.distinct()
+			.sorted()
+			.collect(Collectors.toList());
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);

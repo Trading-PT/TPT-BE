@@ -266,4 +266,18 @@ public interface FeedbackRequestRepositoryCustom {
 		Pageable pageable
 	);
 
+	/**
+	 * ✅ 특정 고객의 특정 연/월에 피드백 요청이 존재하는 주차 목록 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @return 피드백이 존재하는 주차 목록 (오름차순 정렬)
+	 */
+	List<Integer> findWeeksByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	);
+
 }

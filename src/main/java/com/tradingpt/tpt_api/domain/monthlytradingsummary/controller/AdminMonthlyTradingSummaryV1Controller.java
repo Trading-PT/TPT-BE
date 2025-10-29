@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.CreateMonthlyTradingSummaryRequestDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.service.command.MonthlyTradingSummaryCommandService;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.service.query.MonthlyTradingSummaryQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -59,4 +60,22 @@ public class AdminMonthlyTradingSummaryV1Controller {
 			monthlyTradingSummaryQueryService.getYearlySummaryResponse(year, customerId));
 	}
 
+	@Operation(
+		summary = "해당 연/월에 대한 주차 리스트업",
+		description = "해당 연/월에 대한 주차를 리스트업 합니다."
+	)
+	@GetMapping("/customers/{customerId}/years/{year}/months/{month}")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<MonthlyWeekFeedbackResponseDTO> getMonthlyWeekFeedbackResponse(
+		@PathVariable Integer year,
+		@PathVariable Integer month,
+		@PathVariable Long customerId,
+		@AuthenticationPrincipal(expression = "id") Long trainerId
+	) {
+		return BaseResponse.onSuccess(
+			monthlyTradingSummaryQueryService.getMonthlyWeekFeedbackResponse(
+				year, month, customerId, trainerId
+			)
+		);
+	}
 }
