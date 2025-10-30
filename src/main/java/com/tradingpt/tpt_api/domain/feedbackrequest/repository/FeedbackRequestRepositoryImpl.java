@@ -4,6 +4,7 @@ import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QDayRequestDet
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QSwingRequestDetail.*;
+import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -1357,6 +1358,196 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		}
 
 		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public Slice<FeedbackRequest> findNewFeedbackRequestsByTrainer(
+		Long trainerId,
+		Pageable pageable
+	) {
+		// Day 피드백 조회
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.join(dayRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				dayRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(dayRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+
+		// Scalping 피드백 조회
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.join(scalpingRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				scalpingRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(scalpingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// Swing 피드백 조회
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.join(swingRequestDetail.customer, customer).fetchJoin()
+			.where(
+				customer.assignedTrainer.id.eq(trainerId),
+				swingRequestDetail.status.eq(Status.N)
+			)
+			.orderBy(swingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// 모든 피드백 합치기
+		List<FeedbackRequest> allRequests = new ArrayList<>();
+		allRequests.addAll(dayRequests);
+		allRequests.addAll(scalpingRequests);
+		allRequests.addAll(swingRequests);
+
+		// 생성 시간 내림차순 정렬 (최신순)
+		allRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+		// Slice 처리 (pageSize + 1개를 조회해서 hasNext 판단)
+		int pageSize = pageable.getPageSize();
+		int offset = (int)pageable.getOffset();
+
+		int endIndex = Math.min(offset + pageSize + 1, allRequests.size());
+		List<FeedbackRequest> content = offset >= allRequests.size()
+			? new ArrayList<>()
+			: allRequests.subList(offset, endIndex);
+
+		// hasNext 판단
+		boolean hasNext = content.size() > pageSize;
+
+		// 실제 반환할 컨텐츠는 pageSize만큼만
+		if (hasNext) {
+			content = content.subList(0, pageSize);
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public List<Integer> findWeeksByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	) {
+		// Day 피드백의 주차 조회
+		List<Integer> dayWeeks = queryFactory
+			.select(dayRequestDetail.feedbackWeek)
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// Scalping 피드백의 주차 조회
+		List<Integer> scalpingWeeks = queryFactory
+			.select(scalpingRequestDetail.feedbackWeek)
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// Swing 피드백의 주차 조회
+		List<Integer> swingWeeks = queryFactory
+			.select(swingRequestDetail.feedbackWeek)
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month)
+			)
+			.distinct()
+			.fetch();
+
+		// 모든 주차 합치기 및 중복 제거
+		List<Integer> allWeeks = new ArrayList<>();
+		allWeeks.addAll(dayWeeks);
+		allWeeks.addAll(scalpingWeeks);
+		allWeeks.addAll(swingWeeks);
+
+		// 중복 제거 + 오름차순 정렬
+		return allWeeks.stream()
+			.distinct()
+			.sorted()
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<Integer> findDaysByCustomerIdAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		// Day 피드백의 날짜(일) 조회
+		List<Integer> dayDays = queryFactory
+			.select(dayRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month),
+				dayRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// Scalping 피드백의 날짜(일) 조회
+		List<Integer> scalpingDays = queryFactory
+			.select(scalpingRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month),
+				scalpingRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// Swing 피드백의 날짜(일) 조회
+		List<Integer> swingDays = queryFactory
+			.select(swingRequestDetail.feedbackRequestDate.dayOfMonth())
+			.from(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month),
+				swingRequestDetail.feedbackWeek.eq(week)
+			)
+			.distinct()
+			.fetch();
+
+		// 모든 날짜 합치기 및 중복 제거
+		List<Integer> allDays = new ArrayList<>();
+		allDays.addAll(dayDays);
+		allDays.addAll(scalpingDays);
+		allDays.addAll(swingDays);
+
+		// 중복 제거 + 오름차순 정렬
+		return allDays.stream()
+			.distinct()
+			.sorted()
+			.collect(Collectors.toList());
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {

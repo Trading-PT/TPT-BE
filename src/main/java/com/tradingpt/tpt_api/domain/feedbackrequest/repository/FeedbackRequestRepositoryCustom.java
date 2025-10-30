@@ -252,4 +252,48 @@ public interface FeedbackRequestRepositoryCustom {
 	 */
 	Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable);
 
+	/**
+	 * ✅ 특정 트레이너의 담당 고객들의 새로운 피드백 요청 목록 조회 (무한 스크롤)
+	 * - status가 N (피드백 대기)인 것만 조회
+	 * - 최신순 정렬
+	 *
+	 * @param trainerId 트레이너 ID
+	 * @param pageable 페이징 정보
+	 * @return 새로운 피드백 요청 Slice
+	 */
+	Slice<FeedbackRequest> findNewFeedbackRequestsByTrainer(
+		Long trainerId,
+		Pageable pageable
+	);
+
+	/**
+	 * ✅ 특정 고객의 특정 연/월에 피드백 요청이 존재하는 주차 목록 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @return 피드백이 존재하는 주차 목록 (오름차순 정렬)
+	 */
+	List<Integer> findWeeksByCustomerIdAndYearAndMonth(
+		Long customerId,
+		Integer year,
+		Integer month
+	);
+
+	/**
+	 * ✅ 특정 고객의 특정 연/월/주에 피드백 요청이 존재하는 날짜(일) 목록 조회
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 피드백이 존재하는 날짜 목록 (오름차순 정렬)
+	 */
+	List<Integer> findDaysByCustomerIdAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
+
 }

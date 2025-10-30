@@ -32,17 +32,20 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.BeforeCom
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlySummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.WeeklyFeedbackSummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +60,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final MonthlyTradingSummaryRepository monthlyTradingSummaryRepository;
+	private final TrainerRepository trainerRepository;
 
 	@Override
 	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
@@ -106,6 +110,40 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 				return buildAfterCompletionGeneralSummary(customerId, year, month, courseStatus, investmentType);
 			}
 		}
+	}
+
+	@Override
+	public MonthlyWeekFeedbackResponseDTO getMonthlyWeekFeedbackResponse(Integer year, Integer month,
+		Long customerId, Long trainerId) {
+
+		// 연도/월 검증
+		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
+
+		// 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 트레이너 조회
+		Trainer trainer = trainerRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 해당 트레이너의 고객이 아니라면 접근할 수 없다.
+		if (customer.getAssignedTrainer() == null) {
+			throw new UserException(UserErrorStatus.TRAINER_NOT_ASSIGNED);
+		}
+
+		if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
+			log.warn("Trainer {} tried to access customer {} who is assigned to trainer {}",
+				trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
+			throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
+		}
+
+		// 5. 피드백이 존재하는 주차 목록 조회
+		List<Integer> weeks = feedbackRequestRepository
+			.findWeeksByCustomerIdAndYearAndMonth(customerId, year, month);
+
+		return MonthlyWeekFeedbackResponseDTO.of(year, month, weeks);
+
 	}
 
 	/**
