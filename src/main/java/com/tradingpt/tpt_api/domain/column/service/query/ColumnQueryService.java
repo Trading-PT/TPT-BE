@@ -7,11 +7,11 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-public interface AdminColumnQueryService {
-
-    Page<ColumnListResponseDTO> getColumnList(Pageable pageable);
+public interface ColumnQueryService {
 
     List<ColumnCategoryResponseDTO> getCategoryList();
+
+    Page<ColumnListResponseDTO> getColumnList(String category,  Pageable pageable);
 
     ColumnDetailResponseDTO getColumnDetail(Long columnId);
 }

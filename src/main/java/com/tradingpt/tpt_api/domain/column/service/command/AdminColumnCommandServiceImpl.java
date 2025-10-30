@@ -3,12 +3,16 @@ package com.tradingpt.tpt_api.domain.column.service.command;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCategoryRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCreateRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnUpdateRequestDTO;
+import com.tradingpt.tpt_api.domain.column.dto.request.CommentRequestDTO;
 import com.tradingpt.tpt_api.domain.column.entity.ColumnCategory;
 import com.tradingpt.tpt_api.domain.column.entity.Columns;
+import com.tradingpt.tpt_api.domain.column.entity.Comment;
 import com.tradingpt.tpt_api.domain.column.exception.ColumnErrorStatus;
 import com.tradingpt.tpt_api.domain.column.exception.ColumnException;
 import com.tradingpt.tpt_api.domain.column.repository.ColumnCategoryRepository;
+import com.tradingpt.tpt_api.domain.column.repository.ColumnCommentRepository;
 import com.tradingpt.tpt_api.domain.column.repository.ColumnsRepository;
+import com.tradingpt.tpt_api.domain.column.service.random.RandomNameGenerator;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.repository.AdminRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
@@ -22,7 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminColumnCommandServiceImpl implements AdminColumnCommandService {
 
     private final ColumnsRepository columnsRepository;
-    private final ColumnCategoryRepository columnCategoryRepository;
+    private final ColumnCategoryRepository categoryRepository;
+    private final ColumnCommentRepository commentRepository;
     private final UserRepository userRepository;
     private final AdminRepository adminRepository;
     private final TrainerRepository trainerRepository;
@@ -42,7 +47,7 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
             throw new ColumnException(ColumnErrorStatus.INVALID_ROLE);
         }
 
-        ColumnCategory category = columnCategoryRepository.findByName(request.getCategory())
+        ColumnCategory category = categoryRepository.findByName(request.getCategory())
                 .orElseThrow(() -> new ColumnException(ColumnErrorStatus.CATEGORY_NOT_FOUND));
 
         Columns column = Columns.builder()
@@ -52,6 +57,7 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
                 .content(request.getContent())
                 .category(category)
                 .likeCount(0)
+                .isBest(false)
                 .build();
 
         Columns saved = columnsRepository.save(column);
@@ -78,7 +84,7 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         ColumnCategory newCategory = column.getCategory(); // 기본적으로 기존 유지
         if (request.getCategory() != null
                 && !request.getCategory().equals(column.getCategory().getName())) {
-            newCategory = columnCategoryRepository.findByName(request.getCategory())
+            newCategory = categoryRepository.findByName(request.getCategory())
                     .orElseThrow(() -> new ColumnException(ColumnErrorStatus.CATEGORY_NOT_FOUND));
         }
 
@@ -104,14 +110,14 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
                 .color(request.getColor())
                 .build();
 
-        ColumnCategory saved = columnCategoryRepository.save(category);
+        ColumnCategory saved = categoryRepository.save(category);
         return saved.getId();
     }
 
     @Override
     @Transactional
     public Long updateCategory(Long categoryId, ColumnCategoryRequestDTO request) {
-        ColumnCategory category = columnCategoryRepository.findById(categoryId)
+        ColumnCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ColumnException(ColumnErrorStatus.CATEGORY_NOT_FOUND));
 
         // 일괄 변경
@@ -120,12 +126,54 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
     }
 
     @Override
+    @Transactional
     public Long deleteCategory(Long categoryId) {
-        ColumnCategory category = columnCategoryRepository.findById(categoryId)
+        ColumnCategory category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ColumnException(ColumnErrorStatus.CATEGORY_NOT_FOUND));
 
         // cascade = ALL, orphanRemoval = true 덕분에 칼럼도 함께 삭제됨
-        columnCategoryRepository.delete(category);
+        categoryRepository.delete(category);
         return categoryId;
+    }
+
+    @Override
+    @Transactional
+    public Long markBest(Long columnId) {
+        Columns column = columnsRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));
+
+        // 이미 베스트면 그냥 종료(멱등)
+        if (column.getIsBest()) return columnId;
+
+        Long categoryId = column.getCategory().getId();
+
+        long current = columnsRepository.countByCategory_IdAndIsBestTrue(categoryId);
+        if (current >= 3) throw new ColumnException(ColumnErrorStatus.BEST_LIMIT_EXCEEDED);
+
+        column.markBest(); // 엔티티 상태 변경
+
+        return columnId;
+    }
+
+    @Override
+    @Transactional
+    public Long createComment(Long columnId, Long userId, CommentRequestDTO request) {
+        Columns column = columnsRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.WRITER_NOT_FOUND));
+
+        String randomWriterName = RandomNameGenerator.generate();
+
+        Comment comment = Comment.builder()
+                .columns(column)
+                .user(user)
+                .content(request.getContent())
+                .writerName(randomWriterName)
+                .build();
+
+        Comment saved = commentRepository.save(comment);
+        return saved.getId();
     }
 }

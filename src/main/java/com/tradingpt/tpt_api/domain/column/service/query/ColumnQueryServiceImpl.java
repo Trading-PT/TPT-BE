@@ -3,7 +3,6 @@ package com.tradingpt.tpt_api.domain.column.service.query;
 import com.tradingpt.tpt_api.domain.column.dto.response.ColumnCategoryResponseDTO;
 import com.tradingpt.tpt_api.domain.column.dto.response.ColumnDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.column.dto.response.ColumnListResponseDTO;
-import com.tradingpt.tpt_api.domain.column.entity.ColumnCategory;
 import com.tradingpt.tpt_api.domain.column.entity.Columns;
 import com.tradingpt.tpt_api.domain.column.entity.Comment;
 import com.tradingpt.tpt_api.domain.column.exception.ColumnErrorStatus;
@@ -24,26 +23,39 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AdminColumnQueryServiceImpl implements AdminColumnQueryService{
+public class ColumnQueryServiceImpl implements  ColumnQueryService{
 
+    private final ColumnCategoryRepository categoryRepository;
     private final ColumnsRepository columnsRepository;
     private final ColumnCommentRepository commentRepository;
-    private final ColumnCategoryRepository categoryRepository;
-
 
     @Override
     @Transactional(readOnly = true)
-    public Page<ColumnListResponseDTO> getColumnList(Pageable pageable) {
-        Page<Columns> page = columnsRepository.findAll(pageable);
-        List<Long> ids = page.stream().map(Columns::getId).toList();
+    public List<ColumnCategoryResponseDTO> getCategoryList() {
+        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+                .stream()
+                .map(ColumnCategoryResponseDTO::from)
+                .toList();
+    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ColumnListResponseDTO> getColumnList(String categoryName, Pageable pageable) {
+        Page<Columns> page;
+
+        if (categoryName == null || categoryName.equalsIgnoreCase("all")) {
+            page = columnsRepository.findAll(pageable);
+        } else {
+            page = columnsRepository.findByCategory_Name(categoryName, pageable);
+        }
+
+        var ids = page.stream().map(Columns::getId).toList();
         Map<Long, Long> counts = ids.isEmpty()
                 ? Collections.emptyMap()
                 : commentRepository.countByColumnIds(ids).stream()
                         .collect(Collectors.toMap(
                                 ColumnCommentRepository.ColumnCommentCount::getColumnId,
-                                ColumnCommentRepository.ColumnCommentCount::getCnt
-                        ));
+                                ColumnCommentRepository.ColumnCommentCount::getCnt));
 
         return page.map(c -> ColumnListResponseDTO.from(c, counts.getOrDefault(c.getId(), 0L)));
     }
@@ -57,15 +69,5 @@ public class AdminColumnQueryServiceImpl implements AdminColumnQueryService{
         List<Comment> comments = commentRepository.findByColumnIdWithUser(columnId);
 
         return ColumnDetailResponseDTO.from(c, comments);
-    }
-
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<ColumnCategoryResponseDTO> getCategoryList() {
-        return categoryRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
-                .stream()
-                .map(ColumnCategoryResponseDTO::from)
-                .toList();
     }
 }

@@ -22,13 +22,23 @@ public class QComment extends EntityPathBase<Comment> {
 
     public static final QComment comment = new QComment("comment");
 
+    public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
+
     public final QColumns columns;
 
     public final StringPath content = createString("content");
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
+
     public final com.tradingpt.tpt_api.domain.user.entity.QUser user;
+
+    public final StringPath writerName = createString("writerName");
 
     public QComment(String variable) {
         this(Comment.class, forVariable(variable), INITS);

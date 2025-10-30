@@ -4,12 +4,22 @@ import com.tradingpt.tpt_api.domain.auth.security.AuthSessionUser;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCategoryRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnCreateRequestDTO;
 import com.tradingpt.tpt_api.domain.column.dto.request.ColumnUpdateRequestDTO;
+import com.tradingpt.tpt_api.domain.column.dto.request.CommentRequestDTO;
+import com.tradingpt.tpt_api.domain.column.dto.response.ColumnCategoryResponseDTO;
+import com.tradingpt.tpt_api.domain.column.dto.response.ColumnDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.column.dto.response.ColumnListResponseDTO;
 import com.tradingpt.tpt_api.domain.column.service.command.AdminColumnCommandService;
+import com.tradingpt.tpt_api.domain.column.service.query.AdminColumnQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminColumnV1Controller {
 
     private final AdminColumnCommandService commandService;
-//    private final AdminColumnQueryService queryService;
+    private final AdminColumnQueryService queryService;
 
     @Operation(
             summary = "칼럼 작성",
@@ -38,6 +48,28 @@ public class AdminColumnV1Controller {
         Long id = commandService.createColumn(writerUserId, request, user.role());
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccess(id));
     }
+
+    @Operation(summary = "칼럼 목록 조회", description = "관리자용 칼럼 목록 조회 API (페이징 + 정렬 가능)")
+    @GetMapping
+    public ResponseEntity<BaseResponse<Page<ColumnListResponseDTO>>> getColumnList(
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+    ) {
+        Page<ColumnListResponseDTO> result = queryService.getColumnList(pageable);
+        return ResponseEntity.ok(BaseResponse.onSuccess(result));
+    }
+
+    @Operation(
+            summary = "칼럼 상세 조회",
+            description = "카테고리·작성자까지 포함한 칼럼 상세와 댓글 목록을 반환합니다."
+    )
+    @GetMapping("/{columnId}")
+    public ResponseEntity<BaseResponse<ColumnDetailResponseDTO>> getColumnDetail(
+            @PathVariable Long columnId
+    ) {
+        ColumnDetailResponseDTO result = queryService.getColumnDetail(columnId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(result));
+    }
+
 
     @Operation(
             summary = "칼럼 수정",
@@ -76,6 +108,17 @@ public class AdminColumnV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccess(id));
     }
 
+    @Operation(
+            summary = "칼럼 카테고리 목록 조회",
+            description = "등록된 모든 칼럼 카테고리를 조회합니다. (페이징 없음)"
+    )
+    @GetMapping("/categories")
+    public ResponseEntity<BaseResponse<List<ColumnCategoryResponseDTO>>> getCategoryList() {
+        List<ColumnCategoryResponseDTO> result = queryService.getCategoryList();
+        return ResponseEntity.ok(BaseResponse.onSuccess(result));
+    }
+
+
     @Operation(summary = "칼럼 카테고리 수정", description = "기존 칼럼 카테고리의 이름이나 색상을 수정합니다.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/categories/{categoryId}")
@@ -93,5 +136,23 @@ public class AdminColumnV1Controller {
     public ResponseEntity<BaseResponse<Long>> deleteCategory(@PathVariable Long categoryId) {
         Long id = commandService.deleteCategory(categoryId);
         return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
+    @Operation(summary = "칼럼 베스트 지정(관리자)", description = "해당 칼럼을 베스트로 지정합니다. 카테고리별 최대 3개까지 허용.")
+    @PatchMapping("/{columnId}/best")
+    public ResponseEntity<BaseResponse<Long>> markBest(@PathVariable Long columnId) {
+        Long id = commandService.markBest(columnId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
+    @Operation(summary = "댓글 작성(관리자)", description = "특정 칼럼에 댓글을 작성하고 익명의 이름으로 댓글이 작성됩니다.")
+    @PostMapping("/{columnId}/comments")
+    public ResponseEntity<BaseResponse<Long>> createComment(
+            @PathVariable Long columnId,
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @RequestBody @Valid CommentRequestDTO request
+    ) {
+        Long id = commandService.createComment(columnId, userId, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccess(id));
     }
 }

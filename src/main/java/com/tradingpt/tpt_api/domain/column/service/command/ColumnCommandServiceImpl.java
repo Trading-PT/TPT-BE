@@ -53,6 +53,7 @@ public class ColumnCommandServiceImpl implements ColumnCommandService {
                 .columns(column)
                 .user(user)
                 .content(request.getContent())
+                .writerName(user.getName())
                 .build();
 
         Comment saved = commentRepository.save(comment);

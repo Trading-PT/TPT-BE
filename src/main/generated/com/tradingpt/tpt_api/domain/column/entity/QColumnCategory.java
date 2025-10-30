@@ -20,13 +20,21 @@ public class QColumnCategory extends EntityPathBase<ColumnCategory> {
 
     public static final QColumnCategory columnCategory = new QColumnCategory("columnCategory");
 
+    public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
+
     public final StringPath color = createString("color");
 
     public final ListPath<Columns, QColumns> columns = this.<Columns, QColumns>createList("columns", Columns.class, QColumns.class, PathInits.DIRECT2);
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath name = createString("name");
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public QColumnCategory(String variable) {
         super(ColumnCategory.class, forVariable(variable));
