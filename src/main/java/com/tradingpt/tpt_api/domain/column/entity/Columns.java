@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.column.entity;
 
 import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
@@ -22,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "columns")
-public class Columns {
+public class Columns extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
@@ -49,6 +50,9 @@ public class Columns {
     @Column(name = "like_count")
     private Integer likeCount;
 
+    @Column(name = "is_best")
+    private Boolean isBest;
+
     public void update(String title, String subtitle, String content, ColumnCategory category, User newUser) {
         this.title = title;
         this.subtitle = subtitle;
@@ -62,4 +66,6 @@ public class Columns {
     public void incrementLikeCount(int newCount) {
         this.likeCount = newCount;
     }
+
+    public void markBest() { this.isBest = true; }
 }
