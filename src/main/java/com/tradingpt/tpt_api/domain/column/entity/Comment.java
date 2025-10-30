@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.column.entity;
 
 import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "comment")
-public class Comment {
+public class Comment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -39,6 +40,9 @@ public class Comment {
 
     @Column(name = "content")
     private String content;
+
+    @Column(name = "writer_name")
+    private String writerName;
 
     public void updateContent(String content) {
         this.content = content;
