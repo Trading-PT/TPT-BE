@@ -39,6 +39,8 @@ public class QColumns extends EntityPathBase<Columns> {
 
     public final StringPath subtitle = createString("subtitle");
 
+    public final StringPath thumbnailImage = createString("thumbnailImage");
+
     public final StringPath title = createString("title");
 
     //inherited

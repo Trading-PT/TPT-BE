@@ -32,6 +32,7 @@ public class MeResponse {
 	private String investmentType;
 	private Boolean isCourseCompleted;
 	private Boolean isPremium;
+	private int token;
 
 	public static MeResponse from(Customer c) {
 		if (c == null)
@@ -80,6 +81,7 @@ public class MeResponse {
 				.myProfileImage(c.getProfileImageUrl())
 			.investmentType(investmentType)
 			.isCourseCompleted(isCourseCompleted)
+				.token(c.getToken())
 			.isPremium(isPremium)
 			.build();
 	}

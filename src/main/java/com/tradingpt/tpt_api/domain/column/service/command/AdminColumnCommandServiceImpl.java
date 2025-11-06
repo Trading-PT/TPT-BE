@@ -56,6 +56,7 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
                 .subtitle(request.getSubtitle())
                 .content(request.getContent())
                 .category(category)
+                .thumbnailImage(request.getThumbnailImage())
                 .likeCount(0)
                 .isBest(false)
                 .build();

@@ -24,6 +24,9 @@ public class ColumnListResponseDTO {
     @Schema(description = "부제목", example = "투자 습관 만들기")
     private String subtitle;
 
+    @Schema(description = "썸네일 이미지", example = "썸네일 이미지")
+    private String thumbnailImage;
+
     @Schema(description = "좋아요 수", example = "120")
     private int likeCount;
 
@@ -48,6 +51,7 @@ public class ColumnListResponseDTO {
                 .categoryName(c.getCategory() != null ? c.getCategory().getName() : null)
                 .title(c.getTitle())
                 .subtitle(c.getSubtitle())
+                .thumbnailImage(c.getThumbnailImage())
                 .likeCount(c.getLikeCount())
                 .commentCount(commentCount)
                 .writerName(c.getUser() != null ? c.getUser().getName() : null)

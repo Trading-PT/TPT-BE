@@ -47,6 +47,9 @@ public class Columns extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 
+    @Column(name = "thumbnail_image")
+    private String thumbnailImage;
+
     @Column(name = "like_count")
     private Integer likeCount;
 

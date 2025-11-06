@@ -35,6 +35,9 @@ public class ColumnDetailResponseDTO {
     @Schema(description = "베스트인지 여부", example = "true")
     private Boolean isBest;
 
+    @Schema(description = "썸네일 이미지", example = "썸네일 이미지")
+    private String thumbnailImage;
+
     @Schema(description = "작성시각", example = "2025-06-14T13:00:00")
     private LocalDateTime createdAt;
 
@@ -65,6 +68,7 @@ public class ColumnDetailResponseDTO {
                 .createdAt(column.getCreatedAt())
                 .updatedAt(column.getUpdatedAt())
                 .likeCount(column.getLikeCount())
+                .thumbnailImage(column.getThumbnailImage())
                 .commentCount(comments.size())
                 .content(column.getContent())
                 .isBest(column.getIsBest())

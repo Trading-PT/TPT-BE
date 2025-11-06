@@ -21,6 +21,9 @@ public class ColumnCreateRequestDTO {
     @NotBlank(message = "내용은 필수 입력값입니다.")
     private String content;
 
+    @Schema(description = "칼럼 썸네일 이미지", example = "https:dfjkdafad")
+    private String thumbnailImage;
+
     @Schema(description = "칼럼 카테고리", example = "ETF")
     @NotBlank(message = "카테고리는 필수 입력값입니다.")
     private String category;
