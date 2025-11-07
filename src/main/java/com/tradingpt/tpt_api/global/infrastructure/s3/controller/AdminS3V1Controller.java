@@ -1,8 +1,8 @@
-package com.tradingpt.tpt_api.global.infrastructure.s3;
+package com.tradingpt.tpt_api.global.infrastructure.s3.controller;
 
 import com.tradingpt.tpt_api.global.common.BaseResponse;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3UploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

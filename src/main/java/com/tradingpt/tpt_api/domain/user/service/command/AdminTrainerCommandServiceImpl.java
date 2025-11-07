@@ -12,7 +12,7 @@ import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

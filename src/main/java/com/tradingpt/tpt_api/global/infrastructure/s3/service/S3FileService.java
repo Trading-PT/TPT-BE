@@ -1,5 +1,7 @@
-package com.tradingpt.tpt_api.global.infrastructure.s3;
+package com.tradingpt.tpt_api.global.infrastructure.s3.service;
 
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.io.InputStream;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -37,4 +39,14 @@ public interface S3FileService {
 	 * @param key S3 객체 키 (파일 경로)
 	 */
 	void delete(String key);
+
+	/**
+	 * 클라이언트가 S3에 직접 업로드할 수 있도록 사전 서명된 URL을 발급한다.
+	 *
+	 * @param originalFilename 업로드하려는 원본 파일명
+	 * @param directory 업로드 대상 디렉터리 (예: "lectures", "images")
+	 * @return 프리사인드 URL, 실제 object key, public url 등
+	 */
+	S3PresignedUploadResult createPresignedUploadUrl(String originalFilename, String directory);
 }
+

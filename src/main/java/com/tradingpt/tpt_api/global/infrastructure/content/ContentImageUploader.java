@@ -14,8 +14,8 @@ import org.springframework.util.StringUtils;
 
 import com.tradingpt.tpt_api.global.infrastructure.content.exception.ContentErrorStatus;
 import com.tradingpt.tpt_api.global.infrastructure.content.exception.ContentException;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3UploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import com.tradingpt.tpt_api.global.util.HtmlSanitizer;
 
 import lombok.RequiredArgsConstructor;

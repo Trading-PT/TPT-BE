@@ -17,7 +17,7 @@ import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestResponseRepository;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 
 import lombok.RequiredArgsConstructor;
 

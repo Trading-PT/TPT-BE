@@ -28,8 +28,8 @@ import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3FileService;
-import com.tradingpt.tpt_api.global.infrastructure.s3.S3UploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
