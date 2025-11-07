@@ -52,8 +52,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.DAY);
 
-		// 토큰 검증 및 차감
-		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+		// ✅ 토큰 검증 및 차감 (선택적)
+		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
 
 		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
@@ -69,9 +69,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), dayRequest);
 
+		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
 			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
 			dayRequest.useToken(tokenAmount);
+			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
+				customerId, tokenAmount);
+		} else {
+			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
@@ -87,8 +92,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SCALPING);
 
-		// 토큰 검증 및 차감
-		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+		// ✅ 토큰 검증 및 차감 (선택적)
+		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
 
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
@@ -102,9 +107,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), scalpingRequest);
 
+		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
 			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
 			scalpingRequest.useToken(tokenAmount);
+			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
+				customerId, tokenAmount);
+		} else {
+			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
@@ -120,8 +130,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 ( throw exception )
 		customer.checkTradingType(InvestmentType.SWING);
 
-		// 토큰 검증 및 차감
-		validateAndConsumeToken(customer, request.getUseToken(), request.getTokenAmount());
+		// ✅ 토큰 검증 및 차감 (선택적)
+		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
 			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
@@ -133,9 +143,14 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), swingRequest);
 
+		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
 			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
 			swingRequest.useToken(tokenAmount);
+			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
+				customerId, tokenAmount);
+		} else {
+			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
@@ -226,41 +241,51 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	}
 
 	/**
-	 * ✅ 토큰 검증 및 차감
+	 * ✅ 토큰 검증 및 차감 (선택적)
+	 *
+	 * 변경된 로직:
+	 * - BASIC 멤버십: 토큰 사용 선택 가능
+	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
+	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
+	 * - PREMIUM 멤버십: 토큰 사용 불가 (기존 유지)
 	 */
-	private void validateAndConsumeToken(Customer customer, Boolean useToken, Integer tokenAmount) {
+	private void validateAndConsumeTokenIfNeeded(Customer customer, Boolean useToken, Integer tokenAmount) {
 		MembershipLevel membershipLevel = customer.getMembershipLevel();
 
-		// BASIC 멤버십인 경우
-		if (membershipLevel == MembershipLevel.BASIC) {
-			// 토큰 사용 필수
-			if (!Boolean.TRUE.equals(useToken)) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.TOKEN_REQUIRED_FOR_BASIC_MEMBERSHIP);
-			}
-
-			// 토큰 개수 기본값 설정
-			int requiredTokens = tokenAmount != null ? tokenAmount : 1;
-
-			// 토큰 부족 체크
-			if (customer.getToken() < requiredTokens) {
-				log.warn("Insufficient tokens: customerId={}, required={}, available={}",
-					customer.getId(), requiredTokens, customer.getToken());
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
-			}
-
-			// 토큰 차감
-			customer.updateToken(customer.getToken() - requiredTokens);
-			log.info("Token consumed: customerId={}, amount={}, remaining={}",
-				customer.getId(), requiredTokens, customer.getToken());
-		}
 		// PREMIUM 멤버십인 경우
-		else {
+		if (membershipLevel == MembershipLevel.PREMIUM) {
 			// 토큰 사용 불가
 			if (Boolean.TRUE.equals(useToken)) {
 				throw new FeedbackRequestException(
 					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
+			}
+			// PREMIUM은 토큰 없이 자유롭게 생성 가능
+			return;
+		}
+
+		// BASIC 멤버십인 경우
+		if (membershipLevel == MembershipLevel.BASIC) {
+			// 토큰 사용을 선택한 경우
+			if (Boolean.TRUE.equals(useToken)) {
+				// 토큰 개수 기본값 설정
+				int requiredTokens = tokenAmount != null ? tokenAmount : 1;
+
+				// 토큰 부족 체크
+				if (customer.getToken() < requiredTokens) {
+					log.warn("Insufficient tokens: customerId={}, required={}, available={}",
+						customer.getId(), requiredTokens, customer.getToken());
+					throw new FeedbackRequestException(
+						FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
+				}
+
+				// 토큰 차감
+				customer.updateToken(customer.getToken() - requiredTokens);
+				log.info("Token consumed: customerId={}, amount={}, remaining={}",
+					customer.getId(), requiredTokens, customer.getToken());
+			} else {
+				// 토큰 사용 안 함 → 기록용으로만 생성
+				log.info("BASIC member creating record-only feedback: customerId={}",
+					customer.getId());
 			}
 		}
 	}
