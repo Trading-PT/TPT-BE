@@ -1,8 +1,11 @@
-package com.tradingpt.tpt_api.global.infrastructure.s3;
+package com.tradingpt.tpt_api.global.infrastructure.s3.service;
 
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +27,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
  * AWS S3 SDK(v2)를 통해 실제 파일 업로드/삭제를 수행하는 구현체.
@@ -37,7 +42,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 public class S3FileServiceImpl implements S3FileService {
 
 	/** 허용되는 확장자(스크린샷, PDF, 한글, 엑셀)를 미리 정의한다. */
-	private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "pdf", "hwp", "xls", "xlsx");
+	private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "pdf", "hwp", "xls", "xlsx","mp4", "mov", "m4v");
 
 	/** 확장자별 기본 Content-Type; 클라이언트가 보내지 않은 경우 사용. */
 	private static final Map<String, String> CONTENT_TYPE_OVERRIDES = Map.of(
@@ -47,11 +52,16 @@ public class S3FileServiceImpl implements S3FileService {
 		"pdf", "application/pdf",
 		"xls", "application/vnd.ms-excel",
 		"xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-		"hwp", "application/x-hwp"
+		"hwp", "application/x-hwp",
+			"mp4", "video/mp4",
+			"mov", "video/quicktime",
+			"m4v", "video/x-m4v"
 	);
 
 	/** Spring Bean 으로 주입받는 S3 클라이언트 (스레드 세이프). */
 	private final S3Client s3Client;
+
+	private final S3Presigner s3Presigner;
 
 	/** 환경별 버킷 이름. application-*.yml 에서 주입된다. */
 	@Value("${aws.s3.bucket-name}")
@@ -108,6 +118,44 @@ public class S3FileServiceImpl implements S3FileService {
 		return buildResult(key, originalFilename, contentType);
 	}
 
+	@Override
+	public S3PresignedUploadResult createPresignedUploadUrl(String originalFilename, String directory) {
+		// 1. 파일명/확장자 검증
+		String extension = resolveExtension(originalFilename);
+		validateExtension(extension);
+
+		// 2. 업로드될 S3 key 생성
+		String key = buildObjectKey(directory, extension);
+
+		// 3. content-type 결정
+		String contentType = resolveContentType(null, extension);
+
+		// 4. presign 할 PutObjectRequest 만들기
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.contentType(contentType)
+				.build();
+
+		// 5. 만료시간 지정해서 사전서명 URL 생성 (예: 10분)
+		PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+				.signatureDuration(Duration.ofMinutes(10))
+				.putObjectRequest(putObjectRequest)
+				.build();
+
+		var presigned = s3Presigner.presignPutObject(presignRequest);
+
+		// 6. 클라이언트가 업로드 후 접근할 public URL도 만들어줌
+		URL objectUrl = s3Client.utilities()
+				.getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build());
+
+		return new S3PresignedUploadResult(
+				presigned.url().toString(),
+				key,
+				objectUrl.toString()
+		);
+	}
+
 	/**
 	 * 업로드된 객체를 삭제한다. 키 유효성 검증 후 SDK 예외를 도메인 예외로 변환한다.
 	 */
@@ -128,6 +176,8 @@ public class S3FileServiceImpl implements S3FileService {
 			throw new S3Exception(S3ErrorStatus.DELETE_FAILED);
 		}
 	}
+
+
 
 	/**
 	 * 공통 업로드 로직. SDK 호출부만 분리해 예외 처리를 한 곳에서 관리한다.
