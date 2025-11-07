@@ -5,6 +5,7 @@ import com.tradingpt.tpt_api.domain.auth.security.CustomUserDetailsService;
 import com.tradingpt.tpt_api.domain.complaint.dto.request.CreateComplaintRequestDTO;
 import com.tradingpt.tpt_api.domain.complaint.dto.response.CreateComplaintResponseDTO;
 import com.tradingpt.tpt_api.domain.complaint.entity.Complaint;
+import com.tradingpt.tpt_api.domain.complaint.enums.Status;
 import com.tradingpt.tpt_api.domain.complaint.repository.ComplaintRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
@@ -32,6 +33,7 @@ public class ComplaintCommandServiceImpl implements ComplaintCommandService {
                 .customer(customer)
                 .title(req.getTitle())
                 .content(req.getContent())
+                .status(Status.UNANSWERED)
                 .build();
 
         Complaint saved = complaintRepository.save(c);
