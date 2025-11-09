@@ -33,4 +33,15 @@ public interface ReviewCommandService {
 	 * @return
 	 */
 	Void updateReviewVisibility(Long reviewId, UpdateReviewVisibilityRequestDTO request);
+
+	/**
+	 * 리뷰 답변 수정
+	 */
+	Void updateReply(Long reviewId, Long trainerId, CreateReplyRequestDTO request);
+
+	/**
+	 * 리뷰 삭제
+	 */
+	Void deleteReview(Long reviewId);
+
 }
