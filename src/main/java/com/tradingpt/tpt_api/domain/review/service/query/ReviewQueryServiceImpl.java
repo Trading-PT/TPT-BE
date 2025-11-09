@@ -92,4 +92,12 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 		// AdminReviewListResponseDTO 생성 및 반환
 		return AdminReviewListResponseDTO.of(reviewDTOs, sliceInfo);
 	}
+
+	@Override
+	public ReviewResponseDTO getReview(Long reviewId) {
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		return ReviewResponseDTO.from(review);
+	}
 }

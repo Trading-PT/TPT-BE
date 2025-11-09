@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReplyRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.request.UpdateReviewVisibilityRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.AdminReviewListResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
 import com.tradingpt.tpt_api.domain.review.service.command.ReviewCommandService;
 import com.tradingpt.tpt_api.domain.review.service.query.ReviewQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -46,6 +47,7 @@ public class AdminReviewV1Controller {
 			"""
 	)
 	@GetMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public BaseResponse<AdminReviewListResponseDTO> getReviews(
 		@PageableDefault(size = 12, sort = "submittedAt", direction = Sort.Direction.DESC)
 		Pageable pageable
@@ -53,6 +55,22 @@ public class AdminReviewV1Controller {
 		return BaseResponse.onSuccess(
 			reviewQueryService.getReviews(pageable)
 		);
+	}
+
+	@Operation(
+		summary = "리뷰 상세 조회",
+		description = """
+			관리자가 리뷰 상세 조회를 합니다.
+			- Admin & Trainer: 모든 리뷰 확인 가능
+			"""
+	)
+	@GetMapping("/{reviewId}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<ReviewResponseDTO> getReviewDetail(
+		@PathVariable Long reviewId,
+		@AuthenticationPrincipal(expression = "id") Long trainerId
+	) {
+		return BaseResponse.onSuccess(reviewQueryService.getReview(reviewId));
 	}
 
 	@Operation(

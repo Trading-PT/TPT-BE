@@ -35,4 +35,9 @@ public interface ReviewQueryService {
 	 */
 	AdminReviewListResponseDTO getReviews(Pageable pageable);
 
+	/**
+	 * 어드민용 리뷰 상세 조회
+	 */
+	ReviewResponseDTO getReview(Long reviewId);
+
 }
