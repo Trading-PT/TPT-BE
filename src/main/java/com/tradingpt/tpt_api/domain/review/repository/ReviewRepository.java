@@ -25,4 +25,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	Slice<Review> findByStatusSlice(@Param("status") Status status, Pageable pageable);
 
 	Optional<Review> findByIdAndStatus(Long reviewId, Status status);
+
+	Slice<Review> findAllByOrderBySubmittedAtDesc(Pageable pageable);
 }

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.review.dto.response.AdminReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.PublicReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
 import com.tradingpt.tpt_api.domain.review.entity.Review;
@@ -73,5 +74,22 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
 		return ReviewResponseDTO.from(review);
+	}
+
+	@Override
+	public AdminReviewListResponseDTO getReviews(Pageable pageable) {
+		// Slice 기반으로 리뷰 조회 (submittedAt 최신순)
+		Slice<Review> reviewSlice = reviewRepository.findAllByOrderBySubmittedAtDesc(pageable);
+
+		// Review 엔티티를 DTO로 변환
+		List<ReviewResponseDTO> reviewDTOs = reviewSlice.getContent().stream()
+			.map(ReviewResponseDTO::from)
+			.toList();
+
+		// SliceInfo 생성
+		SliceInfo sliceInfo = SliceInfo.of(reviewSlice);
+
+		// AdminReviewListResponseDTO 생성 및 반환
+		return AdminReviewListResponseDTO.of(reviewDTOs, sliceInfo);
 	}
 }

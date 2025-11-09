@@ -27,6 +27,9 @@ public class ReviewResponseDTO {
 	@Schema(description = "고객 이름(아이디)")
 	private String customerName;
 
+	@Schema(description = "고객 전화번호")
+	private String phoneNumber;
+
 	@Schema(description = "리뷰 내용")
 	private String content;
 
@@ -47,6 +50,7 @@ public class ReviewResponseDTO {
 			.id(review.getId())
 			.customerId(review.getCustomer().getId())
 			.customerName(review.getCustomer().getName())
+			.phoneNumber(review.getCustomer().getPhoneNumber())
 			.content(review.getContent())
 			.submittedAt(review.getSubmittedAt())
 			.isPublic(review.isPublic());
