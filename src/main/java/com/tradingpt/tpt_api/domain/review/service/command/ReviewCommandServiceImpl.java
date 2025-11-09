@@ -101,7 +101,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 
 		// 리뷰에 답변이 달려있지 않다면 에러를 발생
 		if (!review.hasReply()) {
-			throw new ReviewException(ReviewErrorStatus.REVIEW_ALREADY_HAS_REPLY);
+			throw new ReviewException(ReviewErrorStatus.REVIEW_HAS_NO_REPLY);
 		}
 
 		// 트레이너 검색
@@ -126,7 +126,25 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		Review review = reviewRepository.findById(reviewId)
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
+		// 리뷰 삭제
 		reviewRepository.delete(review);
+
+		return null;
+	}
+
+	@Override
+	public Void deleteReply(Long reviewId) {
+		// 리뷰 검색
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		// 리뷰에 답변이 없다면 에러 발생
+		if (!review.hasReply()) {
+			throw new ReviewException(ReviewErrorStatus.REVIEW_HAS_NO_REPLY);
+		}
+
+		// 리뷰의 content 및 답변을 단 trainer을 모두 null로 변경
+		review.addReply(null, null);
 
 		return null;
 	}
