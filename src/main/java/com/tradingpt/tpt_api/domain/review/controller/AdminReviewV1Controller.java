@@ -126,6 +126,21 @@ public class AdminReviewV1Controller {
 	}
 
 	@Operation(
+		summary = "리뷰 답글 삭제",
+		description = """
+			리뷰의 답글을 삭제합니다.
+			"""
+	)
+	@PatchMapping("/{reviewId}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<Void> deleteReply(
+		@PathVariable Long reviewId,
+		@AuthenticationPrincipal(expression = "id") Long trainerId
+	) {
+		return BaseResponse.onSuccess(reviewCommandService.deleteReply(reviewId));
+	}
+
+	@Operation(
 		summary = "리뷰 공개 여부 변경",
 		description = """
 			리뷰의 공개 여부를 설정합니다.

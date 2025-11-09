@@ -44,4 +44,8 @@ public interface ReviewCommandService {
 	 */
 	Void deleteReview(Long reviewId);
 
+	/**
+	 * 리뷰 답글 삭제
+	 */
+	Void deleteReply(Long reviewId);
 }
