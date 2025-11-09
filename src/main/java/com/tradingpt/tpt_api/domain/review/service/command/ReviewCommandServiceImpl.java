@@ -15,6 +15,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.content.ContentImageUploader;
 
@@ -30,6 +31,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 	private final UserRepository userRepository;
 	private final ContentImageUploader contentImageUploader;
 	private final ReviewRepository reviewRepository;
+	private final TrainerRepository trainerRepository;
 
 	@Override
 	public Void createReview(Long customerId, CreateReviewRequestDTO request) {
@@ -65,7 +67,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		}
 
 		// 트레이너 검색
-		Trainer trainer = (Trainer)userRepository.findById(trainerId)
+		Trainer trainer = trainerRepository.findById(trainerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
 		// 답변 작성
@@ -87,6 +89,33 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
 		review.updateVisibility(request.getIsPublic() == true ? Status.PUBLIC : Status.PRIVATE);
+
+		return null;
+	}
+
+	@Override
+	public Void updateReply(Long reviewId, Long trainerId, CreateReplyRequestDTO request) {
+		// 리뷰 검색
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		// 리뷰에 답변이 달려있지 않다면 에러를 발생
+		if (!review.hasReply()) {
+			throw new ReviewException(ReviewErrorStatus.REVIEW_ALREADY_HAS_REPLY);
+		}
+
+		// 트레이너 검색
+		Trainer trainer = trainerRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 답변 작성
+		String processedContent = contentImageUploader.processContent(
+			request.getContent(),
+			"review-replies"
+		);
+
+		// 더티 체킹을 통한 리뷰 응답 저장
+		review.addReply(trainer, processedContent);
 
 		return null;
 	}

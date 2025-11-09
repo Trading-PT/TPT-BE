@@ -83,13 +83,28 @@ public class AdminReviewV1Controller {
 	)
 	@PostMapping("/{reviewId}/reply")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-
 	public BaseResponse<Void> createReply(
 		@PathVariable Long reviewId,
 		@RequestBody @Valid CreateReplyRequestDTO request,
 		@AuthenticationPrincipal(expression = "id") Long trainerId
 	) {
 		return BaseResponse.onSuccessCreate(reviewCommandService.createReply(reviewId, trainerId, request));
+	}
+
+	@Operation(
+		summary = "리뷰 내용 수정",
+		description = """
+			리뷰에 대해 트레이너의 답변이 이미 작성되어 있으면 답변 내용을 수정합니다.
+			"""
+	)
+	@PatchMapping("/{reviewId}/reply")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<Void> updateReply(
+		@PathVariable Long reviewId,
+		@RequestBody @Valid CreateReplyRequestDTO request,
+		@AuthenticationPrincipal(expression = "id") Long trainerId
+	) {
+		return BaseResponse.onSuccess(reviewCommandService.updateReply(reviewId, trainerId, request));
 	}
 
 	@Operation(
