@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -95,6 +96,7 @@ public class AdminReviewV1Controller {
 		summary = "리뷰 내용 수정",
 		description = """
 			리뷰에 대해 트레이너의 답변이 이미 작성되어 있으면 답변 내용을 수정합니다.
+			- 기존에 답변이 달려있지 않은 경우 에러 반환
 			"""
 	)
 	@PatchMapping("/{reviewId}/reply")
@@ -105,6 +107,22 @@ public class AdminReviewV1Controller {
 		@AuthenticationPrincipal(expression = "id") Long trainerId
 	) {
 		return BaseResponse.onSuccess(reviewCommandService.updateReply(reviewId, trainerId, request));
+	}
+
+	@Operation(
+		summary = "리뷰 삭제",
+		description = """
+			리뷰를 삭제합니다.
+			- Admin Only
+			"""
+	)
+	@DeleteMapping("/{reviewId}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+	public BaseResponse<Void> deleteReview(
+		@PathVariable Long reviewId,
+		@AuthenticationPrincipal(expression = "id") Long adminId
+	) {
+		return BaseResponse.onSuccessDelete(reviewCommandService.deleteReview(reviewId));
 	}
 
 	@Operation(

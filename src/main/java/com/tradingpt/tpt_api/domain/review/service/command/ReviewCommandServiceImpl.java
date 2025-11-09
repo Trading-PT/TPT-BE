@@ -119,4 +119,15 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 
 		return null;
 	}
+
+	@Override
+	public Void deleteReview(Long reviewId) {
+		// 리뷰 검색
+		Review review = reviewRepository.findById(reviewId)
+			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
+
+		reviewRepository.delete(review);
+
+		return null;
+	}
 }
