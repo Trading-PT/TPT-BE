@@ -21,6 +21,8 @@ public class QChapter extends EntityPathBase<Chapter> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final NumberPath<Integer> chapterOrder = createNumber("chapterOrder", Integer.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 

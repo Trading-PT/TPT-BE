@@ -19,10 +19,12 @@ public class LectureProgress extends BaseEntity {
     @Column(name = "lecture_progress_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "lecture_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lecture_id", nullable = false)
     private Lecture lecture;
 
-    @ManyToOne(fetch = FetchType.LAZY) @JoinColumn(name = "user_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     /** 누적 시청 시간(초) — 서버는 0~durationSeconds로 클램프 */
