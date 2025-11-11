@@ -13,13 +13,18 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "chapter")
 public class Chapter extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="chapter_id")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "chapter_id")
     private Long id;
 
-    @Column(name="title", nullable=false)
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name="description", columnDefinition="TEXT")
+    @Column(name = "description", columnDefinition = "TEXT")
     private String description;
+
+    /** 전체 커리큘럼 내 챕터 순서 (1, 2, 3, ...) */
+    @Column(name = "chapter_order", nullable = false)
+    private Integer chapterOrder;
 }
