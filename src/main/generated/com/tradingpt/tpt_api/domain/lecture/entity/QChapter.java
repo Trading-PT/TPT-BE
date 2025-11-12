@@ -23,6 +23,8 @@ public class QChapter extends EntityPathBase<Chapter> {
 
     public final NumberPath<Integer> chapterOrder = createNumber("chapterOrder", Integer.class);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.lecture.enums.ChapterType> chapterType = createEnum("chapterType", com.tradingpt.tpt_api.domain.lecture.enums.ChapterType.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 

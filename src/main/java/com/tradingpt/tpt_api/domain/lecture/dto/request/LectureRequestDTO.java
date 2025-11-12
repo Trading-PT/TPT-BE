@@ -43,6 +43,13 @@ public class LectureRequestDTO {
     @Schema(description = "첨부파일들(S3 URL 및 Key 목록)")
     private List<LectureAttachmentDTO> attachments;
 
+    @Schema(description = "강의 수강에 필요한 토큰 수 (0이면 무료)", example = "10")
+    private Integer requiredTokens;
+
+    @Schema(description = "썸네일 이미지 URL",
+            example = "https://bucket.s3.ap-northeast-2.amazonaws.com/uploads/2025-11-07/thumbnail.jpg")
+    private String thumbnailUrl;
+
     @Getter
     @Schema(description = "강의 첨부파일 DTO")
     public static class LectureAttachmentDTO {

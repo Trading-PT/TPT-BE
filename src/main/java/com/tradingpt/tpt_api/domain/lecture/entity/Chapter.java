@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.entity;
 
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,4 +28,9 @@ public class Chapter extends BaseEntity {
     /** 전체 커리큘럼 내 챕터 순서 (1, 2, 3, ...) */
     @Column(name = "chapter_order", nullable = false)
     private Integer chapterOrder;
+
+    /** 유료/무료 여부 (BASIC, PRO) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "chapter_type", nullable = false)
+    private ChapterType chapterType;
 }

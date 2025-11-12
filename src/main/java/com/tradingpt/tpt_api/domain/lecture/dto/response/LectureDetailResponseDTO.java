@@ -45,6 +45,12 @@ public class LectureDetailResponseDTO {
     @Schema(description = "업로더 이름", example = "이승주 트레이너")
     private String trainerName;
 
+    @Schema(description = "수강에 필요한 토큰 수(0=무료)", example = "10")
+    private Integer requiredTokens;
+
+    @Schema(description = "썸네일 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/uploads/2025-11-07/thumbnail.jpg")
+    private String thumbnailUrl;
+
     @Schema(description = "첨부파일 리스트")
     private List<LectureAttachmentResponse> attachments;
 
@@ -60,6 +66,8 @@ public class LectureDetailResponseDTO {
                 .lectureExposure(lecture.getLectureExposure())
                 .lectureOrder(lecture.getLectureOrder())
                 .trainerName(lecture.getTrainer().getName())
+                .requiredTokens(lecture.getRequiredTokens())
+                .thumbnailUrl(lecture.getThumbnailUrl())
                 .attachments(
                         lecture.getAttachments() != null
                                 ? lecture.getAttachments().stream()
