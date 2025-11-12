@@ -145,6 +145,9 @@ public abstract class FeedbackRequest extends BaseEntity {
 
 	private Integer tokenAmount; // 사용한 토큰 개수
 
+	@Builder.Default
+	private Boolean isTrainerWritten = Boolean.FALSE; // 트레이너 작성 여부
+
 	// 추상 메서드로 FeedbackType 반환
 	public abstract InvestmentType getInvestmentType();
 
