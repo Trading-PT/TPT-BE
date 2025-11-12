@@ -175,8 +175,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 	@Override
 	public Void updateBestFeedbacks(List<Long> feedbackIds) {
-		// 1. 개수 검증 (최대 3개)
-		if (feedbackIds.size() > 3) {
+		// 1. 개수 검증 (최대 개수는 FeedbackRequest.MAX_BEST_FEEDBACK_COUNT)
+		if (feedbackIds.size() > FeedbackRequest.MAX_BEST_FEEDBACK_COUNT) {
 			throw new FeedbackRequestException(
 				FeedbackRequestErrorStatus.BEST_FEEDBACK_LIMIT_EXCEEDED
 			);

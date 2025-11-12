@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
 
+import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QDayRequestDetail.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest.*;
 import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QScalpingRequestDetail.*;
@@ -145,7 +146,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		List<FeedbackRequest> bestFeedbacks = allResults.stream()
 			.filter(fr -> fr.getIsBestFeedback() != null && fr.getIsBestFeedback())
 			.sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
-			.limit(3)  // ✅ 베스트 피드백 최대 3개
+			.limit(MAX_BEST_FEEDBACK_COUNT)  // ✅ 베스트 피드백 최대 개수
 			.toList();
 
 		List<FeedbackRequest> regularFeedbacks = allResults.stream()

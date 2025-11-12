@@ -40,8 +40,9 @@ public interface FeedbackRequestCommandService {
 	 * - 기존 베스트 피드백을 모두 해제하고
 	 * - 새로운 피드백들을 베스트로 지정
 	 *
-	 * @param feedbackIds 베스트로 지정할 피드백 ID 목록 (최대 3개)
-	 * @throws FeedbackRequestException 피드백을 찾을 수 없거나, 3개 초과 시
+	 * @param feedbackIds 베스트로 지정할 피드백 ID 목록
+	 *                    (최대 {@link com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest#MAX_BEST_FEEDBACK_COUNT}개)
+	 * @throws FeedbackRequestException 피드백을 찾을 수 없거나, 최대 개수 초과 시
 	 */
 	Void updateBestFeedbacks(List<Long> feedbackIds);
 }
