@@ -13,6 +13,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
@@ -99,5 +100,13 @@ public interface FeedbackRequestQueryService {
 	);
 
 	FeedbackRequestDetailResponseDTO getAdminFeedbackDetail(Long feedbackRequestId);
+
+	/**
+	 * ✅ 트레이너가 직접 작성한 매매일지 목록 조회 (무한 스크롤)
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 트레이너 작성 매매일지 목록 (Slice)
+	 */
+	TrainerWrittenFeedbackListResponseDTO getTrainerWrittenFeedbacks(Pageable pageable);
 
 }

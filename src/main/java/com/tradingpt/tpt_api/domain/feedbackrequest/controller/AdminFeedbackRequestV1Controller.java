@@ -177,4 +177,13 @@ public class AdminFeedbackRequestV1Controller {
 			feedbackRequestQueryService.getAdminFeedbackDetail(feedbackRequestId)
 		);
 	}
+
+	// TODO: 트레이너 작성 매매일지 플래그 업데이트 API 구현 필요
+	// TODO: POST /api/v1/admin/feedback-requests/{id}/trainer-written
+	// TODO: 현재는 DataGrip으로 수동 업데이트 중이나, 향후 Admin UI에서 직접 설정할 수 있도록 구현 예정
+	// TODO: 베스트 피드백 설정 API (updateBestFeedbackStatus)와 유사한 구조로 구현
+	// TODO: Request DTO: { isTrainerWritten: boolean }
+	// TODO: 권한: ADMIN 또는 TRAINER
+	// TODO: 검증: 해당 피드백이 실제 트레이너가 작성한 것인지 확인하는 로직 추가 고려
+	// TODO: (현재는 수동으로 확인 후 플래그만 설정하지만, 향후 자동 검증 로직 추가 가능)
 }

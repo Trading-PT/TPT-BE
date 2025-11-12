@@ -334,4 +334,15 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer week
 	);
 
+	/**
+	 * ✅ 트레이너가 직접 작성한 매매일지 목록 조회 (무한 스크롤)
+	 * - isTrainerWritten = true인 것만 조회
+	 * - 최신순 정렬 (createdAt DESC)
+	 * - 첨부 이미지 포함
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 트레이너 작성 매매일지 Slice
+	 */
+	Slice<FeedbackRequest> findTrainerWrittenFeedbacks(Pageable pageable);
+
 }

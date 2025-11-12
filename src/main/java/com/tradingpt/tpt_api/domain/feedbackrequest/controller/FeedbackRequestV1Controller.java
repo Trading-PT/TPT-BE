@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.controller;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +25,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -191,6 +193,36 @@ public class FeedbackRequestV1Controller {
 	) {
 		return BaseResponse.onSuccess(
 			feedbackRequestQueryService.getMonthlyPnlCalendar(customerId, year, month)
+		);
+	}
+
+	@Operation(
+		summary = "트레이너 작성 매매일지 조회 (무한 스크롤)",
+		description = """
+			트레이너가 직접 작성한 매매일지 목록을 조회합니다.
+
+			특징:
+			- isTrainerWritten = true인 피드백만 조회
+			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 첨부 이미지, 제목, 매매 복기 포함
+			- 최신순 정렬 (createdAt DESC)
+			- 무한 스크롤 지원 (Slice 기반)
+
+			사용 시나리오:
+			- 트레이너의 실제 매매 일지 학습 자료로 활용
+			- 썸네일 이미지와 함께 리스트 표시
+			- 클릭 시 상세 조회 API로 이동
+
+			예시:
+			- GET /api/v1/feedback-requests/trainer-written?page=0&size=12
+			"""
+	)
+	@GetMapping("/trainer-written")
+	public BaseResponse<TrainerWrittenFeedbackListResponseDTO> getTrainerWrittenFeedbacks(
+		@PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestQueryService.getTrainerWrittenFeedbacks(pageable)
 		);
 	}
 }

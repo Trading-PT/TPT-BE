@@ -78,6 +78,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final BooleanPath isTokenUsed;
 
     //inherited
+    public final BooleanPath isTrainerWritten;
+
+    //inherited
     public final NumberPath<Integer> leverage;
 
     //inherited
@@ -164,6 +167,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
         this.isTokenUsed = _super.isTokenUsed;
+        this.isTrainerWritten = _super.isTrainerWritten;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
         this.operatingFundsRatio = _super.operatingFundsRatio;

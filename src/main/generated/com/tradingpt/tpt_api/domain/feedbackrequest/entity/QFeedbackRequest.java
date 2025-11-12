@@ -59,6 +59,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isTokenUsed = createBoolean("isTokenUsed");
 
+    public final BooleanPath isTrainerWritten = createBoolean("isTrainerWritten");
+
     public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);

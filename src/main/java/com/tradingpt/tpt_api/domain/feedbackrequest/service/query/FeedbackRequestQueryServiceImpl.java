@@ -32,6 +32,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListItemDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TotalFeedbackListResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackItemDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
@@ -450,5 +452,29 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 				authority.getAuthority().equals("ROLE_TRAINER") ||
 					authority.getAuthority().equals("ROLE_ADMIN")
 			);
+	}
+
+	@Override
+	public TrainerWrittenFeedbackListResponseDTO getTrainerWrittenFeedbacks(Pageable pageable) {
+		log.info("Fetching trainer-written feedback requests with page={}, size={}",
+			pageable.getPageNumber(), pageable.getPageSize());
+
+		// 1. Slice로 트레이너 작성 매매일지 조회
+		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
+			.findTrainerWrittenFeedbacks(pageable);
+
+		// 2. DTO 변환
+		List<TrainerWrittenFeedbackItemDTO> feedbackDTOs = feedbackSlice.getContent()
+			.stream()
+			.map(TrainerWrittenFeedbackItemDTO::from)
+			.collect(Collectors.toList());
+
+		// 3. SliceInfo 생성
+		SliceInfo sliceInfo = SliceInfo.of(feedbackSlice);
+
+		log.info("Found {} trainer-written feedback requests, hasNext={}",
+			feedbackDTOs.size(), sliceInfo.getHasNext());
+
+		return TrainerWrittenFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);
 	}
 }

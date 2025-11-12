@@ -1689,6 +1689,74 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.collect(Collectors.toList());
 	}
 
+	@Override
+	public Slice<FeedbackRequest> findTrainerWrittenFeedbacks(Pageable pageable) {
+		// Day 피드백 조회 (트레이너 작성, 첨부파일 포함)
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.leftJoin(dayRequestDetail.feedbackRequestAttachments).fetchJoin()
+			.where(dayRequestDetail.isTrainerWritten.isTrue())
+			.orderBy(dayRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.distinct()  // fetchJoin으로 인한 중복 제거
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+
+		// Scalping 피드백 조회 (트레이너 작성, 첨부파일 포함)
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.leftJoin(scalpingRequestDetail.feedbackRequestAttachments).fetchJoin()
+			.where(scalpingRequestDetail.isTrainerWritten.isTrue())
+			.orderBy(scalpingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.distinct()  // fetchJoin으로 인한 중복 제거
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// Swing 피드백 조회 (트레이너 작성, 첨부파일 포함)
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.leftJoin(swingRequestDetail.feedbackRequestAttachments).fetchJoin()
+			.where(swingRequestDetail.isTrainerWritten.isTrue())
+			.orderBy(swingRequestDetail.createdAt.desc())
+			.fetch()
+			.stream()
+			.distinct()  // fetchJoin으로 인한 중복 제거
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+
+		// 모든 피드백 합치기
+		List<FeedbackRequest> allRequests = new ArrayList<>();
+		allRequests.addAll(dayRequests);
+		allRequests.addAll(scalpingRequests);
+		allRequests.addAll(swingRequests);
+
+		// 생성 시간 내림차순 정렬 (최신순)
+		allRequests.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+
+		// Slice 처리 (pageSize + 1개를 조회해서 hasNext 판단)
+		int pageSize = pageable.getPageSize();
+		int offset = (int)pageable.getOffset();
+
+		// offset부터 pageSize + 1개 조회
+		int endIndex = Math.min(offset + pageSize + 1, allRequests.size());
+		List<FeedbackRequest> content = offset >= allRequests.size()
+			? new ArrayList<>()
+			: allRequests.subList(offset, endIndex);
+
+		// hasNext 판단: 실제로 pageSize + 1개가 조회되었으면 다음 페이지가 있음
+		boolean hasNext = content.size() > pageSize;
+
+		// 실제 반환할 컨텐츠는 pageSize만큼만
+		if (hasNext) {
+			content = content.subList(0, pageSize);
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);

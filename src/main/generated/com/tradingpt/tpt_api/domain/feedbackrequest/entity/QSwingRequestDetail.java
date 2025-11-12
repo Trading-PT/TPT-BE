@@ -88,6 +88,9 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
     public final BooleanPath isTokenUsed;
 
     //inherited
+    public final BooleanPath isTrainerWritten;
+
+    //inherited
     public final NumberPath<Integer> leverage;
 
     public final StringPath mainFrame = createString("mainFrame");
@@ -186,6 +189,7 @@ public class QSwingRequestDetail extends EntityPathBase<SwingRequestDetail> {
         this.isRead = _super.isRead;
         this.isResponded = _super.isResponded;
         this.isTokenUsed = _super.isTokenUsed;
+        this.isTrainerWritten = _super.isTrainerWritten;
         this.leverage = _super.leverage;
         this.membershipLevel = _super.membershipLevel;
         this.operatingFundsRatio = _super.operatingFundsRatio;
