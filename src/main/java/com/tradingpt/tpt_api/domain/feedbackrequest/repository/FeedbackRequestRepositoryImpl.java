@@ -1551,6 +1551,144 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.collect(Collectors.toList());
 	}
 
+	@Override
+	public List<FeedbackRequest> findProfitFeedbacksByCustomerAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		List<FeedbackRequest> allResults = new ArrayList<>();
+
+		// Day 피드백 조회 (이익: pnl > 0)
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month),
+				dayRequestDetail.feedbackWeek.eq(week),
+				dayRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				dayRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
+			)
+			.orderBy(dayRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+		allResults.addAll(dayRequests);
+
+		// Scalping 피드백 조회 (이익: pnl > 0)
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month),
+				scalpingRequestDetail.feedbackWeek.eq(week),
+				scalpingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				scalpingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
+			)
+			.orderBy(scalpingRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+		allResults.addAll(scalpingRequests);
+
+		// Swing 피드백 조회 (이익: pnl > 0)
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month),
+				swingRequestDetail.feedbackWeek.eq(week),
+				swingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				swingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
+			)
+			.orderBy(swingRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+		allResults.addAll(swingRequests);
+
+		// 전체 결과를 feedbackRequestDate 기준 내림차순으로 정렬
+		return allResults.stream()
+			.sorted(Comparator.comparing(FeedbackRequest::getFeedbackRequestDate).reversed())
+			.collect(Collectors.toList());
+	}
+
+	@Override
+	public List<FeedbackRequest> findLossFeedbacksByCustomerAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		List<FeedbackRequest> allResults = new ArrayList<>();
+
+		// Day 피드백 조회 (손실: pnl < 0)
+		List<FeedbackRequest> dayRequests = queryFactory
+			.selectFrom(dayRequestDetail)
+			.where(
+				dayRequestDetail.customer.id.eq(customerId),
+				dayRequestDetail.feedbackYear.eq(year),
+				dayRequestDetail.feedbackMonth.eq(month),
+				dayRequestDetail.feedbackWeek.eq(week),
+				dayRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				dayRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+			)
+			.orderBy(dayRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(d -> (FeedbackRequest)d)
+			.toList();
+		allResults.addAll(dayRequests);
+
+		// Scalping 피드백 조회 (손실: pnl < 0)
+		List<FeedbackRequest> scalpingRequests = queryFactory
+			.selectFrom(scalpingRequestDetail)
+			.where(
+				scalpingRequestDetail.customer.id.eq(customerId),
+				scalpingRequestDetail.feedbackYear.eq(year),
+				scalpingRequestDetail.feedbackMonth.eq(month),
+				scalpingRequestDetail.feedbackWeek.eq(week),
+				scalpingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				scalpingRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+			)
+			.orderBy(scalpingRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+		allResults.addAll(scalpingRequests);
+
+		// Swing 피드백 조회 (손실: pnl < 0)
+		List<FeedbackRequest> swingRequests = queryFactory
+			.selectFrom(swingRequestDetail)
+			.where(
+				swingRequestDetail.customer.id.eq(customerId),
+				swingRequestDetail.feedbackYear.eq(year),
+				swingRequestDetail.feedbackMonth.eq(month),
+				swingRequestDetail.feedbackWeek.eq(week),
+				swingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
+				swingRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+			)
+			.orderBy(swingRequestDetail.feedbackRequestDate.desc())
+			.fetch()
+			.stream()
+			.map(s -> (FeedbackRequest)s)
+			.toList();
+		allResults.addAll(swingRequests);
+
+		// 전체 결과를 feedbackRequestDate 기준 내림차순으로 정렬
+		return allResults.stream()
+			.sorted(Comparator.comparing(FeedbackRequest::getFeedbackRequestDate).reversed())
+			.collect(Collectors.toList());
+	}
+
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
 			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);

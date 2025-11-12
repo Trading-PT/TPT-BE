@@ -43,6 +43,8 @@ import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedb
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DirectionStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyDayFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyFeedbackSummaryResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyLossFeedbackListResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyProfitFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyWeekFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
@@ -511,5 +513,59 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		);
 
 		return PerformanceComparison.of(beforeWeek, currentWeekSnapshot);
+	}
+
+	@Override
+	public WeeklyProfitFeedbackListResponseDTO getProfitFeedbacksByWeek(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId
+	) {
+		log.info("Fetching profit feedbacks for customerId={}, year={}, month={}, week={}",
+			customerId, year, month, week);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+
+		// 2. 고객 조회
+		customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 이익 매매 피드백 목록 조회 (완강 전, pnl > 0)
+		List<FeedbackRequest> profitFeedbacks = feedbackRequestRepository
+			.findProfitFeedbacksByCustomerAndYearAndMonthAndWeek(customerId, year, month, week);
+
+		log.info("Found {} profit feedbacks for {}-{}-W{}",
+			profitFeedbacks.size(), year, month, week);
+
+		return WeeklyProfitFeedbackListResponseDTO.of(year, month, week, profitFeedbacks);
+	}
+
+	@Override
+	public WeeklyLossFeedbackListResponseDTO getLossFeedbacksByWeek(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId
+	) {
+		log.info("Fetching loss feedbacks for customerId={}, year={}, month={}, week={}",
+			customerId, year, month, week);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+
+		// 2. 고객 조회
+		customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 손실 매매 피드백 목록 조회 (완강 전, pnl < 0)
+		List<FeedbackRequest> lossFeedbacks = feedbackRequestRepository
+			.findLossFeedbacksByCustomerAndYearAndMonthAndWeek(customerId, year, month, week);
+
+		log.info("Found {} loss feedbacks for {}-{}-W{}",
+			lossFeedbacks.size(), year, month, week);
+
+		return WeeklyLossFeedbackListResponseDTO.of(year, month, week, lossFeedbacks);
 	}
 }
