@@ -42,4 +42,14 @@ public class Memo extends BaseEntity {
 	@Column(columnDefinition = "TEXT")
 	private String content; // 메모 내용
 
+	/**
+	 * 메모 내용 업데이트
+	 * @param title 새로운 제목
+	 * @param content 새로운 내용
+	 */
+	public void update(String title, String content) {
+		this.title = title;
+		this.content = content;
+	}
+
 }
