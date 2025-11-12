@@ -50,6 +50,12 @@ import lombok.experimental.SuperBuilder;
 @DiscriminatorColumn(name = "investment_type", discriminatorType = DiscriminatorType.STRING)
 public abstract class FeedbackRequest extends BaseEntity {
 
+	/**
+	 * 베스트 피드백 최대 개수
+	 * Admin이 선택할 수 있는 베스트 피드백의 최대 개수
+	 */
+	public static final int MAX_BEST_FEEDBACK_COUNT = 4;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "feedback_request_id")
@@ -138,6 +144,9 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private Boolean isTokenUsed = false; // 토큰을 사용한 피드백인지
 
 	private Integer tokenAmount; // 사용한 토큰 개수
+
+	@Builder.Default
+	private Boolean isTrainerWritten = Boolean.FALSE; // 트레이너 작성 여부
 
 	// 추상 메서드로 FeedbackType 반환
 	public abstract InvestmentType getInvestmentType();

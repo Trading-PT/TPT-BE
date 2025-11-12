@@ -296,4 +296,53 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer week
 	);
 
+	/**
+	 * ✅ 특정 고객의 특정 연/월/주에 대한 이익 매매 피드백 목록 조회
+	 * - courseStatus = BEFORE_COMPLETION인 것만 조회
+	 * - pnl > 0인 것만 조회 (이익)
+	 * - feedbackRequestDate 기준 내림차순 정렬
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 이익 매매 피드백 목록
+	 */
+	List<FeedbackRequest> findProfitFeedbacksByCustomerAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
+
+	/**
+	 * ✅ 특정 고객의 특정 연/월/주에 대한 손실 매매 피드백 목록 조회
+	 * - courseStatus = BEFORE_COMPLETION인 것만 조회
+	 * - pnl < 0인 것만 조회 (손실)
+	 * - feedbackRequestDate 기준 내림차순 정렬
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @return 손실 매매 피드백 목록
+	 */
+	List<FeedbackRequest> findLossFeedbacksByCustomerAndYearAndMonthAndWeek(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
+
+	/**
+	 * ✅ 트레이너가 직접 작성한 매매일지 목록 조회 (무한 스크롤)
+	 * - isTrainerWritten = true인 것만 조회
+	 * - 최신순 정렬 (createdAt DESC)
+	 * - 첨부 이미지 포함
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 트레이너 작성 매매일지 Slice
+	 */
+	Slice<FeedbackRequest> findTrainerWrittenFeedbacks(Pageable pageable);
+
 }
