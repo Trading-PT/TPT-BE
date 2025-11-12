@@ -41,6 +41,10 @@ public class QLecture extends EntityPathBase<Lecture> {
 
     public final NumberPath<Integer> lectureOrder = createNumber("lectureOrder", Integer.class);
 
+    public final NumberPath<Integer> requiredTokens = createNumber("requiredTokens", Integer.class);
+
+    public final StringPath thumbnailUrl = createString("thumbnailUrl");
+
     public final StringPath title = createString("title");
 
     public final com.tradingpt.tpt_api.domain.user.entity.QUser trainer;

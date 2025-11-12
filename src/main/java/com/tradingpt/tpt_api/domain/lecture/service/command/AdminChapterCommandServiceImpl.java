@@ -21,6 +21,8 @@ public class AdminChapterCommandServiceImpl implements AdminChapterCommandServic
         Chapter chapter = Chapter.builder()
                 .title(req.getTitle())
                 .description(req.getDescription())
+                .chapterType(req.getChapterType())
+                .chapterOrder(req.getChapterOrder())
                 .build();
         Chapter saved = chapterRepository.save(chapter);
         return saved.getId();

@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.lecture.dto;
 
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -18,6 +19,9 @@ public class LectureListResponseDTO {
 
     @Schema(description = "챕터 ID", example = "3")
     private Long chapterId;
+
+    @Schema(description = "챕터 유형(BASIC=무료, PRO=유료)", example = "BASIC")
+    private ChapterType chapterType;
 
     @Schema(description = "강의 제목", example = "Chapter 2. 주린이가 시장에서 살아남는 방법")
     private String title;
@@ -38,6 +42,7 @@ public class LectureListResponseDTO {
         return LectureListResponseDTO.builder()
                 .lectureId(lecture.getId())
                 .chapterId(lecture.getChapter().getId())
+                .chapterType(lecture.getChapter().getChapterType())
                 .title(lecture.getTitle())
                 .trainerName(lecture.getTrainer().getName())
                 .hasAttachments(lecture.getAttachments() != null && !lecture.getAttachments().isEmpty())

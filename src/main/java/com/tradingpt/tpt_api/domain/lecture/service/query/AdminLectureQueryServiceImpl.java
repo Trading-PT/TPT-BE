@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.lecture.service.query;
 
 import com.tradingpt.tpt_api.domain.lecture.dto.LectureListResponseDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
@@ -37,7 +38,7 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
     public com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO getLectureDetail(Long lectureId) {
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
-        return com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO.from(lecture);
+        return LectureDetailResponseDTO.from(lecture);
     }
 
     /**

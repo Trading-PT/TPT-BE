@@ -26,8 +26,8 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
 
     private final ChapterRepository chapterRepository;
     private final LectureRepository lectureRepository;
-    private final UserRepository userRepository;     // 업로더(트레이너) 조회용
-    private final S3FileService s3FileService;       // S3 삭제용
+    private final UserRepository userRepository;
+    private final S3FileService s3FileService;
 
     /**
      * 강의 생성
@@ -43,7 +43,7 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         User trainer = userRepository.findById(trainerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
-        // 3. Lecture 생성 (URL + KEY 둘 다 맵핑)
+        // 3. Lecture 생성 (신규 필드 포함)
         Lecture lecture = Lecture.builder()
                 .chapter(chapter)
                 .trainer(trainer)
@@ -54,6 +54,8 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 .durationSeconds(req.getDurationSeconds() != null ? req.getDurationSeconds() : 0)
                 .lectureOrder(req.getLectureOrder())
                 .lectureExposure(req.getLectureExposure())
+                .requiredTokens(req.getRequiredTokens() != null ? req.getRequiredTokens() : 0)
+                .thumbnailUrl(req.getThumbnailUrl())
                 .attachments(new ArrayList<>())
                 .build();
 
@@ -82,12 +84,12 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
-        // 1) 강의에 연결된 S3 비디오 삭제
+        // 1) 비디오 삭제
         if (lecture.getVideoKey() != null) {
             s3FileService.delete(lecture.getVideoKey());
         }
 
-        // 2) lecture_attachment 테이블에 있는 첨부파일들도 S3에서 삭제
+        // 2) 첨부파일 삭제
         if (lecture.getAttachments() != null) {
             lecture.getAttachments().forEach(att -> {
                 if (att.getFileKey() != null) {
@@ -96,12 +98,12 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
             });
         }
 
-        // 3) 마지막으로 DB에서 강의 삭제
+        // 3) DB에서 삭제
         lectureRepository.delete(lecture);
     }
 
     /**
-     * 강의 수정 (전체 필드 교체, 단 첨부는 바뀐 경우에만 S3 삭제)
+     * 강의 수정
      */
     @Override
     @Transactional
@@ -118,14 +120,14 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         User trainer = userRepository.findById(trainerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
-        // 4. 비디오가 교체되었으면 기존 S3 삭제
+        // 4. 비디오 교체 시 기존 S3 삭제
         String oldVideoKey = lecture.getVideoKey();
         String newVideoKey = req.getVideoKey();
         if (oldVideoKey != null && newVideoKey != null && !oldVideoKey.equals(newVideoKey)) {
             s3FileService.delete(oldVideoKey);
         }
 
-        // 5. 첨부파일 변경 여부 판단
+        // 5. 첨부파일 변경 여부 판단 및 갱신
         List<LectureAttachment> oldAttachments = lecture.getAttachments();
         var newAttachments = req.getAttachments();
 
@@ -144,9 +146,7 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 for (int i = 0; i < oldAttachments.size(); i++) {
                     String oldKey = oldAttachments.get(i).getFileKey();
                     String reqKey = newAttachments.get(i).getFileKey();
-                    if (oldKey == null && reqKey == null) {
-                        continue;
-                    }
+                    if (oldKey == null && reqKey == null) continue;
                     if (oldKey == null || reqKey == null || !oldKey.equals(reqKey)) {
                         attachmentsChanged = true;
                         break;
@@ -156,7 +156,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         }
 
         if (attachmentsChanged) {
-            // 기존 것들 S3에서 삭제
             if (oldAttachments != null) {
                 oldAttachments.forEach(att -> {
                     if (att.getFileKey() != null) {
@@ -166,7 +165,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 oldAttachments.clear();
             }
 
-            // 새로 들어온 첨부들 다시 추가
             if (newAttachments != null) {
                 newAttachments.forEach(attReq -> {
                     LectureAttachment att = LectureAttachment.builder()
@@ -179,7 +177,7 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
             }
         }
 
-        // 6. 나머지 필드 한 방에 업데이트
+        // 6. 나머지 필드 전체 업데이트 (신규 필드 포함)
         lecture.update(
                 newChapter,
                 trainer,
@@ -189,7 +187,9 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 req.getVideoKey(),
                 req.getDurationSeconds(),
                 req.getLectureOrder(),
-                req.getLectureExposure()
+                req.getLectureExposure(),
+                req.getRequiredTokens(),
+                req.getThumbnailUrl()
         );
 
         return lecture.getId();

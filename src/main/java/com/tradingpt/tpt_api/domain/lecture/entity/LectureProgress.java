@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.entity;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
