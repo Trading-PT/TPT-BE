@@ -4,7 +4,6 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
-import java.util.Locale;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -18,7 +17,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FeedbackPeriodUtil {
 
-	private static final WeekFields WEEK_FIELDS = WeekFields.of(DayOfWeek.MONDAY, 4);
+	private static final WeekFields WEEK_FIELDS = WeekFields.of(DayOfWeek.MONDAY, 1);
 
 	/**
 	 * 요청 날짜를 기반으로 연/월/주차를 계산한다.
@@ -53,10 +52,9 @@ public final class FeedbackPeriodUtil {
 		LocalDate firstDay = LocalDate.of(year, month, 1);
 		LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
 
-		WeekFields weekFields = WeekFields.of(Locale.getDefault());
-
-		int firstWeek = firstDay.get(weekFields.weekOfMonth());
-		int lastWeek = lastDay.get(weekFields.weekOfMonth());
+		// WEEK_FIELDS를 사용하여 일관성 확보
+		int firstWeek = firstDay.get(WEEK_FIELDS.weekOfMonth());
+		int lastWeek = lastDay.get(WEEK_FIELDS.weekOfMonth());
 
 		return lastWeek - firstWeek + 1;
 	}
