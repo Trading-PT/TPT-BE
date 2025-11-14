@@ -21,7 +21,6 @@ import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.config.NicePayConfig;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
-import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDirectRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.service.NicePayService;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.util.NicePayCryptoUtil;
@@ -168,7 +167,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		String cardInfoPlainText = cardInfoRequest.toEncDataPlainText();
 
 		// NicePay API 호출하여 빌링키 발급 (비인증 방식)
-		BillingKeyDirectRegisterResponse nicePayResponse;
+		BillingKeyRegisterResponse nicePayResponse;
 		try {
 			nicePayResponse = nicePayService.registerBillingKeyDirect(
 				cardInfoPlainText,
@@ -236,7 +235,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		// NicePay API 호출하여 빌링키 삭제
 		BillingKeyDeleteResponseDTO response;
 		try {
-			response = nicePayService.deleteBillingKey(paymentMethod.getBillingKey());
+			response = nicePayService.deleteBillingKey(paymentMethod.getOrderId(), paymentMethod.getBillingKey());
 		} catch (Exception e) {
 			log.error("빌키 삭제 API 호출 실패", e);
 

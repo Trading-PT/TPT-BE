@@ -8,7 +8,6 @@ import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKe
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyDirectRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyRegisterRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
-import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDirectRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayErrorStatus;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayException;
@@ -104,7 +103,7 @@ public class NicePayService {
 	 * @return 빌키 발급 응답 (BID 포함)
 	 * @throws NicePayException 빌키 발급 실패 시
 	 */
-	public BillingKeyDirectRegisterResponse registerBillingKeyDirect(
+	public BillingKeyRegisterResponse registerBillingKeyDirect(
 		String cardInfoPlainText,
 		String moid,
 		String buyerEmail,
@@ -144,7 +143,7 @@ public class NicePayService {
 
 		try {
 			// Feign Client로 API 호출
-			BillingKeyDirectRegisterResponse response = nicePayFeignClient.registerBillingKeyDirect(request);
+			BillingKeyRegisterResponse response = nicePayFeignClient.registerBillingKeyDirect(request);
 
 			// 응답 검증
 			if (response.isSuccess()) {
@@ -172,7 +171,7 @@ public class NicePayService {
 	 * @return 빌키 삭제 응답
 	 * @throws NicePayException 빌키 삭제 실패 시
 	 */
-	public BillingKeyDeleteResponseDTO deleteBillingKey(String billingKey) {
+	public BillingKeyDeleteResponseDTO deleteBillingKey(String moid, String billingKey) {
 		log.info("빌키 삭제 요청: BID={}", billingKey);
 
 		String mid = nicePayConfig.getMid();
@@ -181,10 +180,11 @@ public class NicePayService {
 		// EdiDate 생성
 		String ediDate = NicePayCryptoUtil.generateEdiDate();
 
-		// SignData 생성: SHA256(MID + EdiDate + BID + MerchantKey)
+		// SignData 생성: SHA256(MID + EdiDate + Moid + BID + MerchantKey)
 		String signData = NicePayCryptoUtil.generateSignData(
 			mid,
 			ediDate,
+			moid,
 			billingKey,
 			merchantKey
 		);
@@ -194,6 +194,7 @@ public class NicePayService {
 			.MID(mid)
 			.BID(billingKey)
 			.EdiDate(ediDate)
+			.Moid(moid)
 			.SignData(signData)
 			.build();
 

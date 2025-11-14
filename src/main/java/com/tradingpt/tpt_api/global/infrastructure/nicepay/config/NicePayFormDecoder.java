@@ -16,6 +16,7 @@ import org.springframework.beans.BeanWrapperImpl;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,6 +52,9 @@ public class NicePayFormDecoder implements Decoder {
 
 		// 대소문자 구분 없이 필드 매핑 (ResultCode → resultCode 허용)
 		mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true);
+
+		// 알 수 없는 JSON 필드 무시 (DTO에 없는 필드가 있어도 에러 없이 진행)
+		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 		// NicePay 날짜 형식을 위한 커스텀 Deserializer 등록
 		SimpleModule module = new SimpleModule();

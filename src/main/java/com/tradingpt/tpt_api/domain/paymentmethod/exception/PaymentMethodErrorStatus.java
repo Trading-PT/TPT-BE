@@ -24,7 +24,7 @@ public enum PaymentMethodErrorStatus implements BaseCodeInterface {
 	INVALID_AUTH_TOKEN(HttpStatus.BAD_REQUEST, "PM003", "유효하지 않은 인증 토큰입니다."),
 	INVALID_MOID(HttpStatus.BAD_REQUEST, "PM004", "유효하지 않은 주문번호입니다."),
 	CANNOT_DELETE_ONLY_PAYMENT_METHOD(HttpStatus.BAD_REQUEST, "PM005", "마지막 결제 수단은 삭제할 수 없습니다."),
-	PAYMENT_METHOD_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PM006", "이미 등록된 결제 수단입니다."),
+	PAYMENT_METHOD_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "PM006", "이미 등록된 결제수단이 있습니다."),
 
 	// 403 FORBIDDEN
 	UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "PM010", "해당 결제 수단에 접근할 권한이 없습니다."),
