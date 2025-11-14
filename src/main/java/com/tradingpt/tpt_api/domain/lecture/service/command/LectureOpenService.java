@@ -49,7 +49,6 @@ public class LectureOpenService {
 
         // 3) 이미 모든 강의가 열렸으면 종료 (완강)
         if (openedCountNow >= totalLectureCount) {
-            sub.getCustomer().setCourseStatus(CourseStatus.AFTER_COMPLETION);
             return;
         }
 
