@@ -48,6 +48,9 @@ public class LectureDetailResponseDTO {
     @Schema(description = "수강에 필요한 토큰 수(0=무료)", example = "10")
     private Integer requiredTokens;
 
+    @Schema(description = "누적 시청 시간(초)", example = "600")
+    private Integer watchedSeconds;
+
     @Schema(description = "썸네일 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/uploads/2025-11-07/thumbnail.jpg")
     private String thumbnailUrl;
 

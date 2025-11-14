@@ -20,7 +20,7 @@ public class ChapterCreateRequestDTO {
     private String description;
 
     @NotNull
-    @Schema(description = "챕터 유형 (BASIC: 무료, PRO: 유료)", example = "BASIC")
+    @Schema(description = "챕터 유형 (REGULAR: 무료, PRO: 유료)", example = "REGULAR")
     private ChapterType chapterType;
 
     @NotNull

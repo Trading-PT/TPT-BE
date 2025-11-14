@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ChapterType {
-    BASIC(false),  // 무료
+    REGULAR(false),  // 무료
     PRO(true);     // 유료
 
     private final boolean isPaid;
