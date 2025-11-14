@@ -118,13 +118,14 @@ public class PaymentMethod extends BaseEntity {
 	/**
 	 * 팩토리 생성 메서드
 	 */
-	public static PaymentMethod of(Customer customer, String orderId, String billingKey,
+	public static PaymentMethod of(Customer customer, BillingRequest billingRequest, String orderId, String billingKey,
 		LocalDateTime billingKeyIssuedAt, String cardCompanyCode, String cardCompanyName,
 		CardType cardtype, String maskedIdentifier, String displayName, String pgResponseCode,
 		String pgResponseMessage
 	) {
 		return PaymentMethod.builder()
 			.customer(customer)
+			.billingRequest(billingRequest)
 			.orderId(orderId)
 			.billingKey(billingKey)
 			.billingKeyIssuedAt(billingKeyIssuedAt)

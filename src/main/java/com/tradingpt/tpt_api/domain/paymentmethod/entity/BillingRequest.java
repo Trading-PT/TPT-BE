@@ -71,11 +71,20 @@ public class BillingRequest extends BaseEntity {
 	/**
 	 * 팩토리 생성 메서드
 	 */
-	public static BillingRequest of(String moid, Customer customer) {
+	public static BillingRequest of(Customer customer, String moid) {
 		return BillingRequest.builder()
 			.moid(moid)
 			.customer(customer)
 			.status(Status.PENDING)
+			.build();
+	}
+
+	public static BillingRequest of(Customer customer, String moid, String resultCode, String resultMsg) {
+		return BillingRequest.builder()
+			.customer(customer)
+			.moid(moid)
+			.resultCode(resultCode)
+			.resultMsg(resultMsg)
 			.build();
 	}
 

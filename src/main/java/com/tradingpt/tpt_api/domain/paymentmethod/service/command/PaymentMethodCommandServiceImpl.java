@@ -42,6 +42,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 	private final NicePayService nicePayService;
 	private final NicePayConfig nicePayConfig;
 	private final BillingRequestRepository billingRequestRepository;
+	private final BillingRequestCommandService billingRequestCommandService;
 
 	@Override
 	public BillingKeyInitResponseDTO initBillingKeyRegistration(Long customerId) {
@@ -61,7 +62,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		String signData = NicePayCryptoUtil.generateSignData(mid, ediDate, moid, merchantKey);
 
 		// 빌링 요청 등록
-		BillingRequest newBillingRequest = BillingRequest.of(moid, customer);
+		BillingRequest newBillingRequest = BillingRequest.of(customer, moid);
 
 		// 빌링 요청 등록
 		billingRequestRepository.save(newBillingRequest);
@@ -104,9 +105,12 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		} catch (Exception e) {
 			log.error("빌키 발급 실패", e);
 
-			billingRequest.setStatus(Status.FAILED);
-			billingRequest.setResultCode("통신 에러");
-			billingRequest.setResultMsg(e.getMessage());
+			billingRequestCommandService.updateBillingRequestStatus(
+				billingRequest.getId(),
+				Status.FAILED,
+				"통신 에러",
+				e.getMessage()
+			);
 
 			throw new PaymentMethodException(
 				PaymentMethodErrorStatus.BILLING_KEY_REGISTRATION_FAILED
@@ -119,14 +123,15 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardNo()
 		);
 
-		PaymentMethod paymentMethod = PaymentMethod.of(customer, request.getMoid(), nicePayResponse.getBID(),
+		// 빌링 요청의 상태를 '완료'로 변경
+		billingRequest.complete();
+
+		PaymentMethod paymentMethod = PaymentMethod.of(customer, billingRequest, request.getMoid(),
+			nicePayResponse.getBID(),
 			nicePayResponse.getAuthDate(), nicePayResponse.getCardCode(), nicePayResponse.getCardName(),
 			nicePayResponse.getCardCl().equals("0") ? CardType.CREDIT : CardType.DEBIT,
 			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
 		);
-
-		// 빌링 요청의 상태를 '완료'로 변경
-		billingRequest.complete();
 
 		paymentMethodRepository.save(paymentMethod);
 
@@ -173,6 +178,9 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			);
 		} catch (Exception e) {
 			log.error("비인증 빌키 발급 실패", e);
+
+			billingRequestCommandService.createBillingRequest(customerId, moid, "통신 에러", e.getMessage());
+
 			throw new PaymentMethodException(
 				PaymentMethodErrorStatus.BILLING_KEY_REGISTRATION_FAILED
 			);
@@ -184,7 +192,11 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardNo()
 		);
 
-		PaymentMethod paymentMethod = PaymentMethod.of(customer, moid, nicePayResponse.getBID(),
+		BillingRequest billingRequest = BillingRequest.of(customer, moid);
+
+		billingRequestRepository.save(billingRequest);
+
+		PaymentMethod paymentMethod = PaymentMethod.of(customer, billingRequest, moid, nicePayResponse.getBID(),
 			nicePayResponse.getAuthDate(), nicePayResponse.getCardCode(), nicePayResponse.getCardName(),
 			nicePayResponse.getCardCl().equals("0") ? CardType.CREDIT : CardType.DEBIT,
 			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
