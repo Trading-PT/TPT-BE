@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.BillingKeyCompleteRequestDTO;
+import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.CardInfoRequestDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyInitResponseDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyRegisterResponseDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.PaymentMethodResponse;
@@ -54,7 +55,7 @@ public class PaymentMethodV1Controller {
 	}
 
 	@Operation(
-		summary = "빌키 등록 완료",
+		summary = "빌키 등록 완료 (인증 방식)",
 		description = """
 			NicePay 인증 완료 후 빌링키를 발급받고 결제수단을 등록합니다.
 			- NicePay API 호출하여 빌링키(BID) 발급
@@ -70,6 +71,27 @@ public class PaymentMethodV1Controller {
 	) {
 
 		return BaseResponse.onSuccess(paymentMethodCommandService.completeBillingKeyRegistration(customerId, request));
+	}
+
+	@Operation(
+		summary = "빌키 등록 (비인증 방식)",
+		description = """
+			카드 정보를 직접 전달하여 빌링키를 발급받고 결제수단을 등록합니다.
+			⚠️ 보안 주의: 프론트엔드에서도 HTTPS 사용 필수
+			- 카드 정보를 암호화하여 NicePay API 호출
+			- 빌링키(BID) 발급 및 결제수단 저장
+			- 자동으로 주 결제수단으로 설정
+			- 기존 활성 결제수단이 있으면 에러 반환
+			"""
+	)
+	@PostMapping("/billing-key/direct")
+	public BaseResponse<BillingKeyRegisterResponseDTO> registerBillingKeyDirect(
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal(expression = "id") Long customerId,
+		@Valid @RequestBody CardInfoRequestDTO cardInfoRequest
+	) {
+
+		return BaseResponse.onSuccess(paymentMethodCommandService.registerBillingKeyDirect(customerId, cardInfoRequest));
 	}
 
 	@Operation(

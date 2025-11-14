@@ -15,7 +15,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 public class SignUpRequestDTO {
 
 	@Schema(description = "실명(또는 서비스 표시명으로 사용 가능)", example = "홍길동")

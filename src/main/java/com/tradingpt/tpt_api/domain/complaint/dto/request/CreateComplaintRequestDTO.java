@@ -2,11 +2,9 @@ package com.tradingpt.tpt_api.domain.complaint.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 public class CreateComplaintRequestDTO {
 
     @Schema(description = "민원 제목", example = "8월 결제 환불 요청")

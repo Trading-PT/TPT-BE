@@ -2,11 +2,9 @@ package com.tradingpt.tpt_api.domain.column.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-@Builder
 public class ColumnCreateRequestDTO {
 
     @Schema(description = "칼럼 제목", example = "ETF란 무엇인가요?")
