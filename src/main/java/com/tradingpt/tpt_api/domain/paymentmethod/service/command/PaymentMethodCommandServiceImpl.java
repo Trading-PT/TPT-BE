@@ -21,6 +21,7 @@ import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.config.NicePayConfig;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDirectRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.service.NicePayService;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.util.NicePayCryptoUtil;
@@ -167,7 +168,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		String cardInfoPlainText = cardInfoRequest.toEncDataPlainText();
 
 		// NicePay API 호출하여 빌링키 발급 (비인증 방식)
-		BillingKeyRegisterResponse nicePayResponse;
+		BillingKeyDirectRegisterResponse nicePayResponse;
 		try {
 			nicePayResponse = nicePayService.registerBillingKeyDirect(
 				cardInfoPlainText,
@@ -186,20 +187,29 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			);
 		}
 
-		// 화면 표시명 생성: {카드사명} ****{뒤 4자리}
+		// 카드번호 처리: NicePay 응답의 마스킹된 번호 사용, 없으면 원본에서 마스킹 처리
+		String maskedCardNo = nicePayResponse.getCardNo();
+		if (maskedCardNo == null || maskedCardNo.isEmpty()) {
+			// 응답에 카드번호가 없는 경우, 원본 카드번호를 마스킹 처리
+			String originalCardNo = cardInfoRequest.getCardNo();
+			maskedCardNo = maskCardNumber(originalCardNo);
+		}
+
+		// 화면 표시명 생성: {카드사명} {마스킹된 카드번호}
 		String displayName = String.format("%s %s",
 			nicePayResponse.getCardName(),
-			nicePayResponse.getCardNo()
+			maskedCardNo
 		);
 
 		BillingRequest billingRequest = BillingRequest.of(customer, moid);
+		billingRequest.setStatus(Status.COMPLETED);
 
 		billingRequestRepository.save(billingRequest);
 
 		PaymentMethod paymentMethod = PaymentMethod.of(customer, billingRequest, moid, nicePayResponse.getBID(),
 			nicePayResponse.getAuthDate(), nicePayResponse.getCardCode(), nicePayResponse.getCardName(),
 			nicePayResponse.getCardCl().equals("0") ? CardType.CREDIT : CardType.DEBIT,
-			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
+			maskedCardNo, displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
 		);
 
 		paymentMethodRepository.save(paymentMethod);
@@ -243,5 +253,26 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		paymentMethod.setPgResponseCode(response.getResultCode(), response.getResultMsg());
 
 		log.info("결제수단 삭제 완료: customerId={}, paymentMethodId={}", customerId, paymentMethodId);
+	}
+
+	/**
+	 * 카드번호 마스킹 처리
+	 * 앞 6자리와 뒤 4자리만 보이고 나머지는 *로 처리
+	 * 예: 1234567890123456 → 123456******3456
+	 *
+	 * @param cardNo 원본 카드번호
+	 * @return 마스킹된 카드번호
+	 */
+	private String maskCardNumber(String cardNo) {
+		if (cardNo == null || cardNo.length() < 10) {
+			return cardNo;
+		}
+
+		int length = cardNo.length();
+		String prefix = cardNo.substring(0, 6);
+		String suffix = cardNo.substring(length - 4);
+		int maskedLength = length - 10;
+
+		return prefix + "*".repeat(maskedLength) + suffix;
 	}
 }

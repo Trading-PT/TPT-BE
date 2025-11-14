@@ -10,6 +10,7 @@ import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKe
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyDirectRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyRegisterRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDirectRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
 
 /**
@@ -50,7 +51,7 @@ public interface NicePayFeignClient {
 		consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
 		produces = "text/plain;charset=EUC-KR"
 	)
-	BillingKeyRegisterResponse registerBillingKeyDirect(
+	BillingKeyDirectRegisterResponse registerBillingKeyDirect(
 		@RequestBody BillingKeyDirectRequestDTO request
 	);
 

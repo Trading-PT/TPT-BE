@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKe
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyDirectRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyRegisterRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDirectRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayErrorStatus;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayException;
@@ -103,7 +104,7 @@ public class NicePayService {
 	 * @return 빌키 발급 응답 (BID 포함)
 	 * @throws NicePayException 빌키 발급 실패 시
 	 */
-	public BillingKeyRegisterResponse registerBillingKeyDirect(
+	public BillingKeyDirectRegisterResponse registerBillingKeyDirect(
 		String cardInfoPlainText,
 		String moid,
 		String buyerEmail,
@@ -143,7 +144,7 @@ public class NicePayService {
 
 		try {
 			// Feign Client로 API 호출
-			BillingKeyRegisterResponse response = nicePayFeignClient.registerBillingKeyDirect(request);
+			BillingKeyDirectRegisterResponse response = nicePayFeignClient.registerBillingKeyDirect(request);
 
 			// 응답 검증
 			if (response.isSuccess()) {

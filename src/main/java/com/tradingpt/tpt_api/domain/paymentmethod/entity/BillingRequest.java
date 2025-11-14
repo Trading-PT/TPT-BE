@@ -85,6 +85,7 @@ public class BillingRequest extends BaseEntity {
 			.moid(moid)
 			.resultCode(resultCode)
 			.resultMsg(resultMsg)
+			.status(Status.FAILED)
 			.build();
 	}
 

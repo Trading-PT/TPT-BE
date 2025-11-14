@@ -45,6 +45,8 @@ logging:
   level:
     org.hibernate.SQL: debug
     org.springframework.jdbc.core: DEBUG
+    com.tradingpt.tpt_api.global.infrastructure.nicepay: DEBUG
+    feign: DEBUG
 
 aws:
   s3:
