@@ -28,7 +28,9 @@ public class QPaymentMethod extends EntityPathBase<PaymentMethod> {
 
     public final DateTimePath<java.time.LocalDateTime> billingKeyIssuedAt = createDateTime("billingKeyIssuedAt", java.time.LocalDateTime.class);
 
-    public final StringPath cardCompany = createString("cardCompany");
+    public final QBillingRequest billingRequest;
+
+    public final StringPath cardCompanyCode = createString("cardCompanyCode");
 
     public final StringPath cardCompanyName = createString("cardCompanyName");
 
@@ -58,6 +60,8 @@ public class QPaymentMethod extends EntityPathBase<PaymentMethod> {
     public final DateTimePath<java.time.LocalDateTime> lastFailedAt = createDateTime("lastFailedAt", java.time.LocalDateTime.class);
 
     public final StringPath maskedIdentifier = createString("maskedIdentifier");
+
+    public final StringPath orderId = createString("orderId");
 
     public final EnumPath<com.tradingpt.tpt_api.domain.paymentmethod.enums.PaymentMethodType> paymentMethodType = createEnum("paymentMethodType", com.tradingpt.tpt_api.domain.paymentmethod.enums.PaymentMethodType.class);
 
@@ -92,6 +96,7 @@ public class QPaymentMethod extends EntityPathBase<PaymentMethod> {
 
     public QPaymentMethod(Class<? extends PaymentMethod> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
+        this.billingRequest = inits.isInitialized("billingRequest") ? new QBillingRequest(forProperty("billingRequest"), inits.get("billingRequest")) : null;
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
     }
 

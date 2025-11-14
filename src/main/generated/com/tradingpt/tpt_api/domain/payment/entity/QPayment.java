@@ -49,6 +49,8 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final BooleanPath isPromotional = createBoolean("isPromotional");
+
     public final StringPath orderId = createString("orderId");
 
     public final StringPath orderName = createString("orderName");
@@ -74,6 +76,8 @@ public class QPayment extends EntityPathBase<Payment> {
     public final StringPath pgResponseMessage = createString("pgResponseMessage");
 
     public final StringPath pgTid = createString("pgTid");
+
+    public final StringPath promotionDetail = createString("promotionDetail");
 
     public final StringPath receiptUrl = createString("receiptUrl");
 

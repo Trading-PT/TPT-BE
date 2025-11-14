@@ -86,3 +86,9 @@ app:
     servers:
       - url: https://dev.tradingpt.shop
         description: Dev API 서버
+
+# NicePay 로컬/테스트 환경 설정
+nicepay:
+  credentials:
+    mid: nictest04m
+    merchant-key: b+zhZ4yOZ7FsH8pm5lhDfHZEb79tIwnjsdA0FBXh86yLc6BJeFVrZFXhAoJ3gEWgrWwN+lJMV0W4hvDdbe4Sjw==
