@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
+import com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType;
 import com.tradingpt.tpt_api.domain.subscriptionplan.entity.SubscriptionPlan;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
@@ -84,4 +85,11 @@ public class Subscription extends BaseEntity {
 	private Integer paymentFailedCount = 0; // 연속 결제 실패 횟수
 
 	private LocalDateTime lastPaymentFailedAt; // 마지막 결제 실패 일시
+
+	@Enumerated(EnumType.STRING)
+	@Builder.Default
+	private SubscriptionType subscriptionType = SubscriptionType.REGULAR; // 구독 타입 (프로모션, 일반)
+	
+	private String promotionNote; // ex) 프로모션 메모 (예: 2개월 무료 사전등록)
+
 }

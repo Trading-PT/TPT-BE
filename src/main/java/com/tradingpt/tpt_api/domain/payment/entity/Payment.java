@@ -132,4 +132,9 @@ public class Payment extends BaseEntity {
 
 	@Column(columnDefinition = "json")
 	private String paymentMethodSnapshot; // 결제 당시 결제수단 정보 스냅샷
+
+	@Builder.Default
+	private Boolean isPromotional = Boolean.FALSE; // 프로모션 결제 여부
+
+	private String promotionDetail; // 프로모션 상세 (예: 사전등록 2개월 무료)
 }

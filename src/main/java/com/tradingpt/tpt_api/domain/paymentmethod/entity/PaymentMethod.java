@@ -51,6 +51,12 @@ public class PaymentMethod extends BaseEntity {
 	@Column(nullable = false)
 	private PaymentMethodType paymentMethodType; // 결제 타입
 
+	/**
+	 * 필드
+	 */
+
+	private String orderId; // 주문 아이디
+
 	private String pgCustomerKey; // PG사 고객 식별키
 
 	@Column(unique = true)
@@ -62,7 +68,7 @@ public class PaymentMethod extends BaseEntity {
 
 	private String maskedIdentifier; // 마스킹된 카드번호/계좌번호
 
-	private String cardCompany; // 카드사 코드 (예: 신한, 국민, 삼성)
+	private String cardCompanyCode; // 카드사 코드 (예: 신한, 국민, 삼성)
 
 	private String cardCompanyName; // 카드사명 (예: 신한카드)
 
