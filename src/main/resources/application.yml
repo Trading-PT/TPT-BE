@@ -169,6 +169,24 @@ solapi:
   api-secret: ${SOLAPI_API_SECRET}
   sender-number: ${SOLAPI_PHONE_NUMBER}
 
+# NicePay 설정
+nicepay:
+  api:
+    base-url: https://webapi.nicepay.co.kr/webapi
+    billing-register-path: /billing/cardbill_regist.jsp
+    billing-delete-path: /billing/billkey_remove.jsp
+  credentials:
+    mid: ${NICEPAY_MID}
+    merchant-key: ${NICEPAY_MERCHANT_KEY}
+  defaults:
+    goods-name: "구독 결제 수단 등록"
+    amt: "1004"
+  feign:
+    connect-timeout: 10
+    read-timeout: 15
+    logger-level: BASIC
+    follow-redirects: true
+
 # 로깅 설정 (공통)
 logging:
   level:

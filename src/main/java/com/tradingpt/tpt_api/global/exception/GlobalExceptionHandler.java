@@ -28,7 +28,6 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.tradingpt.tpt_api.global.common.BaseResponse;
-import com.tradingpt.tpt_api.global.exception.code.BaseCode;
 import com.tradingpt.tpt_api.global.exception.code.BaseCodeInterface;
 import com.tradingpt.tpt_api.global.exception.code.GlobalErrorStatus;
 
