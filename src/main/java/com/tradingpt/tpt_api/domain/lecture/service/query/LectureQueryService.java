@@ -1,0 +1,11 @@
+package com.tradingpt.tpt_api.domain.lecture.service.query;
+
+import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailDTO;
+import java.util.List;
+
+public interface LectureQueryService {
+    List<ChapterBlockDTO> getCurriculum(Long userId, int page, int size);
+    LectureDetailDTO getLectureDetail(Long userId, Long lectureId);
+}
+
