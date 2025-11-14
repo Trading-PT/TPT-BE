@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.paymentmethod.service.command;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.BillingKeyCompleteRequestDTO;
+import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.CardInfoRequestDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyInitResponseDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyRegisterResponseDTO;
 
@@ -20,7 +21,7 @@ public interface PaymentMethodCommandService {
 	BillingKeyInitResponseDTO initBillingKeyRegistration(Long customerId);
 
 	/**
-	 * 빌키 등록 완료
+	 * 빌키 등록 완료 (인증 방식)
 	 * NicePay 인증 완료 후 빌링키를 발급받고 결제수단을 등록합니다.
 	 * - 기존 활성 결제수단이 있으면 에러 발생
 	 * - 새로 등록하는 결제수단은 무조건 주 결제수단(isPrimary=true)으로 설정
@@ -32,6 +33,22 @@ public interface PaymentMethodCommandService {
 	BillingKeyRegisterResponseDTO completeBillingKeyRegistration(
 		Long customerId,
 		BillingKeyCompleteRequestDTO request
+	);
+
+	/**
+	 * 빌키 등록 (비인증 방식)
+	 * 카드 정보를 직접 전달하여 빌링키를 발급받고 결제수단을 등록합니다.
+	 * ⚠️ 보안 주의: 카드 정보는 절대 로깅하거나 DB에 저장하면 안 됩니다.
+	 * - 기존 활성 결제수단이 있으면 에러 발생
+	 * - 새로 등록하는 결제수단은 무조건 주 결제수단(isPrimary=true)으로 설정
+	 *
+	 * @param customerId      고객 ID
+	 * @param cardInfoRequest 카드 정보 (평문)
+	 * @return 빌키 등록 응답
+	 */
+	BillingKeyRegisterResponseDTO registerBillingKeyDirect(
+		Long customerId,
+		CardInfoRequestDTO cardInfoRequest
 	);
 
 	/**

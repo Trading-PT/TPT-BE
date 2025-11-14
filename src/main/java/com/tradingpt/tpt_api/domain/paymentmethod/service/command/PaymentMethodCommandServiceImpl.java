@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.BillingKeyCompleteRequestDTO;
+import com.tradingpt.tpt_api.domain.paymentmethod.dto.request.CardInfoRequestDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyInitResponseDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.dto.response.BillingKeyRegisterResponseDTO;
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.BillingRequest;
@@ -123,13 +124,75 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardCl().equals("0") ? CardType.CREDIT : CardType.DEBIT,
 			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
 		);
-		
+
 		// 빌링 요청의 상태를 '완료'로 변경
 		billingRequest.complete();
 
 		paymentMethodRepository.save(paymentMethod);
 
 		log.info("빌링키 등록 완료: customerId={}, paymentMethodId={}", customerId, paymentMethod.getId());
+
+		// 응답 생성
+		return BillingKeyRegisterResponseDTO.from(paymentMethod);
+	}
+
+	@Override
+	public BillingKeyRegisterResponseDTO registerBillingKeyDirect(
+		Long customerId,
+		CardInfoRequestDTO cardInfoRequest
+	) {
+		log.info("비인증 빌링키 등록 시작: customerId={}", customerId);
+
+		// 고객 검색
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 기존 활성 결제수단 확인 (이미 있으면 에러)
+		paymentMethodRepository.findByCustomerAndIsPrimaryTrueAndIsDeletedFalse(customer)
+			.ifPresent(existing -> {
+				log.error("이미 등록된 결제수단이 존재: customerId={}, existingPaymentMethodId={}",
+					customerId, existing.getId());
+				throw new PaymentMethodException(PaymentMethodErrorStatus.PAYMENT_METHOD_ALREADY_EXISTS);
+			});
+
+		// Moid 생성
+		String moid = NicePayCryptoUtil.generateMoid();
+
+		// 카드 정보를 평문으로 변환
+		String cardInfoPlainText = cardInfoRequest.toEncDataPlainText();
+
+		// NicePay API 호출하여 빌링키 발급 (비인증 방식)
+		BillingKeyRegisterResponse nicePayResponse;
+		try {
+			nicePayResponse = nicePayService.registerBillingKeyDirect(
+				cardInfoPlainText,
+				moid,
+				customer.getEmail(),
+				customer.getPhoneNumber(),
+				customer.getName()
+			);
+		} catch (Exception e) {
+			log.error("비인증 빌키 발급 실패", e);
+			throw new PaymentMethodException(
+				PaymentMethodErrorStatus.BILLING_KEY_REGISTRATION_FAILED
+			);
+		}
+
+		// 화면 표시명 생성: {카드사명} ****{뒤 4자리}
+		String displayName = String.format("%s %s",
+			nicePayResponse.getCardName(),
+			nicePayResponse.getCardNo()
+		);
+
+		PaymentMethod paymentMethod = PaymentMethod.of(customer, moid, nicePayResponse.getBID(),
+			nicePayResponse.getAuthDate(), nicePayResponse.getCardCode(), nicePayResponse.getCardName(),
+			nicePayResponse.getCardCl().equals("0") ? CardType.CREDIT : CardType.DEBIT,
+			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
+		);
+
+		paymentMethodRepository.save(paymentMethod);
+
+		log.info("비인증 빌링키 등록 완료: customerId={}, paymentMethodId={}", customerId, paymentMethod.getId());
 
 		// 응답 생성
 		return BillingKeyRegisterResponseDTO.from(paymentMethod);

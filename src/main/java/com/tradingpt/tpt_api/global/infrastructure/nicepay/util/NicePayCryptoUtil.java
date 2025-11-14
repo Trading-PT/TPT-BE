@@ -7,9 +7,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
 /**
  * NicePay API 암호화 유틸리티 클래스
- * SHA-256 해시 생성 및 고유 식별자 생성 기능 제공
+ * SHA-256 해시 생성, AES 암호화 및 고유 식별자 생성 기능 제공
  */
 public class NicePayCryptoUtil {
 
@@ -67,5 +70,54 @@ public class NicePayCryptoUtil {
      */
     public static String generateMoid() {
         return "BK-" + UUID.randomUUID().toString();
+    }
+
+    /**
+     * AES-128/ECB/PKCS5Padding 암호화 (비인증 빌키 발급용)
+     * 카드 정보를 EncData로 암호화합니다.
+     *
+     * @param plainText 암호화할 평문 (예: "CardNo=1234&ExpYear=25&ExpMonth=12&IDNo=900101&CardPw=12")
+     * @param merchantKey 가맹점 키 (전체)
+     * @return Hex 인코딩된 암호화 문자열
+     * @throws RuntimeException 암호화 실패 시
+     */
+    public static String encryptAES(String plainText, String merchantKey) {
+        try {
+            // 가맹점 키의 앞 16자리를 AES Key로 사용
+            String aesKey = merchantKey.substring(0, 16);
+
+            // AES Key 생성
+            SecretKeySpec secretKey = new SecretKeySpec(aesKey.getBytes(StandardCharsets.UTF_8), "AES");
+
+            // Cipher 초기화 (AES/ECB/PKCS5Padding)
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+
+            // 암호화
+            byte[] encrypted = cipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
+
+            // Hex 인코딩
+            return bytesToHex(encrypted);
+        } catch (Exception e) {
+            throw new RuntimeException("AES encryption failed", e);
+        }
+    }
+
+    /**
+     * byte 배열을 Hex 문자열로 변환
+     *
+     * @param bytes byte 배열
+     * @return Hex 문자열
+     */
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }
