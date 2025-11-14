@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -255,5 +257,12 @@ public class Customer extends User {
 
 	public void updateToken(Integer token) {
 		this.token = token;
+	}
+
+	public void useTokens(int tokens) {
+		if (this.token < tokens) {
+			throw new LectureException(LectureErrorStatus.NOT_ENOUGH_TOKENS);
+		}
+		this.token -= tokens;
 	}
 }
