@@ -251,6 +251,8 @@ public class Customer extends User {
 		this.userStatus = status;
 	}
 
+	public void setCourseStatus(CourseStatus status){this.courseStatus = status;}
+
 	public void updatePrimaryInvestmentType(InvestmentType requestedType) {
 		primaryInvestmentType = requestedType;
 	}

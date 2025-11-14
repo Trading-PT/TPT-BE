@@ -24,6 +24,8 @@ public class QSubscription extends EntityPathBase<Subscription> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final NumberPath<Integer> baseOpenedLectureCount = createNumber("baseOpenedLectureCount", Integer.class);
+
     public final StringPath cancellationReason = createString("cancellationReason");
 
     public final DateTimePath<java.time.LocalDateTime> cancelledAt = createDateTime("cancelledAt", java.time.LocalDateTime.class);
