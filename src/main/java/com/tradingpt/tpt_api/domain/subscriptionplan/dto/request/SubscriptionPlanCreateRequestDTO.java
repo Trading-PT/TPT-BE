@@ -22,7 +22,7 @@ public class SubscriptionPlanCreateRequestDTO {
 	private String name;
 
 	@NotNull(message = "구독료는 필수입니다.")
-	@DecimalMin(value = "0.0", inclusive = false, message = "구독료는 0보다 커야 합니다.")
+	@DecimalMin(value = "0.0", inclusive = true, message = "구독료는 0보다 커야 합니다.")
 	@Schema(description = "월 구독료 (원)", example = "99000", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal price;
 
