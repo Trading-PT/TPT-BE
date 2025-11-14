@@ -92,4 +92,7 @@ public class Subscription extends BaseEntity {
 	
 	private String promotionNote; // ex) 프로모션 메모 (예: 2개월 무료 사전등록)
 
+	// 이번 구독 기간 시작 시점에 이미 열려 있던 강의 개수 snapshot
+	@Column(name = "base_opened_lecture_count", nullable = false)
+	private int baseOpenedLectureCount;
 }

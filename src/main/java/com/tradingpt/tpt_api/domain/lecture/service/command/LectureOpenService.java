@@ -7,6 +7,7 @@ import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -36,26 +37,48 @@ public class LectureOpenService {
     }
 
     private void openWeeklyForSubscription(Subscription sub) {
+
         Long customerId = sub.getCustomer().getId();
 
-        // 구독 시작일부터 몇 주 지났는지
-        LocalDate start = sub.getCurrentPeriodStart();
-        long weeksPassed = ChronoUnit.WEEKS.between(start, LocalDate.now());
-        int targetOpenCount = (int) weeksPassed + 1;
+        // 1) 전체 강의 목록
+        List<Lecture> ordered = lectureRepository.findAllOrderByChapterAndLectureOrder();
+        int totalLectureCount = ordered.size();
 
-        int openedCount = lectureProgressRepository.countByCustomerId(customerId);
-        if (targetOpenCount <= openedCount) {
+        // 2) 지금까지 열린 총 강의 개수
+        int openedCountNow = lectureProgressRepository.countByCustomerId(customerId);
+
+        // 3) 이미 모든 강의가 열렸으면 종료 (완강)
+        if (openedCountNow >= totalLectureCount) {
             return;
         }
 
-        List<Lecture> ordered = lectureRepository.findAllOrderByChapterAndLectureOrder();
-        targetOpenCount = Math.min(targetOpenCount, ordered.size());
+        // 4) 이번 구독에서 열려야 할 주차 계산
+        LocalDate start = sub.getCurrentPeriodStart();
+        long days = ChronoUnit.DAYS.between(start, LocalDate.now());
+        int targetInThisPeriod = (int) (days / 7) + 1;
 
-        for (int i = openedCount; i < targetOpenCount; i++) {
+        // 5) 이전 구독 snapshot
+        int baseOpenedCount = sub.getBaseOpenedLectureCount();
+
+        // 6) 이번 구독에서 실제로 열린 개수
+        int openedInThisPeriod = openedCountNow - baseOpenedCount;
+
+        if (targetInThisPeriod <= openedInThisPeriod) {
+            return;
+        }
+
+        // 7) 최종 목표: 이전 + 이번 구독 누적
+        int totalTargetOpenCount = baseOpenedCount + targetInThisPeriod;
+        totalTargetOpenCount = Math.min(totalTargetOpenCount, totalLectureCount);
+
+        // 8) 열어야 하는 강의 오픈
+        for (int i = openedCountNow; i < totalTargetOpenCount; i++) {
+
             Lecture lecture = ordered.get(i);
 
             boolean exists = lectureProgressRepository
                     .existsByLectureIdAndCustomerId(lecture.getId(), customerId);
+
             if (exists) continue;
 
             lectureProgressRepository.save(
@@ -69,3 +92,4 @@ public class LectureOpenService {
         }
     }
 }
+
