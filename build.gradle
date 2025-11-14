@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.5.5'
+    id 'org.springframework.boot' version '3.3.5'
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -41,9 +41,11 @@ dependencies {
 
     // 외부 라이브러리들
     implementation 'net.nurigo:sdk:4.2.7'                                        // Solapi(CoolSMS) SMS 발송 서비스
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'     // Swagger/OpenAPI 문서화 및 UI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'     // Swagger/OpenAPI 문서화 및 UI (Spring Boot 3.3.x 호환)
     implementation 'org.jsoup:jsoup:1.17.2'                                      // HTML 파싱 및 Sanitizing
     implementation 'org.apache.tika:tika-core:2.9.2'                             // MIME 타입 판별
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'    // OpenFeign 선언적 REST 클라이언트
+    implementation 'io.github.openfeign:feign-httpclient:13.1'                   // Feign HTTP Client (Apache HttpClient 기반)
 
     // QueryDSL dependencies
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'                     // QueryDSL JPA support for Jakarta EE
@@ -74,6 +76,9 @@ dependencies {
     implementation platform('software.amazon.awssdk:bom:2.25.40')
     implementation 'software.amazon.awssdk:s3'
     implementation 'software.amazon.awssdk:auth'
+
+    // Spring Cloud - BOM for version management
+    implementation platform('org.springframework.cloud:spring-cloud-dependencies:2023.0.3')
 }
 
 tasks.named('test') {

@@ -5,7 +5,10 @@
       "Bash(./gradlew:*)",
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(find:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "WebFetch(domain:developers.nicepay.co.kr)",
+      "Bash(tree:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

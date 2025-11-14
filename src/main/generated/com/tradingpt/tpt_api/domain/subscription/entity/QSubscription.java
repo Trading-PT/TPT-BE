@@ -49,11 +49,15 @@ public class QSubscription extends EntityPathBase<Subscription> {
 
     public final com.tradingpt.tpt_api.domain.paymentmethod.entity.QPaymentMethod paymentMethod;
 
+    public final StringPath promotionNote = createString("promotionNote");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.subscription.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.subscription.enums.Status.class);
 
     public final NumberPath<java.math.BigDecimal> subscribedPrice = createNumber("subscribedPrice", java.math.BigDecimal.class);
 
     public final com.tradingpt.tpt_api.domain.subscriptionplan.entity.QSubscriptionPlan subscriptionPlan;
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType> subscriptionType = createEnum("subscriptionType", com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

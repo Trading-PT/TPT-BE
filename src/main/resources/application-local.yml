@@ -53,4 +53,12 @@ aws:
     region: ${AWS_REGION}
     bucket-name: ${S3_BUCKET_NAME}
 
+# NicePay 로컬/테스트 환경 설정
+nicepay:
+  credentials:
+    mid: nictest04m
+    merchant-key: b+zhZ4yOZ7FsH8pm5lhDfHZEb79tIwnjsdA0FBXh86yLc6BJeFVrZFXhAoJ3gEWgrWwN+lJMV0W4hvDdbe4Sjw==
+  feign:
+    logger-level: FULL
+
 
