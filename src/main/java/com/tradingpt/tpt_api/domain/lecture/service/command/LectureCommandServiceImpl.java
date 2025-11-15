@@ -7,11 +7,9 @@ import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +53,7 @@ public class LectureCommandServiceImpl implements LectureCommandService {
         }
 
         // 6) 토큰 차감
-        customer.useTokens(lecture.getRequiredTokens()); // ← 엔티티에 메서드 만들어야 함
+        customer.useTokens(lecture.getRequiredTokens());
 
         // 7) LectureProgress 생성 (구매 완료)
         LectureProgress progress = LectureProgress.builder()
@@ -69,6 +67,25 @@ public class LectureCommandServiceImpl implements LectureCommandService {
         lectureProgressRepository.save(progress);
 
         return customer.getId();
+    }
+
+    @Override
+    @Transactional
+    public void updateLectureProgress(Long userId, Long lectureId, int currentSeconds) {
+
+        Customer customer = customerRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
+
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        int duration = lecture.getDurationSeconds();
+
+        LectureProgress progress = lectureProgressRepository
+                .findByLectureIdAndCustomerId(lectureId, customer.getId())
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        progress.updateProgress(currentSeconds, duration);
     }
 }
 
