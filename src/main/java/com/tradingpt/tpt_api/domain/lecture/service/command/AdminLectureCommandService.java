@@ -6,5 +6,6 @@ public interface AdminLectureCommandService {
     Long createLecture(LectureRequestDTO request, Long trainerId);
     Long updateLecture(Long lectureId, LectureRequestDTO req, Long trainerId);
     void deleteLecture(Long lectureId);
+    Long openLecture(Long lectureId, Long customerId);
 }
 

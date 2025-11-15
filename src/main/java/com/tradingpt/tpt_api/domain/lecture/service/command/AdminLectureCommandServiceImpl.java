@@ -4,13 +4,17 @@ import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureRequestDTO;
 import com.tradingpt.tpt_api.domain.lecture.entity.Chapter;
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureAttachment;
+import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import com.tradingpt.tpt_api.domain.lecture.repository.ChapterRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,8 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
 
     private final ChapterRepository chapterRepository;
     private final LectureRepository lectureRepository;
+    private final LectureProgressRepository lectureProgressRepository;
+    private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final S3FileService s3FileService;
 
@@ -193,5 +199,31 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         );
 
         return lecture.getId();
+    }
+
+    @Override
+    @Transactional
+    public Long openLecture(Long lectureId, Long customerId) {
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        Customer customer = customerRepository.findById(customerId)
+                .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+        boolean exists = lectureProgressRepository
+                .existsByLectureIdAndCustomerId(lectureId, customerId);
+
+        if (!exists) {
+            lectureProgressRepository.save(
+                    LectureProgress.builder()
+                            .lecture(lecture)
+                            .customer(customer)
+                            .watchedSeconds(0)
+                            .isCompleted(false)
+                            .build()
+            );
+        }
+
+        return lectureId;
     }
 }
