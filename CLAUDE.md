@@ -22,15 +22,33 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 
 ### Package Organization
 - `src/main/java/com/tradingpt/tpt_api/`
-  - `domain/` - Business domains, each containing:
-    - Controllers, Services, Repositories
-    - DTOs (request/response), Entities, Exceptions
-    - Domain-specific infrastructure components
+  - `domain/` - Business domains (19 domains), each containing:
+    - `controller/` - REST API controllers (user + admin separation)
+    - `service/` - Business logic with CQRS pattern
+      - `command/` - CUD operations (Create, Update, Delete)
+      - `query/` - Read operations (readOnly transactions)
+    - `repository/` - Data access layer (JPA + QueryDSL Custom)
+    - `dto/` - Data transfer objects
+      - `request/` - Request DTOs with validation
+      - `response/` - Response DTOs
+    - `entity/` - JPA entities
+    - `enums/` - Domain-specific enumerations (optional)
+    - `exception/` - Domain-specific exceptions
+    - `infrastructure/` - External service integration (optional, e.g., auth domain)
+    - `handler/` - Event handlers (optional, e.g., auth domain)
+    - `filter/` - Custom filters (optional, e.g., auth domain)
+    - `scheduler/` - Scheduled tasks (optional, e.g., lecture domain)
   - `global/` - Shared infrastructure:
     - `config/` - Spring configuration classes
     - `security/` - Security configuration and filters
     - `exception/` - Global exception handling
-    - `infrastructure/` - External service integrations
+      - `GlobalExceptionHandler.java` - Centralized exception handler
+      - `BaseException.java` - Base class for all custom exceptions
+      - `code/` - Error code interfaces and enums
+    - `common/` - Common DTOs and entities
+      - `BaseResponse.java` - Standard API response format
+      - `BaseEntity.java` - Base entity with createdAt/updatedAt
+    - `infrastructure/` - External service integrations (S3, NicePay, etc.)
     - `util/` - Common utilities
     - `web/` - Web layer configuration
 
@@ -84,6 +102,107 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 - Use `@SpringBootTest` only for integration tests
 - Mock external services (AWS, Redis, mail) in tests
 
+## Coding Conventions & Patterns
+
+### Naming Conventions
+
+**Controller**:
+- Pattern: `{Entity}{Role}V{Version}Controller`
+- User API: `MemoV1Controller`, `LectureV1Controller`
+- Admin API: `AdminLectureV1Controller`, `AdminFeedbackRequestV1Controller`
+- Use `@RestController` + `@RequestMapping`
+- Document with Swagger `@Tag` annotation
+
+**Service**:
+- Pattern: CQRS (Command/Query Separation) with interface + implementation
+- Query Service: `{Entity}QueryService` + `{Entity}QueryServiceImpl`
+  - Use `@Transactional(readOnly = true)` for read operations
+- Command Service: `{Entity}CommandService` + `{Entity}CommandServiceImpl`
+  - Use `@Transactional` for write operations
+- Special purpose services may skip Command/Query separation (e.g., `AuthService`, `LectureOpenService`)
+
+**Repository**:
+- Basic JPA: `{Entity}Repository extends JpaRepository<Entity, ID>`
+- QueryDSL extension:
+  - Custom interface: `{Entity}RepositoryCustom`
+  - Implementation: `{Entity}RepositoryImpl` (requires `@Repository` annotation)
+  - Main repository: `extends JpaRepository<Entity, ID>, {Entity}RepositoryCustom`
+
+**DTO**:
+- Request: `{Entity}RequestDTO` or `{Operation}{Entity}RequestDTO`
+  - Use `@Getter` + validation annotations (`@NotBlank`, `@Size`, `@Email`, etc.)
+  - Document with Swagger `@Schema` annotation
+- Response: `{Entity}ResponseDTO`
+  - Use `@Getter` + `@Builder` (or record for simple DTOs)
+  - Provide `from(Entity)` static factory method for entity-to-DTO conversion
+  - Document with Swagger `@Schema` annotation
+
+**Entity**:
+- Use `@SuperBuilder` + `@NoArgsConstructor(access = PROTECTED)` + `@AllArgsConstructor`
+- Extend `BaseEntity` for automatic `createdAt`/`updatedAt` management
+- Use `@Getter` only (no `@Setter` - maintain immutability)
+- ID field naming: `{entity}_id` (e.g., `memo_id`, `user_id`)
+- Business logic methods inside entity class
+- Example: `public void update(String title, String content) { ... }`
+
+**Exception**:
+- Domain exception: `{Domain}Exception extends BaseException`
+- Error codes: `{Domain}ErrorStatus enum implements BaseCodeInterface`
+- Error code format: `{DOMAIN}{number}` (e.g., `MEMO6001`, `USER4001`)
+- Domain-specific error code ranges:
+  - AUTH: 1000s
+  - USER: 4000s
+  - MEMO: 6000s
+  - LECTURE: 7000s
+
+### API Design Patterns
+
+**Endpoint Structure**:
+- User API: `/api/v1/{resource}`
+- Admin API: `/api/v1/admin/{resource}`
+- Follow RESTful principles (GET/POST/PUT/DELETE)
+
+**Response Format** (using BaseResponse):
+```java
+// Success - 200
+return BaseResponse.onSuccess(data);
+
+// Created - 201
+return BaseResponse.onSuccessCreate(data);
+
+// Deleted - 202
+return BaseResponse.onSuccessDelete(null);
+
+// Error - handled by GlobalExceptionHandler
+throw new {Domain}Exception({Domain}ErrorStatus.XXX);
+```
+
+**Standard Response Structure**:
+```json
+{
+  "timestamp": "2025-01-15T10:30:00",
+  "code": "COMMON200",
+  "message": "요청에 성공하였습니다.",
+  "result": { ... }
+}
+```
+
+### Transaction Management
+
+**Service Layer Patterns**:
+- Query Service: `@Transactional(readOnly = true)` at class level
+- Command Service: `@Transactional` at method level
+- Default propagation: `REQUIRED` (joins existing transaction)
+- Open-in-View: Disabled for better performance
+
+### Validation Handling
+
+**DTO-based Validation**:
+- Declare validation in Request DTOs using Bean Validation annotations
+- Use `@Valid` in controller method parameters
+- GlobalExceptionHandler automatically processes validation errors
+- Returns detailed field-level error messages in response
+
 ## Important Implementation Notes
 
 ### QueryDSL
@@ -92,12 +211,123 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 - Run `./gradlew clean` to regenerate Q-classes after entity changes
 
 ### Security & Sessions
-- **Dual Authentication System**: Separate authentication managers for User and Admin/Trainer
-- **Redis-based Session**: 7-day timeout, cookie-based tracking with same-site policy
-- **OAuth2 Integration**: Kakao and Naver social login with custom success/failure handlers
-- **Remember-Me**: 14-day validity (1,209,600 seconds) with persistent token
-- **CSRF Protection**: Custom header and cookie-based repository
-- **Role-Based Access**: CUSTOMER, TRAINER, ADMIN roles
+
+#### Dual Authentication System
+
+**Architecture**: Separate authentication paths for users and admin/trainers to prevent privilege escalation.
+
+**User Authentication**:
+- Endpoint: `/api/v1/auth/login` (JSON-based authentication)
+- `userAuthProvider` → only allows CUSTOMER role
+- `userAuthenticationManager` → uses `userAuthProvider`
+- `JsonUsernamePasswordAuthFilter` → intercepts login requests
+- Rejects ADMIN/TRAINER roles at authentication level
+
+**Admin/Trainer Authentication**:
+- Endpoint: `/api/v1/admin/login` (JSON-based authentication)
+- `adminAuthProvider` → only allows ADMIN/TRAINER roles
+- `adminAuthenticationManager` → uses `adminAuthProvider`
+- `AdminJsonUsernamePasswordAuthFilter` → intercepts admin login requests
+- Rejects CUSTOMER role at authentication level
+
+**Session Management**:
+- Redis-backed sessions with 7-day timeout (604,800 seconds)
+- Cookie-based session tracking with SameSite=Lax policy
+- Session concurrency control:
+  - Users: max 3 concurrent sessions
+  - Admin/Trainers: max 1 concurrent session
+- Cookie configuration:
+  - Name: `SESSION`
+  - HttpOnly: true
+  - Secure: environment-dependent
+  - Path: `/`
+
+**Authentication Flow**:
+
+1. **SMS-based Signup** (Phone verification required):
+   ```
+   POST /api/v1/auth/phone/code → send verification code
+   POST /api/v1/auth/phone/verify → verify code (stores flag in session)
+   POST /api/v1/auth/signup → create account (checks session flag)
+   ```
+
+2. **JSON Login**:
+   ```json
+   POST /api/v1/auth/login
+   Content-Type: application/json
+
+   {
+     "username": "user123",
+     "password": "password123",
+     "remember-me": true
+   }
+   ```
+
+3. **OAuth2 Social Login**:
+   ```
+   GET /oauth2/authorization/kakao → Kakao login
+   GET /oauth2/authorization/naver → Naver login
+   ```
+   - `CustomOAuth2UserService` handles user info extraction
+   - Auto-creates user account if not exists
+   - Maps to internal `User` entity with `Provider` enum
+
+**CSRF Protection**:
+- Cookie + Header dual token strategy
+- `HeaderAndCookieCsrfTokenRepository` implementation
+- Token delivered in response header: `X-CSRF-TOKEN`
+- Client includes token in request header for state-changing operations
+- Excluded paths: `/api/v1/auth/**`, `/oauth2/**`, `/api/v1/admin/login`
+- Cookie properties:
+  - HttpOnly: false (JavaScript-accessible for SPA)
+  - SameSite: Lax
+  - Secure: environment-dependent
+
+**Remember-Me Feature**:
+- Token validity: 14 days (1,209,600 seconds)
+- Persistent token repository (database-backed)
+- Cookie name: `remember-me`
+- Secure cookie: true
+- Always remember: false (requires explicit opt-in)
+- `CustomRememberMeService` implementation
+
+**Role-Based Access Control**:
+- Roles: `CUSTOMER`, `TRAINER`, `ADMIN`
+- User hierarchy:
+  - `User` (abstract base entity)
+    - `Customer` extends `User` → CUSTOMER role
+    - `Trainer` extends `User` → TRAINER role
+    - `Admin` extends `User` → ADMIN role
+- Authorization:
+  - User API: requires authentication (any role for general endpoints)
+  - Admin API: requires `ADMIN` or `TRAINER` role
+  - Method-level security: `@PreAuthorize("hasRole('ROLE_CUSTOMER')")`
+
+**Principal Access in Controllers**:
+```java
+// Using @AuthenticationPrincipal
+@GetMapping("/me")
+public BaseResponse<MemoResponseDTO> getMyMemo(
+    @AuthenticationPrincipal(expression = "id") Long customerId
+) { ... }
+
+// Using Authentication object
+@GetMapping("/me")
+public BaseResponse<MeResponse> me(Authentication authentication) {
+    AuthSessionUser principal = (AuthSessionUser) authentication.getPrincipal();
+    Long userId = principal.id();
+    ...
+}
+```
+
+**Security Configuration**:
+- Two separate `SecurityFilterChain` beans with `@Order` annotation
+- Order 1: Admin chain (path: `/api/v1/admin/**`)
+- Order 2: User chain (all other paths)
+- Custom authentication filters for JSON-based login
+- Custom success/failure handlers for authentication events
+- Session fixation protection enabled
+- Logout handling with session invalidation and cookie clearing
 
 ### Database
 - **JPA/Hibernate**: Primary ORM with Jakarta persistence API
@@ -113,9 +343,70 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 - Files stored via AWS S3 integration
 
 ### Error Handling
-- Global exception handling in `global.exception`
-- Custom exceptions per domain
+
+**Exception Hierarchy**:
+```
+BaseException (RuntimeException)
+├── AuthException
+├── UserException
+├── MemoException
+├── LectureException
+└── ... (domain-specific exceptions)
+```
+
+**Error Code Structure**:
+- `BaseCodeInterface` → `BaseCode` (value object with HttpStatus, code, message)
+- Domain-specific: `{Domain}ErrorStatus enum implements BaseCodeInterface`
+- Global errors: `GlobalErrorStatus` (COMMON-prefixed codes)
+
+**GlobalExceptionHandler** (`@RestControllerAdvice`):
+1. Domain exceptions (`BaseException`) → extract error code and return standardized response
+2. Validation errors (`MethodArgumentNotValidException`) → field-level error map
+3. Spring Security exceptions (`AuthenticationException`, `AccessDeniedException`)
+4. Database errors (`DataIntegrityViolationException`, `SQLException`)
+5. HTTP errors (message not readable, unsupported media type, method not allowed)
+6. File upload size exceeded
+7. Generic Exception → fallback handler (500)
+
+**Exception Usage Pattern**:
+```java
+// Service layer
+Customer customer = customerRepository.findById(id)
+    .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+// Conditional validation
+if (memoRepository.existsByCustomer_Id(customerId)) {
+    throw new MemoException(MemoErrorStatus.MEMO_ALREADY_EXISTS);
+}
+```
+
+**Error Response Format**:
+```json
+{
+  "timestamp": "2025-01-15T10:30:00",
+  "code": "MEMO6001",
+  "message": "메모를 찾을 수 없습니다.",
+  "result": null
+}
+```
+
+**Validation Error Response**:
+```json
+{
+  "timestamp": "2025-01-15T10:30:00",
+  "code": "COMMON4005",
+  "message": "입력값 검증에 실패했습니다.",
+  "result": {
+    "title": "메모 제목은 필수입니다.",
+    "content": "메모 내용은 5000자를 초과할 수 없습니다."
+  }
+}
+```
+
+**Configuration**:
 - Stack traces disabled in production (error.include-stacktrace: never)
+- Custom exceptions per domain
+- Centralized error handling in `global.exception`
 
 ### Distributed Scheduling
 - **ShedLock**: 5.13.0 with JDBC provider for distributed task coordination
@@ -125,17 +416,100 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 
 ## Development Guidelines
 
-From AGENTS.md:
-- Use Java 17 with four-space indentation and Lombok
+### Code Style
+- Use Java 17 with four-space indentation (spaces, not tabs)
+- Lombok usage:
+  - `@RequiredArgsConstructor` for constructor injection (preferred)
+  - `@Getter` for entities and DTOs (no `@Setter` for immutability)
+  - `@SuperBuilder` for entities extending `BaseEntity`
+  - `@Builder` for DTOs
 - Constructor injection preferred over field injection
-- Use record DTOs where practical
-- Follow conventional-emoji commit style: `<emoji> type: short summary`
-  - Example: `:sparkles: feat: add weekly P&L feedback API`
-- Branch naming: `feature/#issue-description`
-- Keep commits scoped to single concerns
-- Include tests for new functionality
-- Store secrets in environment variables, never hardcode in YAML files
-- Document IAM roles and rate limits when adding external integrations
+- Use record DTOs for simple data carriers
+- Follow SOLID principles and DRY
+
+### API Development
+- RESTful design: proper use of HTTP methods and status codes
+- Always use `BaseResponse<T>` for standardized responses
+- Version APIs (e.g., `/api/v1/`)
+- Separate user and admin endpoints
+- Document with Swagger/OpenAPI annotations (`@Tag`, `@Schema`, `@Operation`)
+- Use `@Valid` for request body validation
+
+### Testing
+- Write tests for new features (repository, service, controller)
+- Use appropriate test annotations:
+  - `@DataJpaTest` for repositories
+  - `@SpringBootTest` for services
+  - `@WebMvcTest` for controllers
+- Mock external dependencies (AWS, Redis, email)
+- Test naming: `methodName_scenario_expectedResult()`
+
+### Security Guidelines
+- **Never** commit secrets to version control
+- Store all sensitive data in environment variables
+- Use the dual authentication system correctly (don't bypass role checks)
+- Always validate and sanitize user input
+- Use parameterized queries or QueryDSL to prevent SQL injection
+- Apply CSRF protection to state-changing operations
+- Validate file uploads (type, size, content)
+- Use JSoup for HTML sanitization
+- Use Apache Tika for MIME type detection
+- Log security events appropriately (authentication failures, access denials)
+
+### Performance Best Practices
+- Use `@Transactional(readOnly = true)` for read-only operations
+- Prevent N+1 queries:
+  - Use `@EntityGraph` or `fetch join`
+  - Use QueryDSL for complex queries
+- Apply pagination (Pageable, Slice, Page)
+- Use Redis caching for frequently accessed, rarely changed data
+- Configure HikariCP connection pool appropriately (current: max 10, min 5)
+- Disable Open-in-View for better performance
+- Use batch operations for bulk inserts/updates
+
+### Git Workflow
+- Branch naming: `feature/#issue-number-description`
+- Commit style: Conventional Emoji format
+  ```
+  <emoji> type: short summary
+
+  Examples:
+  ✨ feat: add weekly P&L feedback API
+  🐛 fix: resolve CSRF token validation issue
+  ♻️ refactor: improve QueryDSL query performance
+  📝 docs: update CLAUDE.md with authentication flow
+  ✅ test: add integration tests for memo service
+  🎨 style: format code according to style guide
+  ⚡ perf: optimize lecture query performance
+  🔧 chore: update Gradle dependencies
+  ```
+- Keep commits focused on single concerns
+- Write meaningful commit messages
+- Reference issue numbers in commits
+
+### Adding New Domains Checklist
+1. Create domain package structure:
+   - `controller/` (user + admin if needed)
+   - `service/command/` and `service/query/`
+   - `repository/` (+ Custom + Impl for QueryDSL)
+   - `dto/request/` and `dto/response/`
+   - `entity/`
+   - `exception/` (Exception class + ErrorStatus enum)
+2. Follow naming conventions for all classes
+3. Implement service interfaces and implementations
+4. Add validation annotations to Request DTOs
+5. Create static `from()` factory in Response DTOs
+6. Write comprehensive tests (repository, service, controller)
+7. Document APIs with Swagger annotations
+8. Update CLAUDE.md if introducing new patterns
+
+### External Integration Guidelines
+- Document IAM roles and permissions for AWS services
+- Note rate limits and quotas for external APIs
+- Implement circuit breakers for external service calls
+- Log external service failures appropriately
+- Never hardcode API keys or credentials
+- Use configuration properties for service URLs and settings
 
 ## Recent Features & Updates
 
@@ -159,8 +533,8 @@ From AGENTS.md:
    - Investment type discrimination (SCALPING/DAY/SWING)
 
 ### Current Development
-- Branch: `feature/#112-feat-매매일지-완성` (Trading journal completion)
-- Working on: Trading journal feature completion
+- Branch: `feature/#124-feat-정기-결제-기능` (Recurring payment feature)
+- Working on: Recurring payment functionality implementation
 
 ### Domain Structure Pattern
 Each domain follows consistent organization:
