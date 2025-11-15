@@ -7,8 +7,10 @@ import com.tradingpt.tpt_api.global.infrastructure.nicepay.config.NicePayConfig;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyDeleteRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyDirectRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.BillingKeyRegisterRequestDTO;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.request.RecurringPaymentRequestDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyDeleteResponseDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.BillingKeyRegisterResponse;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.RecurringPaymentResponseDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayErrorStatus;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayException;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.util.NicePayCryptoUtil;
@@ -19,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * NicePay API 서비스 래퍼
  * Feign Client를 사용하여 NicePay API를 호출하고 응답을 검증합니다.
- * 인증/비인증 빌키 발급 방식 모두 지원
+ * 인증/비인증 빌키 발급, 빌링 결제, 빌키 삭제 기능 제공
  */
 @Service
 @RequiredArgsConstructor
@@ -216,6 +218,81 @@ public class NicePayService {
 			throw e;
 		} catch (Exception e) {
 			log.error("빌키 삭제 API 호출 중 오류 발생", e);
+			throw new NicePayException(NicePayErrorStatus.API_CONNECTION_FAILED);
+		}
+	}
+
+	/**
+	 * 빌링 결제(승인) API 호출
+	 * 발급받은 빌링키(BID)를 사용하여 정기 결제를 실행합니다.
+	 *
+	 * @param billingKey 빌링키 (BID)
+	 * @param amount 결제 금액
+	 * @param orderName 주문명
+	 * @param moid 주문번호
+	 * @return 빌링 결제 응답 (승인번호, 거래번호 등)
+	 * @throws NicePayException 빌링 결제 실패 시
+	 */
+	public RecurringPaymentResponseDTO executeRecurringPayment(
+		String billingKey,
+		String amount,
+		String orderName,
+		String moid
+	) {
+		log.info("빌링 결제 요청: BID={}, Amount={}, Moid={}", billingKey, amount, moid);
+
+		String mid = nicePayConfig.getMid();
+		String merchantKey = nicePayConfig.getMerchantKey();
+
+		// EdiDate 생성
+		String ediDate = NicePayCryptoUtil.generateEdiDate();
+
+		// TID 생성 (반드시 새로 생성)
+		String tid = NicePayCryptoUtil.generateTID(mid);
+
+		// SignData 생성: SHA256(MID + EdiDate + Moid + Amt + BID + MerchantKey)
+		String signData = NicePayCryptoUtil.generateSignData(
+			mid,
+			ediDate,
+			moid,
+			amount,
+			billingKey,
+			merchantKey
+		);
+
+		// 요청 객체 생성
+		RecurringPaymentRequestDTO request = RecurringPaymentRequestDTO.builder()
+			.BID(billingKey)
+			.MID(mid)
+			.TID(tid)
+			.EdiDate(ediDate)
+			.Moid(moid)
+			.Amt(amount)
+			.GoodsName(orderName)
+			.SignData(signData)
+			.CardInterest("0")  // 일반 결제
+			.CardQuota("00")     // 일시불
+			.build();
+
+		try {
+			// Feign Client로 API 호출
+			RecurringPaymentResponseDTO response = nicePayFeignClient.executeRecurringPayment(request);
+
+			// 응답 검증
+			if (response.isSuccess()) {
+				log.info("빌링 결제 성공: TID={}, AuthCode={}, Amt={}",
+					response.getTID(), response.getAuthCode(), response.getAmt());
+				return response;
+			} else {
+				log.error("빌링 결제 실패: ResultCode={}, ResultMsg={}",
+					response.getResultCode(), response.getResultMsg());
+				NicePayErrorStatus errorStatus = NicePayErrorStatus.fromResultCode(response.getResultCode());
+				throw new NicePayException(errorStatus);
+			}
+		} catch (NicePayException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("빌링 결제 API 호출 중 오류 발생", e);
 			throw new NicePayException(NicePayErrorStatus.API_CONNECTION_FAILED);
 		}
 	}

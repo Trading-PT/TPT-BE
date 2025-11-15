@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import com.tradingpt.tpt_api.domain.payment.enums.PaymentStatus;
 import com.tradingpt.tpt_api.domain.payment.enums.PaymentType;
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
@@ -35,6 +38,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "payment")
 public class Payment extends BaseEntity {
 

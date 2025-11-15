@@ -3,6 +3,9 @@ package com.tradingpt.tpt_api.domain.subscriptionplan.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -23,6 +26,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "subscription_plan")
 public class SubscriptionPlan extends BaseEntity {
 

@@ -17,6 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class NicePayCryptoUtil {
 
     private static final DateTimeFormatter EDI_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
+    private static final DateTimeFormatter TID_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyMMddHHmmss");
 
     /**
      * SHA-256 해시를 16진수 문자열로 생성합니다.
@@ -101,6 +102,47 @@ public class NicePayCryptoUtil {
         } catch (Exception e) {
             throw new RuntimeException("AES encryption failed", e);
         }
+    }
+
+    /**
+     * TID(거래번호) 생성
+     * 형식: MID(10) + 지불수단(2) + 매체구분(2) + 시간정보(yyMMddHHmmss) + 랜덤(4)
+     * 예시: nicepay00m01162505211322240123
+     *
+     * @param mid 가맹점 ID (10자리)
+     * @return 생성된 TID (30자리)
+     */
+    public static String generateTID(String mid) {
+        if (mid == null || mid.length() != 10) {
+            throw new IllegalArgumentException("MID must be exactly 10 characters");
+        }
+
+        // 지불수단: 01 = CARD (신용카드)
+        String paymentMethod = "01";
+
+        // 매체구분: 16 = 빌링결제
+        String mediaType = "16";
+
+        // 시간정보: yyMMddHHmmss (12자리)
+        String timeInfo = LocalDateTime.now().format(TID_DATE_FORMATTER);
+
+        // 랜덤 4자리 숫자
+        String random = String.format("%04d", (int) (Math.random() * 10000));
+
+        return mid + paymentMethod + mediaType + timeInfo + random;
+    }
+
+    /**
+     * 정기 결제용 Moid(주문번호) 생성
+     * 형식: SUB-{yyyyMMddHHmmss}-{UUID 앞 8자리}
+     *
+     * @param subscriptionId 구독 ID
+     * @return 고유한 Moid 문자열
+     */
+    public static String generateRecurringMoid(Long subscriptionId) {
+        String timestamp = LocalDateTime.now().format(EDI_DATE_FORMATTER);
+        String uuid = UUID.randomUUID().toString().substring(0, 8);
+        return String.format("SUB%d-%s-%s", subscriptionId, timestamp, uuid);
     }
 
     /**
