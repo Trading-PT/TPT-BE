@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.paymentmethod.service.command;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +17,13 @@ import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodErrorSt
 import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodException;
 import com.tradingpt.tpt_api.domain.paymentmethod.repository.BillingRequestRepository;
 import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodRepository;
+import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
+import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionErrorStatus;
+import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionException;
+import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
+import com.tradingpt.tpt_api.domain.subscription.service.command.SubscriptionCommandService;
+import com.tradingpt.tpt_api.domain.subscriptionplan.entity.SubscriptionPlan;
+import com.tradingpt.tpt_api.domain.subscriptionplan.repository.SubscriptionPlanRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -43,6 +52,9 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 	private final NicePayConfig nicePayConfig;
 	private final BillingRequestRepository billingRequestRepository;
 	private final BillingRequestCommandService billingRequestCommandService;
+	private final SubscriptionRepository subscriptionRepository;
+	private final SubscriptionPlanRepository subscriptionPlanRepository;
+	private final SubscriptionCommandService subscriptionCommandService;
 
 	@Override
 	public BillingKeyInitResponseDTO initBillingKeyRegistration(Long customerId) {
@@ -136,6 +148,39 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		paymentMethodRepository.save(paymentMethod);
 
 		log.info("빌링키 등록 완료: customerId={}, paymentMethodId={}", customerId, paymentMethod.getId());
+
+		// 기존 활성 구독 확인
+		Optional<Subscription> existingSubscription = subscriptionRepository
+			.findByCustomer_IdAndStatus(customerId, com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE);
+
+		if (existingSubscription.isPresent()) {
+			// 기존 활성 구독 존재 → 결제수단만 등록 (구독 생성 X, 첫 결제 X)
+			log.info("기존 활성 구독 존재 - 결제수단만 등록: customerId={}, subscriptionId={}, paymentMethodId={}",
+				customerId, existingSubscription.get().getId(), paymentMethod.getId());
+		} else {
+			// 활성 구독 없음 → 신규 구독 생성 + 첫 결제 실행
+			SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
+				.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+
+			log.info("활성 구독 플랜 조회 완료: planId={}, planName={}", activePlan.getId(), activePlan.getName());
+
+			try {
+				Subscription subscription = subscriptionCommandService.createSubscriptionWithFirstPayment(
+					customerId,
+					activePlan.getId(),
+					paymentMethod.getId(),
+					0  // baseOpenedLectureCount 기본값
+				);
+
+				log.info("신규 구독 생성 및 첫 결제 완료: customerId={}, subscriptionId={}, status={}",
+					customerId, subscription.getId(), subscription.getStatus());
+
+			} catch (Exception e) {
+				log.error("신규 구독 생성 또는 첫 결제 실패: customerId={}, paymentMethodId={}",
+					customerId, paymentMethod.getId(), e);
+				throw e;  // 트랜잭션 롤백을 위해 예외를 재던짐
+			}
+		}
 
 		// 응답 생성
 		return BillingKeyRegisterResponseDTO.from(paymentMethod);

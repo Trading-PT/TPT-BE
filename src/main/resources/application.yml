@@ -176,6 +176,7 @@ nicepay:
     billing-register-path: /billing/cardbill_regist.jsp
     billing-direct-register-path: /billing/billing_regist.jsp
     billing-delete-path: /billing/billkey_remove.jsp
+    billing-approve-path: /billing/billing_approve.jsp
   credentials:
     mid: ${NICEPAY_MID}
     merchant-key: ${NICEPAY_MERCHANT_KEY}

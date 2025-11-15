@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum SubscriptionType {
 
 	REGULAR("일반"),
-	PRE_REGISTER("사전 등록"),
+	PROMOTION("프로모션"),
 	;
 
 	private final String description;
