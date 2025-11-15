@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.controller;
 
+import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureProgressUpdateRequestDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailDTO;
 import com.tradingpt.tpt_api.domain.lecture.service.command.LectureCommandService;
@@ -56,5 +57,18 @@ public class LectureV1Controller {
     ) {
         LectureDetailDTO result = lectureQueryService.getLectureDetail(userId, lectureId);
         return ResponseEntity.ok(BaseResponse.onSuccess(result));
+    }
+
+    @Operation(summary = "강의 시청 진행도 업데이트",
+            description = "동영상 플레이어에서 일정 주기마다 현재 재생 위치(초)를 보내면, " +
+                    "서버에서 누적 시청 시간, 마지막 재생 위치, 마지막 시청 시각을 갱신하고 필요시 완강 처리합니다.")
+    @PatchMapping("/{lectureId}/progress")
+    public ResponseEntity<BaseResponse<Void>> updateProgress(
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @PathVariable Long lectureId,
+            @RequestBody LectureProgressUpdateRequestDTO request
+    ) {
+        lectureCommandService.updateLectureProgress(userId, lectureId, request.getCurrentSeconds());
+        return ResponseEntity.ok(BaseResponse.onSuccess(null));
     }
 }
