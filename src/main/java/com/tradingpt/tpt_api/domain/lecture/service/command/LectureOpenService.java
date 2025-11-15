@@ -7,7 +7,6 @@ import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
-import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;

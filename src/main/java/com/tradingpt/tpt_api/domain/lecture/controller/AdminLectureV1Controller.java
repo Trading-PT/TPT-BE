@@ -126,4 +126,16 @@ public class AdminLectureV1Controller {
         var result = s3FileService.createPresignedUploadUrl(filename, directory);
         return ResponseEntity.ok(BaseResponse.onSuccess(result));
     }
+
+    @Operation(summary = "특정 회원에게 강의 오픈(어드민)",
+            description = "관리자가 특정 강의를 특정 고객에게 수동으로 오픈합니다.")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/{lectureId}/open")
+    public ResponseEntity<BaseResponse<Long>> openLectureForCustomer(
+            @PathVariable Long lectureId,
+            @RequestParam("customerId") Long customerId
+    ) {
+        Long openedLectureId = adminLectureCommandService.openLecture(lectureId, customerId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(openedLectureId));
+    }
 }
