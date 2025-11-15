@@ -146,28 +146,10 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
-        Subscription updatedSubscription = Subscription.builder()
-            .id(subscription.getId())
-            .customer(subscription.getCustomer())
-            .subscriptionPlan(subscription.getSubscriptionPlan())
-            .paymentMethod(subscription.getPaymentMethod())
-            .subscribedPrice(subscription.getSubscribedPrice())
-            .status(subscription.getStatus())
-            .currentPeriodStart(subscription.getCurrentPeriodEnd() != null ?
-                subscription.getCurrentPeriodEnd().plusDays(1) : subscription.getCurrentPeriodStart())
-            .currentPeriodEnd(currentPeriodEnd)
-            .nextBillingDate(nextBillingDate)
-            .lastBillingDate(subscription.getLastBillingDate())
-            .cancelledAt(subscription.getCancelledAt())
-            .cancellationReason(subscription.getCancellationReason())
-            .paymentFailedCount(subscription.getPaymentFailedCount())
-            .lastPaymentFailedAt(subscription.getLastPaymentFailedAt())
-            .subscriptionType(subscription.getSubscriptionType())
-            .promotionNote(subscription.getPromotionNote())
-            .baseOpenedLectureCount(subscription.getBaseOpenedLectureCount())
-            .build();
+        // JPA dirty checking을 활용한 업데이트 (save() 호출 불필요)
+        subscription.updateBillingDates(nextBillingDate, currentPeriodEnd);
 
-        return subscriptionRepository.save(updatedSubscription);
+        return subscription;
     }
 
     @Override
@@ -177,29 +159,10 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
-        int newFailureCount = subscription.getPaymentFailedCount() + 1;
+        // JPA dirty checking을 활용한 업데이트 (save() 호출 불필요)
+        subscription.incrementPaymentFailure();
 
-        Subscription updatedSubscription = Subscription.builder()
-            .id(subscription.getId())
-            .customer(subscription.getCustomer())
-            .subscriptionPlan(subscription.getSubscriptionPlan())
-            .paymentMethod(subscription.getPaymentMethod())
-            .subscribedPrice(subscription.getSubscribedPrice())
-            .status(subscription.getStatus())
-            .currentPeriodStart(subscription.getCurrentPeriodStart())
-            .currentPeriodEnd(subscription.getCurrentPeriodEnd())
-            .nextBillingDate(subscription.getNextBillingDate())
-            .lastBillingDate(subscription.getLastBillingDate())
-            .cancelledAt(subscription.getCancelledAt())
-            .cancellationReason(subscription.getCancellationReason())
-            .paymentFailedCount(newFailureCount)
-            .lastPaymentFailedAt(LocalDateTime.now())
-            .subscriptionType(subscription.getSubscriptionType())
-            .promotionNote(subscription.getPromotionNote())
-            .baseOpenedLectureCount(subscription.getBaseOpenedLectureCount())
-            .build();
-
-        return subscriptionRepository.save(updatedSubscription);
+        return subscription;
     }
 
     @Override
@@ -209,27 +172,10 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
-        Subscription updatedSubscription = Subscription.builder()
-            .id(subscription.getId())
-            .customer(subscription.getCustomer())
-            .subscriptionPlan(subscription.getSubscriptionPlan())
-            .paymentMethod(subscription.getPaymentMethod())
-            .subscribedPrice(subscription.getSubscribedPrice())
-            .status(subscription.getStatus())
-            .currentPeriodStart(subscription.getCurrentPeriodStart())
-            .currentPeriodEnd(subscription.getCurrentPeriodEnd())
-            .nextBillingDate(subscription.getNextBillingDate())
-            .lastBillingDate(lastBillingDate)
-            .cancelledAt(subscription.getCancelledAt())
-            .cancellationReason(subscription.getCancellationReason())
-            .paymentFailedCount(0)
-            .lastPaymentFailedAt(null)
-            .subscriptionType(subscription.getSubscriptionType())
-            .promotionNote(subscription.getPromotionNote())
-            .baseOpenedLectureCount(subscription.getBaseOpenedLectureCount())
-            .build();
+        // JPA dirty checking을 활용한 업데이트 (save() 호출 불필요)
+        subscription.resetPaymentFailure(lastBillingDate);
 
-        return subscriptionRepository.save(updatedSubscription);
+        return subscription;
     }
 
     @Override
@@ -239,26 +185,9 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
-        Subscription updatedSubscription = Subscription.builder()
-            .id(subscription.getId())
-            .customer(subscription.getCustomer())
-            .subscriptionPlan(subscription.getSubscriptionPlan())
-            .paymentMethod(subscription.getPaymentMethod())
-            .subscribedPrice(subscription.getSubscribedPrice())
-            .status(status)
-            .currentPeriodStart(subscription.getCurrentPeriodStart())
-            .currentPeriodEnd(subscription.getCurrentPeriodEnd())
-            .nextBillingDate(subscription.getNextBillingDate())
-            .lastBillingDate(subscription.getLastBillingDate())
-            .cancelledAt(subscription.getCancelledAt())
-            .cancellationReason(subscription.getCancellationReason())
-            .paymentFailedCount(subscription.getPaymentFailedCount())
-            .lastPaymentFailedAt(subscription.getLastPaymentFailedAt())
-            .subscriptionType(subscription.getSubscriptionType())
-            .promotionNote(subscription.getPromotionNote())
-            .baseOpenedLectureCount(subscription.getBaseOpenedLectureCount())
-            .build();
+        // JPA dirty checking을 활용한 업데이트 (save() 호출 불필요)
+        subscription.updateStatus(status);
 
-        return subscriptionRepository.save(updatedSubscription);
+        return subscription;
     }
 }

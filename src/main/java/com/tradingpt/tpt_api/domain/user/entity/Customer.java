@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.customermembershiphistory.entity.CustomerMembershipHistory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -74,10 +73,6 @@ public class Customer extends User {
 	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
 	@Builder.Default
 	private List<InvestmentTypeHistory> investmentHistories = new ArrayList<>();
-
-	@OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
-	@Builder.Default
-	private List<CustomerMembershipHistory> customerMembershipHistories = new ArrayList<>();
 
 	/**
 	 * 필드
@@ -170,7 +165,7 @@ public class Customer extends User {
 	}
 
 	public void setMembershipExpiredAt(LocalDateTime time) {
-		this.membershipExpiredAt = membershipExpiredAt;
+		this.membershipExpiredAt = time;
 	}
 
 	public void setOpenChapterNumber(Integer chapterNumber) {
@@ -266,5 +261,27 @@ public class Customer extends User {
 			throw new LectureException(LectureErrorStatus.NOT_ENOUGH_TOKENS);
 		}
 		this.token -= tokens;
+	}
+
+	/**
+	 * 멤버십 레벨 및 만료일 업데이트
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void updateMembership(MembershipLevel membershipLevel, LocalDateTime expiredAt) {
+		this.membershipLevel = membershipLevel;
+		this.membershipExpiredAt = expiredAt;
+	}
+
+	/**
+	 * 멤버십 활성 여부 확인
+	 */
+	public boolean isMembershipActive() {
+		if (membershipLevel != MembershipLevel.PREMIUM) {
+			return false;
+		}
+		if (membershipExpiredAt == null) {
+			return false;
+		}
+		return LocalDateTime.now().isBefore(membershipExpiredAt);
 	}
 }

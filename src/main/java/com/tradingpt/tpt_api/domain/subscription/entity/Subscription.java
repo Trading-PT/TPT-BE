@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType;
@@ -35,6 +38,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "subscription")
 public class Subscription extends BaseEntity {
 
@@ -89,10 +94,56 @@ public class Subscription extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Builder.Default
 	private SubscriptionType subscriptionType = SubscriptionType.REGULAR; // 구독 타입 (프로모션, 일반)
-	
+
 	private String promotionNote; // ex) 프로모션 메모 (예: 2개월 무료 사전등록)
 
 	// 이번 구독 기간 시작 시점에 이미 열려 있던 강의 개수 snapshot
 	@Column(name = "base_opened_lecture_count", nullable = false)
 	private int baseOpenedLectureCount;
+
+	/**
+	 * 비즈니스 메서드
+	 */
+
+	/**
+	 * 다음 결제일 및 현재 기간 업데이트
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void updateBillingDates(LocalDate nextBillingDate, LocalDate currentPeriodEnd) {
+		this.currentPeriodStart = this.currentPeriodEnd != null
+			? this.currentPeriodEnd.plusDays(1)
+			: this.currentPeriodStart;
+		this.currentPeriodEnd = currentPeriodEnd;
+		this.nextBillingDate = nextBillingDate;
+	}
+
+	/**
+	 * 결제 실패 횟수 증가
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void incrementPaymentFailure() {
+		this.paymentFailedCount++;
+		this.lastPaymentFailedAt = LocalDateTime.now();
+	}
+
+	/**
+	 * 결제 실패 횟수 초기화
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void resetPaymentFailure(LocalDate lastBillingDate) {
+		this.paymentFailedCount = 0;
+		this.lastPaymentFailedAt = null;
+		this.lastBillingDate = lastBillingDate;
+	}
+
+	/**
+	 * 구독 상태 변경
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void updateStatus(Status newStatus) {
+		this.status = newStatus;
+		if (newStatus == Status.CANCELLED) {
+			this.cancelledAt = LocalDateTime.now();
+		}
+	}
 }

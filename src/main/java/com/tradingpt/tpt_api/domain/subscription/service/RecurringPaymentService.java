@@ -23,6 +23,8 @@ import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionReposito
 import com.tradingpt.tpt_api.domain.subscription.service.command.SubscriptionCommandService;
 import com.tradingpt.tpt_api.domain.subscriptionplan.entity.SubscriptionPlan;
 import com.tradingpt.tpt_api.domain.subscriptionplan.repository.SubscriptionPlanRepository;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.service.command.CustomerCommandService;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.RecurringPaymentResponseDTO;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.service.NicePayService;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.util.NicePayCryptoUtil;
@@ -45,6 +47,7 @@ public class RecurringPaymentService {
 	private final PaymentMethodRepository paymentMethodRepository;
 	private final PaymentCommandService paymentCommandService;
 	private final SubscriptionCommandService subscriptionCommandService;
+	private final CustomerCommandService customerCommandService;
 	private final NicePayService nicePayService;
 
 	/**
@@ -175,6 +178,14 @@ public class RecurringPaymentService {
 			LocalDate.now()
 		);
 
+		// 멤버십 업데이트 (PREMIUM으로 승급, 만료일 설정)
+		LocalDateTime membershipExpiredAt = billingPeriodEnd.atTime(23, 59, 59);
+		customerCommandService.updateMembershipFromSubscription(
+			subscription.getCustomer().getId(),
+			MembershipLevel.PREMIUM,
+			membershipExpiredAt
+		);
+
 		log.info("0원 결제 완료: subscriptionId={}", subscription.getId());
 	}
 
@@ -242,6 +253,14 @@ public class RecurringPaymentService {
 			subscriptionCommandService.resetPaymentFailureCount(
 				subscription.getId(),
 				LocalDate.now()
+			);
+
+			// 멤버십 업데이트 (PREMIUM으로 승급, 만료일 설정)
+			LocalDateTime membershipExpiredAt = billingPeriodEnd.atTime(23, 59, 59);
+			customerCommandService.updateMembershipFromSubscription(
+				subscription.getCustomer().getId(),
+				MembershipLevel.PREMIUM,
+				membershipExpiredAt
 			);
 
 			log.info("결제 성공: subscriptionId={}, amount={}", subscription.getId(), payment.getAmount());
