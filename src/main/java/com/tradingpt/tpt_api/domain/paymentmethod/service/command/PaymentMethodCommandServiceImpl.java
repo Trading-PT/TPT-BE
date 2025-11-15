@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.paymentmethod.service.command;
 
+import static com.tradingpt.tpt_api.domain.subscription.enums.Status.*;
+
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -151,7 +153,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 
 		// 기존 활성 구독 확인
 		Optional<Subscription> existingSubscription = subscriptionRepository
-			.findByCustomer_IdAndStatus(customerId, com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE);
+			.findByCustomer_IdAndStatus(customerId, ACTIVE);
 
 		if (existingSubscription.isPresent()) {
 			// 기존 활성 구독 존재 → 결제수단만 등록 (구독 생성 X, 첫 결제 X)
@@ -160,7 +162,8 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		} else {
 			// 활성 구독 없음 → 신규 구독 생성 + 첫 결제 실행
 			SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
-				.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+				.orElseThrow(
+					() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
 
 			log.info("활성 구독 플랜 조회 완료: planId={}, planName={}", activePlan.getId(), activePlan.getName());
 
