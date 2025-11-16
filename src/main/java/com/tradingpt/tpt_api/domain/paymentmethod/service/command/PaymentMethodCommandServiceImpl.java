@@ -73,7 +73,9 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		// SignData 생성: SHA256(MID + EdiDate + Moid + MerchantKey)
 		String mid = nicePayConfig.getMid();
 		String merchantKey = nicePayConfig.getMerchantKey();
-		String signData = NicePayCryptoUtil.generateSignData(mid, ediDate, moid, merchantKey);
+		String amt = nicePayConfig.getAmt();
+		
+		String signData = NicePayCryptoUtil.generateSignData(ediDate, mid, amt, merchantKey);
 
 		// 빌링 요청 등록
 		BillingRequest newBillingRequest = BillingRequest.of(customer, moid);

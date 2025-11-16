@@ -8,7 +8,9 @@
       "Bash(xargs:*)",
       "WebFetch(domain:developers.nicepay.co.kr)",
       "Bash(tree:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__cloudwatch__describe_log_groups",
+      "mcp__cloudwatch__execute_log_insights_query"
     ],
     "deny": [],
     "ask": []
