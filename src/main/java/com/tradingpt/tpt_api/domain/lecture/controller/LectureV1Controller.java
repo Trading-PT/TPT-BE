@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.lecture.controller;
 
 import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureProgressUpdateRequestDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.AssignmentSubmissionDetailDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailDTO;
 import com.tradingpt.tpt_api.domain.lecture.service.command.LectureCommandService;
@@ -17,6 +18,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Validated
 @RestController
@@ -70,5 +72,34 @@ public class LectureV1Controller {
     ) {
         lectureCommandService.updateLectureProgress(userId, lectureId, request.getCurrentSeconds());
         return ResponseEntity.ok(BaseResponse.onSuccess(null));
+    }
+
+    @Operation(
+            summary = "과제 제출(PDF)",
+            description = "해당 강의의 과제를 파일로 제출합니다. " +
+                    "제출 시 유저별 과제 엔티티가 생성/갱신되고, 첨부파일은 S3에 업로드됩니다."
+    )
+    @PostMapping(value = "/{lectureId}/assignments/submit", consumes = "multipart/form-data")
+    public ResponseEntity<BaseResponse<Long>> submitAssignment(
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @PathVariable Long lectureId,
+            @RequestPart("file") MultipartFile file
+    ) {
+        Long submissionId = lectureCommandService.submitAssignment(userId, lectureId, file);
+        return ResponseEntity.ok(BaseResponse.onSuccess(submissionId));
+    }
+
+    @Operation(
+            summary = "본인 과제 제출 상세 조회",
+            description = "로그인한 유저가 해당 강의에 제출한 과제 정보를 조회합니다. " +
+                    "제출 이력(제출 여부, 제출일시, 첨부파일 URL 등)을 반환합니다."
+    )
+    @GetMapping("/{lectureId}/assignments/me")
+    public ResponseEntity<BaseResponse<AssignmentSubmissionDetailDTO>> getMyAssignment(
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @PathVariable Long lectureId
+    ) {
+        AssignmentSubmissionDetailDTO dto = lectureQueryService.getMyAssignmentDetail(userId, lectureId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(dto));
     }
 }
