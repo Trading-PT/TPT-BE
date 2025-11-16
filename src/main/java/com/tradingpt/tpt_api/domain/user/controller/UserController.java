@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
+import com.tradingpt.tpt_api.domain.user.dto.request.ChangeNicknameRequestDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -64,5 +65,15 @@ public class UserController {
 	) {
 		ProfileImageResponseDTO result = userService.updateProfileImage(customerId, file);
 		return ResponseEntity.ok(BaseResponse.onSuccess(result));
+	}
+
+	@Operation(summary = "닉네임 등록/변경", description = "유저가 표시될 닉네임을 설정합니다.")
+	@PostMapping("/nickname")
+	public ResponseEntity<BaseResponse<Long>> changeNickname(
+			@AuthenticationPrincipal(expression = "id") Long userId,
+			@Valid @RequestBody ChangeNicknameRequestDTO req
+	) {
+		Long id = userService.changeNickname(userId, req.getNickname());
+		return ResponseEntity.ok(BaseResponse.onSuccess(id));
 	}
 }

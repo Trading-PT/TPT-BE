@@ -13,4 +13,5 @@ public interface UserService {
     void changePassword(Long userId, ChangePasswordRequestDTO req);
     void deleteAccount(Long userId);
     ProfileImageResponseDTO updateProfileImage(Long userId, MultipartFile file);
+    Long changeNickname(Long userId, String nickname);
 }

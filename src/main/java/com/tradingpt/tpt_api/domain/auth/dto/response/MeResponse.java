@@ -32,6 +32,7 @@ public class MeResponse {
 	private String investmentType;
 	private Boolean isCourseCompleted;
 	private Boolean isPremium;
+	private String nickName;
 	private int token;
 
 	public static MeResponse from(Customer c) {
@@ -83,8 +84,8 @@ public class MeResponse {
 			.isCourseCompleted(isCourseCompleted)
 				.token(c.getToken())
 			.isPremium(isPremium)
+				.nickName(c.getNickname())
 			.build();
 	}
-
 }
 

@@ -24,6 +24,8 @@ public class QLectureAttachment extends EntityPathBase<LectureAttachment> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.lecture.enums.LectureAttachmentType> attachmentType = createEnum("attachmentType", com.tradingpt.tpt_api.domain.lecture.enums.LectureAttachmentType.class);
+
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 

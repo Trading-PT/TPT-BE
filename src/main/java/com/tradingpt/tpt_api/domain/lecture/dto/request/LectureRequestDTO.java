@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.dto.request;
 
+import com.tradingpt.tpt_api.domain.lecture.enums.LectureAttachmentType;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -61,7 +62,8 @@ public class LectureRequestDTO {
         @Schema(description = "첨부파일 Key", example = "uploads/2025-11-07/file.pdf")
         private String fileKey;
 
-        @Schema(description = "첨부파일 이름", example = "교재.pdf")
-        private String fileName;
+        @NotNull
+        @Schema(description = "첨부파일 타입 (GENERAL, ASSIGNMENT)", example = "GENERAL")
+        private LectureAttachmentType attachmentType;
     }
 }

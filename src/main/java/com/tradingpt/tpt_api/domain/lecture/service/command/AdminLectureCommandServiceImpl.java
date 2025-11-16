@@ -17,6 +17,7 @@ import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,10 +73,13 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                         .lecture(lecture)
                         .fileUrl(attReq.getFileUrl())
                         .fileKey(attReq.getFileKey())
+                        .attachmentType(attReq.getAttachmentType())
                         .build();
+
                 lecture.getAttachments().add(att);
             });
         }
+
 
         Lecture saved = lectureRepository.save(lecture);
         return saved.getId();
@@ -108,9 +112,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         lectureRepository.delete(lecture);
     }
 
-    /**
-     * 강의 수정
-     */
     @Override
     @Transactional
     public Long updateLecture(Long lectureId, LectureRequestDTO req, Long trainerId) {
@@ -150,10 +151,14 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 attachmentsChanged = true;
             } else {
                 for (int i = 0; i < oldAttachments.size(); i++) {
-                    String oldKey = oldAttachments.get(i).getFileKey();
-                    String reqKey = newAttachments.get(i).getFileKey();
-                    if (oldKey == null && reqKey == null) continue;
-                    if (oldKey == null || reqKey == null || !oldKey.equals(reqKey)) {
+                    LectureAttachment oldAtt = oldAttachments.get(i);
+                    var reqAtt = newAttachments.get(i);
+
+                    String oldKey = oldAtt.getFileKey();
+                    String reqKey = reqAtt.getFileKey();
+
+                    if (!Objects.equals(oldKey, reqKey) ||
+                            oldAtt.getAttachmentType() != reqAtt.getAttachmentType()) {
                         attachmentsChanged = true;
                         break;
                     }
@@ -162,6 +167,7 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         }
 
         if (attachmentsChanged) {
+            // 기존 첨부파일 S3 삭제 및 컬렉션 비우기
             if (oldAttachments != null) {
                 oldAttachments.forEach(att -> {
                     if (att.getFileKey() != null) {
@@ -171,12 +177,14 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 oldAttachments.clear();
             }
 
+            // 새 첨부파일들 매핑
             if (newAttachments != null) {
                 newAttachments.forEach(attReq -> {
                     LectureAttachment att = LectureAttachment.builder()
                             .lecture(lecture)
                             .fileUrl(attReq.getFileUrl())
                             .fileKey(attReq.getFileKey())
+                            .attachmentType(attReq.getAttachmentType())
                             .build();
                     lecture.getAttachments().add(att);
                 });
@@ -200,6 +208,8 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
 
         return lecture.getId();
     }
+
+
 
     @Override
     @Transactional

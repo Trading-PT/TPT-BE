@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.lecture.controller;
 
 import com.tradingpt.tpt_api.domain.lecture.dto.LectureListResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.request.ChapterCreateRequestDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterListResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureRequestDTO;
 import com.tradingpt.tpt_api.domain.lecture.service.command.AdminChapterCommandService;
@@ -14,6 +15,7 @@ import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUpload
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -51,6 +53,15 @@ public class AdminLectureV1Controller {
         Long id = adminChapterCommandService.createChapter(request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BaseResponse.onSuccessCreate(id));
+    }
+
+    @Operation(summary = "챕터 전체 조회(어드민)",
+            description = "모든 챕터를 조회합니다. 정렬은 chapterOrder ASC 기준입니다.")
+    @GetMapping("/chapters/all")
+    public ResponseEntity<BaseResponse<List<ChapterListResponseDTO>>> getAllChapters() {
+
+        List<ChapterListResponseDTO> chapters = adminLectureQueryService.getAllChapters();
+        return ResponseEntity.ok(BaseResponse.onSuccess(chapters));
     }
 
     @Operation(summary = "챕터 삭제(어드민)",

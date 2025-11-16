@@ -68,6 +68,13 @@ public abstract class User extends BaseEntity {
 	@Column(name = "profileImageKey", length = 512)
 	private String profileImageKey;
 
+	@Column(name = "nickname", length = 30)
+	private String nickname;
+
+	public void changeNickname(String nickname) {
+		this.nickname = nickname;
+	}
+
 	//프로필 이미지 변경
 	public void changeProfileImage(String key, String url) {
 		this.profileImageKey = key;
