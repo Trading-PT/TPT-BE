@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.entity;
 
+import com.tradingpt.tpt_api.domain.lecture.enums.LectureAttachmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -30,5 +31,10 @@ public class LectureAttachment extends BaseEntity {
     /** S3 객체 삭제용 key */
     @Column(name = "file_key", nullable = false)
     private String fileKey;
+
+    /** 첨부파일 타입 (과제/일반 구분) */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "attachment_type", nullable = false)
+    private LectureAttachmentType attachmentType;
 }
 
