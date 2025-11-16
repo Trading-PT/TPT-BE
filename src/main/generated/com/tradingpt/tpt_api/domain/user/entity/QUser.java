@@ -31,6 +31,8 @@ public class QUser extends EntityPathBase<User> {
 
     public final StringPath name = createString("name");
 
+    public final StringPath nickname = createString("nickname");
+
     public final StringPath password = createString("password");
 
     public final ListPath<PasswordHistory, QPasswordHistory> passwordHistories = this.<PasswordHistory, QPasswordHistory>createList("passwordHistories", PasswordHistory.class, QPasswordHistory.class, PathInits.DIRECT2);

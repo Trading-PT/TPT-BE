@@ -17,7 +17,9 @@ public enum LectureErrorStatus implements BaseCodeInterface {
     // ------------------ 구매 관련 에러 ------------------
     ALREADY_FREE_LECTURE(HttpStatus.BAD_REQUEST, "LECTURE402", "유료 강의는 구매할 수 없습니다."),
     ALREADY_PURCHASED(HttpStatus.BAD_REQUEST, "LECTURE403", "이미 구매한 강의입니다."),
-    NOT_ENOUGH_TOKENS(HttpStatus.BAD_REQUEST, "LECTURE404", "보유 토큰이 부족합니다.");
+    NOT_ENOUGH_TOKENS(HttpStatus.BAD_REQUEST, "LECTURE405", "보유 토큰이 부족합니다."),
+
+    ASSIGNMENT_NOT_SUBMITTED(HttpStatus.NOT_FOUND, "LECTURE406", "해당 과제를 찾을 수 없습니다.");
 
     private final HttpStatus httpStatus;
     private final boolean isSuccess = false;

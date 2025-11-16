@@ -149,4 +149,15 @@ public class UserServiceImpl implements UserService {
 				.url(uploaded.url())
 				.build();
 	}
+
+	@Override
+	@Transactional
+	public Long changeNickname(Long userId, String nickname) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
+
+		user.changeNickname(nickname);
+
+		return userId;
+	}
 }

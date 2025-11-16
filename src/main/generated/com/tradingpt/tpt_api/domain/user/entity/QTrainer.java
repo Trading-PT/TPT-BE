@@ -33,6 +33,9 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath name = _super.name;
 
+    //inherited
+    public final StringPath nickname = _super.nickname;
+
     public final StringPath onelineIntroduction = createString("onelineIntroduction");
 
     //inherited
