@@ -1,12 +1,15 @@
 package com.tradingpt.tpt_api.domain.lecture.service.query;
 
 import com.tradingpt.tpt_api.domain.lecture.dto.LectureListResponseDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterListResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
+import com.tradingpt.tpt_api.domain.lecture.repository.ChapterRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,12 +18,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
 
     private final LectureRepository lectureRepository;
+    private final ChapterRepository chapterRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<LectureListResponseDTO> getLectureList(Pageable pageable, String category) {
         LectureExposure exposure = parseCategory(category);
 
@@ -35,7 +39,14 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
     }
 
     @Override
-    public com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO getLectureDetail(Long lectureId) {
+    @Transactional(readOnly = true)
+    public List<ChapterListResponseDTO> getAllChapters() {
+        return chapterRepository.findAllSimple();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public LectureDetailResponseDTO getLectureDetail(Long lectureId) {
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
         return LectureDetailResponseDTO.from(lecture);

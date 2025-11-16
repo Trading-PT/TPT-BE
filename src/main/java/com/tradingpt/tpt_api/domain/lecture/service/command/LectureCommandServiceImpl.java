@@ -1,18 +1,25 @@
 package com.tradingpt.tpt_api.domain.lecture.service.command;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.AssignmentAttachment;
+import com.tradingpt.tpt_api.domain.lecture.entity.CustomerAssignment;
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
+import com.tradingpt.tpt_api.domain.lecture.repository.AssignmentAttachmentRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.CustomerAssignmentRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.sql.ast.tree.update.Assignment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,9 @@ public class LectureCommandServiceImpl implements LectureCommandService {
     private final LectureRepository lectureRepository;
     private final LectureProgressRepository lectureProgressRepository;
     private final CustomerRepository customerRepository;
+    private final CustomerAssignmentRepository customerAssignmentRepository;
+    private final AssignmentAttachmentRepository assignmentAttachmentRepository;
+    private final S3FileService s3FileService;
 
     @Override
     @Transactional
@@ -86,6 +96,56 @@ public class LectureCommandServiceImpl implements LectureCommandService {
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
         progress.updateProgress(currentSeconds, duration);
+    }
+
+    /**
+     * 과제 제출
+     */
+    @Override
+    public Long submitAssignment(Long userId, Long lectureId, MultipartFile file) {
+
+        // 1. 강의 조회
+        Lecture lecture = lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        // 2. 고객 조회
+        Customer customer = customerRepository.findById(userId)
+                .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+        // 3. 기존 제출 내역 있는지 확인
+        CustomerAssignment assignment = customerAssignmentRepository
+                .findByLectureIdAndCustomerId(lectureId, userId)
+                .orElseGet(() -> CustomerAssignment.builder()
+                        .lecture(lecture)
+                        .customer(customer)
+                        .submitted(false)
+                        .build()
+                );
+
+        // 4. S3 업로드 (과제 PDF)
+        String directory = "assignments/" + lectureId;
+        var uploadResult = s3FileService.upload(file, directory);
+
+        // 5. 기존 파일 있으면 삭제 + 재저장
+        assignment.markSubmitted();
+        CustomerAssignment saved = customerAssignmentRepository.save(assignment);
+
+        // 첨부파일은 항상 1개만 관리한다고 가정
+        assignmentAttachmentRepository.findByCustomerAssignmentId(saved.getId())
+                .ifPresent(old -> {
+                    s3FileService.delete(old.getFileKey());
+                    assignmentAttachmentRepository.delete(old);
+                });
+
+        AssignmentAttachment attachment = AssignmentAttachment.builder()
+                .customerAssignment(saved)
+                .fileUrl(uploadResult.url())
+                .fileKey(uploadResult.key())
+                .build();
+
+        assignmentAttachmentRepository.save(attachment);
+
+        return saved.getId();
     }
 }
 
