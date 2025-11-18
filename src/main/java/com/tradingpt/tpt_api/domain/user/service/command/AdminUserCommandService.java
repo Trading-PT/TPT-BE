@@ -7,5 +7,7 @@ public interface AdminUserCommandService {
 
 	void updateUserStatus(Long userId, UserStatus newStatus);
 
-	Void giveUserTokens(Long userId, GiveUserTokenRequestDTO request);
+	void giveUserTokens(Long userId, GiveUserTokenRequestDTO request);
+
+	void updateUserUid(Long userId, String uid);
 }

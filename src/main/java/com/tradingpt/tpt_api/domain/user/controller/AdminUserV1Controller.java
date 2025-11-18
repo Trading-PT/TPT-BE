@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
+import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -63,6 +64,17 @@ public class AdminUserV1Controller {
 		return ResponseEntity.ok(BaseResponse.onSuccess(response));
 	}
 
+	@Operation(summary = "특정 유저 UID 값 변경", description = "관리자/트레이너가 고객의 UID 문자열을 수정합니다.")
+	@PatchMapping("/{userId}/uid")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public ResponseEntity<BaseResponse<Void>> updateUserUid(
+			@PathVariable Long userId,
+			@Valid @RequestBody UidUpdateRequestDTO request
+	) {
+		adminUserCommandService.updateUserUid(userId, request.getUid());
+		return ResponseEntity.ok(BaseResponse.onSuccess(null));
+	}
+
 	@Operation(summary = "고객의 토큰 부여 기능", description = "고객에게 토큰을 일정 개수만큼 발급합니다.")
 	@PatchMapping("/{userId}/token")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
@@ -70,7 +82,8 @@ public class AdminUserV1Controller {
 		@PathVariable Long userId,
 		@Valid @RequestBody GiveUserTokenRequestDTO request
 	) {
-		return BaseResponse.onSuccess(adminUserCommandService.giveUserTokens(userId, request));
+		adminUserCommandService.giveUserTokens(userId, request);
+		return BaseResponse.onSuccess(null);
 	}
 
 	@Operation(

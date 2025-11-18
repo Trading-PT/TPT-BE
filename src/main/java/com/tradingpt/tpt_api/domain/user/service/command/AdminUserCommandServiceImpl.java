@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.service.command;
 
+import com.tradingpt.tpt_api.domain.user.entity.Uid;
+import com.tradingpt.tpt_api.domain.user.repository.UidRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +24,7 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
+	private final UidRepository uidRepository;
 
 	@Transactional
 	@Override
@@ -39,12 +42,27 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 	}
 
 	@Override
-	public Void giveUserTokens(Long userId, GiveUserTokenRequestDTO request) {
+	public void giveUserTokens(Long userId, GiveUserTokenRequestDTO request) {
 		Customer customer = (Customer)userRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		customer.updateToken(request.getTokenCount());
+	}
 
-		return null;
+
+	@Override
+	public void updateUserUid(Long userId, String uidValue) {
+		// 1) 고객 존재 확인
+		Customer customer = customerRepository.findById(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 2) 해당 고객의 Uid 엔티티 조회 (없으면 예외 또는 생성)
+		Uid uid = uidRepository.findByCustomerId(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.UID_NOT_FOUND));
+
+		// 3) 값 변경
+		uid.setUid(uidValue);   // or uid.updateUid(uidValue);
+
+		// JPA 변경감지로 자동 flush
 	}
 }
