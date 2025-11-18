@@ -32,6 +32,7 @@ public enum UserErrorStatus implements BaseCodeInterface {
 
 	NOT_TRAINERS_CUSTOMER(HttpStatus.FORBIDDEN, "USER4013", "나에게 배정된 고객이 아닙니다."),
 	TRAINER_NOT_ASSIGNED(HttpStatus.INTERNAL_SERVER_ERROR, "USER4014", "배정된 트레이너가 없습니다."),
+	UID_NOT_FOUND(HttpStatus.NOT_FOUND, "USER4015", "uid를 찾을 수 없습니다.")
 	;
 
 	private final HttpStatus httpStatus;

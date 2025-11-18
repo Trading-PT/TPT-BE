@@ -18,11 +18,18 @@ public class ColumnListResponseDTO {
     @Schema(description = "카테고리 이름", example = "ETF")
     private String categoryName;
 
+    @Schema(description = "카테고리 색깔", example = "보라색")
+    private String categoryColor;
+
     @Schema(description = "칼럼 제목", example = "첫문장 10글자로 시작하는 칼럼 제목")
     private String title;
 
+
     @Schema(description = "부제목", example = "투자 습관 만들기")
     private String subtitle;
+
+    @Schema(description = "내용", example = "투자 습관 만들기....")
+    private String content;
 
     @Schema(description = "썸네일 이미지", example = "썸네일 이미지")
     private String thumbnailImage;
@@ -49,8 +56,10 @@ public class ColumnListResponseDTO {
         return ColumnListResponseDTO.builder()
                 .columnId(c.getId())
                 .categoryName(c.getCategory() != null ? c.getCategory().getName() : null)
+                .categoryColor(c.getCategory().getColor())
                 .title(c.getTitle())
                 .subtitle(c.getSubtitle())
+                .content(c.getContent())
                 .thumbnailImage(c.getThumbnailImage())
                 .likeCount(c.getLikeCount())
                 .commentCount(commentCount)
