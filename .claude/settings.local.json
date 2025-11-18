@@ -13,7 +13,9 @@
       "mcp__cloudwatch__execute_log_insights_query",
       "mcp__mysql-dev__read_query",
       "mcp__mysql-dev__list_tables",
-      "mcp__mysql-dev__alter_table"
+      "mcp__mysql-dev__alter_table",
+      "mcp__mysql-dev__write_query",
+      "mcp__mysql-dev__describe_table"
     ],
     "deny": [],
     "ask": []

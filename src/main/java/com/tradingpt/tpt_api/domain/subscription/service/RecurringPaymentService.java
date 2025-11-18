@@ -96,13 +96,29 @@ public class RecurringPaymentService {
 		// 결제 금액 계산 (프로모션 기간 확인)
 		BigDecimal paymentAmount = calculatePaymentAmount(subscription, activePlan);
 
-		// 청구 기간 계산
-		LocalDate billingPeriodStart = subscription.getCurrentPeriodEnd() != null ?
-			subscription.getCurrentPeriodEnd().plusDays(1) : LocalDate.now();
-		LocalDate billingPeriodEnd = billingPeriodStart.plusMonths(1).minusDays(1);
+		// 첫 결제 여부 확인
+		boolean isFirstPayment = subscription.getLastBillingDate() == null;
 
-		// 다음 결제일 계산 (1개월 후)
-		LocalDate nextBillingDate = billingPeriodEnd.plusDays(1);
+		// 청구 기간 계산
+		LocalDate billingPeriodStart;
+		LocalDate billingPeriodEnd;
+		LocalDate nextBillingDate;
+
+		if (isFirstPayment) {
+			// 첫 결제: 구독 생성 시 설정된 날짜 사용
+			billingPeriodStart = subscription.getCurrentPeriodStart();
+			billingPeriodEnd = subscription.getCurrentPeriodEnd();
+			nextBillingDate = subscription.getNextBillingDate();
+			log.info("첫 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
+				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
+		} else {
+			// 정기 결제: 이전 기간 종료일 기준으로 계산
+			billingPeriodStart = subscription.getCurrentPeriodEnd().plusDays(1);
+			billingPeriodEnd = billingPeriodStart.plusMonths(1).minusDays(1);
+			nextBillingDate = billingPeriodEnd.plusDays(1);
+			log.info("정기 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
+				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
+		}
 
 		// 주문번호 생성
 		String orderId = NicePayCryptoUtil.generateRecurringMoid(subscription.getId());
@@ -144,10 +160,10 @@ public class RecurringPaymentService {
 		// 결제 실행
 		if (paymentAmount.compareTo(BigDecimal.ZERO) == 0) {
 			// 0원 결제: 실제 결제 없이 Payment와 Subscription만 업데이트
-			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodEnd);
+			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
 		} else {
 			// 일반 결제: 나이스페이 API 호출
-			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodEnd);
+			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
 		}
 	}
 
@@ -158,20 +174,24 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
-		LocalDate billingPeriodEnd
+		LocalDate billingPeriodEnd,
+		boolean isFirstPayment
 	) {
-		log.info("0원 결제 처리: subscriptionId={}, paymentId={}", subscription.getId(), payment.getId());
+		log.info("0원 결제 처리: subscriptionId={}, paymentId={}, 첫결제={}",
+			subscription.getId(), payment.getId(), isFirstPayment);
 
 		// Payment를 SUCCESS로 변경 (실제 PG 호출 없음)
 		RecurringPaymentResponseDTO mockResponse = createMockSuccessResponse(payment);
 		paymentCommandService.markPaymentAsSuccess(payment.getId(), mockResponse);
 
-		// Subscription 업데이트
-		subscriptionCommandService.updateNextBillingDate(
-			subscription.getId(),
-			nextBillingDate,
-			billingPeriodEnd
-		);
+		// Subscription 업데이트 (정기 결제인 경우에만 날짜 변경)
+		if (!isFirstPayment) {
+			subscriptionCommandService.updateNextBillingDate(
+				subscription.getId(),
+				nextBillingDate,
+				billingPeriodEnd
+			);
+		}
 
 		subscriptionCommandService.resetPaymentFailureCount(
 			subscription.getId(),
@@ -196,10 +216,11 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
-		LocalDate billingPeriodEnd
+		LocalDate billingPeriodEnd,
+		boolean isFirstPayment
 	) {
-		log.info("일반 결제 처리: subscriptionId={}, paymentId={}, amount={}",
-			subscription.getId(), payment.getId(), payment.getAmount());
+		log.info("일반 결제 처리: subscriptionId={}, paymentId={}, amount={}, 첫결제={}",
+			subscription.getId(), payment.getId(), payment.getAmount(), isFirstPayment);
 
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
 
@@ -243,12 +264,14 @@ public class RecurringPaymentService {
 			// 결제 성공 처리
 			paymentCommandService.markPaymentAsSuccess(payment.getId(), response);
 
-			// Subscription 업데이트
-			subscriptionCommandService.updateNextBillingDate(
-				subscription.getId(),
-				nextBillingDate,
-				billingPeriodEnd
-			);
+			// Subscription 업데이트 (정기 결제인 경우에만 날짜 변경)
+			if (!isFirstPayment) {
+				subscriptionCommandService.updateNextBillingDate(
+					subscription.getId(),
+					nextBillingDate,
+					billingPeriodEnd
+				);
+			}
 
 			subscriptionCommandService.resetPaymentFailureCount(
 				subscription.getId(),
