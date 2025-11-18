@@ -45,7 +45,6 @@ import com.tradingpt.tpt_api.global.security.handler.JsonAuthenticationEntryPoin
 
 import lombok.RequiredArgsConstructor;
 
-// ★ 추가 import
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.ProviderManager;
@@ -293,6 +292,7 @@ public class SecurityConfig {
 						// ✅ 피드백 목록 및 상세 모두 비로그인 허용
 						.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests").permitAll()
 						.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests/*").permitAll()
+						.requestMatchers(HttpMethod.GET, "/api/v1/columns").permitAll()
 						.anyRequest().authenticated()
 				)
 				.formLogin(AbstractHttpConfigurer::disable)

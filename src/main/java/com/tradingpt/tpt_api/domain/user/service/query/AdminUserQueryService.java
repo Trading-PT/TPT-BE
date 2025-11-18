@@ -18,11 +18,17 @@ public class AdminUserQueryService {
 	private final CustomerRepository customerRepository;
 
 	public List<PendingUserApprovalRowResponseDTO> getPendingApprovalRows() {
+
+		List<UserStatus> targetStatuses = List.of(
+				UserStatus.UID_REVIEW_PENDING,
+				UserStatus.UID_REJECTED
+		);
+
 		List<Customer> customers =
-			customerRepository.findCustomersWithUidByStatus(UserStatus.UID_REVIEW_PENDING);
+				customerRepository.findByUserStatusIn(targetStatuses);
 
 		return customers.stream()
-			.map(PendingUserApprovalRowResponseDTO::from)
-			.toList();
+				.map(PendingUserApprovalRowResponseDTO::from)
+				.toList();
 	}
 }
