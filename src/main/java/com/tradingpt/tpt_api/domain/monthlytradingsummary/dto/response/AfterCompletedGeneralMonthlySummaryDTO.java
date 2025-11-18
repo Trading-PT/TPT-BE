@@ -1,5 +1,8 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response;
 
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,12 +35,18 @@ public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryRespon
 	private PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison;
 
 	public static AfterCompletedGeneralMonthlySummaryDTO of(
+		CourseStatus courseStatus,
+		InvestmentType investmentType, Integer year, Integer month,
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO,
 		Boolean isTrainerEvaluated, String monthlyEvaluation, String nextMonthGoal,
 		EntryPointStatisticsResponseDTO entryPointStatisticsResponseDTO,
 		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison
 	) {
 		return AfterCompletedGeneralMonthlySummaryDTO.builder()
+			.courseStatus(courseStatus)
+			.investmentType(investmentType)
+			.year(year)
+			.month(month)
 			.monthlyFeedbackSummaryResponseDTO(monthlyFeedbackSummaryResponseDTO)
 			.isTrainerEvaluated(isTrainerEvaluated)
 			.monthlyEvaluation(monthlyEvaluation)

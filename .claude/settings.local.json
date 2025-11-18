@@ -10,7 +10,9 @@
       "Bash(tree:*)",
       "Bash(cat:*)",
       "mcp__cloudwatch__describe_log_groups",
-      "mcp__cloudwatch__execute_log_insights_query"
+      "mcp__cloudwatch__execute_log_insights_query",
+      "mcp__mysql-dev__read_query",
+      "mcp__mysql-dev__list_tables"
     ],
     "deny": [],
     "ask": []

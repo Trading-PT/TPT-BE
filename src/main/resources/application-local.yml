@@ -4,9 +4,9 @@ spring:
       on-profile: local
 
   datasource:
-    url: jdbc:mysql://localhost:3306/${LOCAL_DB_NAME:tpt_local_db}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
-    username: ${LOCAL_DB_USERNAME:root}
-    password: ${LOCAL_DB_PASSWORD:ehdfprl77}
+    url: jdbc:mysql://localhost:3307/${DEV_DB_NAME}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Seoul
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
     hikari:
       pool-name: HikariCP-Local
 
