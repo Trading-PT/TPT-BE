@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -24,39 +25,47 @@ import lombok.NoArgsConstructor;
 @Schema(description = "트레이너 작성 매매일지 목록 아이템")
 public class TrainerWrittenFeedbackItemDTO {
 
-    @Schema(description = "피드백 요청 ID")
-    private Long id;
+	@Schema(description = "피드백 요청 ID")
+	private Long id;
 
-    @Schema(description = "투자 타입", example = "DAY")
-    private InvestmentType investmentType;
+	@Schema(description = "투자 타입", example = "DAY")
+	private InvestmentType investmentType;
 
-    @Schema(description = "제목")
-    private String title;
+	@Schema(description = "제목")
+	private String title;
 
-    @Schema(description = "매매 복기")
-    private String tradingReview;
+	@Schema(description = "매매 복기")
+	private String tradingReview;
 
-    @Schema(description = "첨부 이미지 URL 목록")
-    private List<String> imageUrls;
+	@Schema(description = "트레이너 이름")
+	private String trainerName;
 
-    @Schema(description = "작성 시간")
-    private LocalDateTime createdAt;
+	@Schema(description = "P&L")
+	private BigDecimal pnl;
 
-    /**
-     * FeedbackRequest 엔티티에서 DTO 생성
-     */
-    public static TrainerWrittenFeedbackItemDTO from(FeedbackRequest request) {
-        return TrainerWrittenFeedbackItemDTO.builder()
-            .id(request.getId())
-            .investmentType(request.getInvestmentType())
-            .title(request.getTitle())
-            .tradingReview(request.getTradingReview())
-            .imageUrls(
-                request.getFeedbackRequestAttachments().stream()
-                    .map(FeedbackRequestAttachment::getFileUrl)
-                    .toList()
-            )
-            .createdAt(request.getCreatedAt())
-            .build();
-    }
+	@Schema(description = "첨부 이미지 URL 목록")
+	private List<String> imageUrls;
+
+	@Schema(description = "작성 시간")
+	private LocalDateTime createdAt;
+
+	/**
+	 * FeedbackRequest 엔티티에서 DTO 생성
+	 */
+	public static TrainerWrittenFeedbackItemDTO from(FeedbackRequest request) {
+		return TrainerWrittenFeedbackItemDTO.builder()
+			.id(request.getId())
+			.investmentType(request.getInvestmentType())
+			.title(request.getTitle())
+			.tradingReview(request.getTradingReview())
+			.trainerName(request.getCustomer().getUsername())
+			.pnl(request.getPnl())
+			.imageUrls(
+				request.getFeedbackRequestAttachments().stream()
+					.map(FeedbackRequestAttachment::getFileUrl)
+					.toList()
+			)
+			.createdAt(request.getCreatedAt())
+			.build();
+	}
 }
