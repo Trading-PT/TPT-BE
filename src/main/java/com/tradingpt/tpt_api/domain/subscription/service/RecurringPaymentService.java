@@ -93,16 +93,80 @@ public class RecurringPaymentService {
 		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
 			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
 
+		// ✅ 결제 수단 검증 (Payment 생성 전에 확인)
+		PaymentMethod paymentMethod = subscription.getPaymentMethod();
+
+		// 현재 구독의 결제수단이 유효하지 않으면 고객의 다른 결제수단 검색
+		if (paymentMethod == null || paymentMethod.getIsDeleted() || !paymentMethod.getIsActive()) {
+			log.warn("구독의 결제수단이 유효하지 않음. 고객의 다른 결제수단 검색: subscriptionId={}, customerId={}",
+				subscription.getId(), subscription.getCustomer().getId());
+
+			// 고객의 유효한 주 결제수단 검색
+			paymentMethod = paymentMethodRepository
+				.findByCustomerAndIsPrimaryTrueAndIsDeletedFalse(subscription.getCustomer())
+				.orElse(null);
+
+			if (paymentMethod == null) {
+				// ✅ 결제수단 없음 → Payment 생성하지 않고 구독만 EXPIRED 처리
+				log.warn("유효한 결제수단 없음 - 구독 만료 처리: subscriptionId={}, customerId={}",
+					subscription.getId(), subscription.getCustomer().getId());
+
+				subscriptionCommandService.updateSubscriptionStatus(
+					subscription.getId(),
+					Status.EXPIRED
+				);
+
+				log.info("구독 만료 완료: subscriptionId={} (사유: 결제수단 없음)", subscription.getId());
+				return; // Payment 생성하지 않고 정상 종료
+			}
+
+			log.info("유효한 결제수단 발견: customerId={}, paymentMethodId={}",
+				subscription.getCustomer().getId(), paymentMethod.getId());
+
+			// 구독의 결제수단 업데이트 (다음 결제 시 사용)
+			subscription.updatePaymentMethod(paymentMethod);
+		}
+
+		// 빌링키 검증
+		if (paymentMethod.getBillingKey() == null) {
+			log.error("결제수단에 빌링키 없음 - 구독 만료 처리: paymentMethodId={}, subscriptionId={}",
+				paymentMethod.getId(), subscription.getId());
+
+			subscriptionCommandService.updateSubscriptionStatus(
+				subscription.getId(),
+				Status.EXPIRED
+			);
+
+			log.info("구독 만료 완료: subscriptionId={} (사유: 빌링키 없음)", subscription.getId());
+			return; // Payment 생성하지 않고 정상 종료
+		}
+
 		// 결제 금액 계산 (프로모션 기간 확인)
 		BigDecimal paymentAmount = calculatePaymentAmount(subscription, activePlan);
 
-		// 청구 기간 계산
-		LocalDate billingPeriodStart = subscription.getCurrentPeriodEnd() != null ?
-			subscription.getCurrentPeriodEnd().plusDays(1) : LocalDate.now();
-		LocalDate billingPeriodEnd = billingPeriodStart.plusMonths(1).minusDays(1);
+		// 첫 결제 여부 확인
+		boolean isFirstPayment = subscription.getLastBillingDate() == null;
 
-		// 다음 결제일 계산 (1개월 후)
-		LocalDate nextBillingDate = billingPeriodEnd.plusDays(1);
+		// 청구 기간 계산
+		LocalDate billingPeriodStart;
+		LocalDate billingPeriodEnd;
+		LocalDate nextBillingDate;
+
+		if (isFirstPayment) {
+			// 첫 결제: 구독 생성 시 설정된 날짜 사용
+			billingPeriodStart = subscription.getCurrentPeriodStart();
+			billingPeriodEnd = subscription.getCurrentPeriodEnd();
+			nextBillingDate = subscription.getNextBillingDate();
+			log.info("첫 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
+				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
+		} else {
+			// 정기 결제: 이전 기간 종료일 기준으로 계산
+			billingPeriodStart = subscription.getCurrentPeriodEnd().plusDays(1);
+			billingPeriodEnd = billingPeriodStart.plusMonths(1).minusDays(1);
+			nextBillingDate = billingPeriodEnd.plusDays(1);
+			log.info("정기 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
+				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
+		}
 
 		// 주문번호 생성
 		String orderId = NicePayCryptoUtil.generateRecurringMoid(subscription.getId());
@@ -144,10 +208,10 @@ public class RecurringPaymentService {
 		// 결제 실행
 		if (paymentAmount.compareTo(BigDecimal.ZERO) == 0) {
 			// 0원 결제: 실제 결제 없이 Payment와 Subscription만 업데이트
-			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodEnd);
+			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
 		} else {
 			// 일반 결제: 나이스페이 API 호출
-			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodEnd);
+			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
 		}
 	}
 
@@ -158,20 +222,24 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
-		LocalDate billingPeriodEnd
+		LocalDate billingPeriodEnd,
+		boolean isFirstPayment
 	) {
-		log.info("0원 결제 처리: subscriptionId={}, paymentId={}", subscription.getId(), payment.getId());
+		log.info("0원 결제 처리: subscriptionId={}, paymentId={}, 첫결제={}",
+			subscription.getId(), payment.getId(), isFirstPayment);
 
 		// Payment를 SUCCESS로 변경 (실제 PG 호출 없음)
 		RecurringPaymentResponseDTO mockResponse = createMockSuccessResponse(payment);
 		paymentCommandService.markPaymentAsSuccess(payment.getId(), mockResponse);
 
-		// Subscription 업데이트
-		subscriptionCommandService.updateNextBillingDate(
-			subscription.getId(),
-			nextBillingDate,
-			billingPeriodEnd
-		);
+		// Subscription 업데이트 (정기 결제인 경우에만 날짜 변경)
+		if (!isFirstPayment) {
+			subscriptionCommandService.updateNextBillingDate(
+				subscription.getId(),
+				nextBillingDate,
+				billingPeriodEnd
+			);
+		}
 
 		subscriptionCommandService.resetPaymentFailureCount(
 			subscription.getId(),
@@ -196,40 +264,14 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
-		LocalDate billingPeriodEnd
+		LocalDate billingPeriodEnd,
+		boolean isFirstPayment
 	) {
-		log.info("일반 결제 처리: subscriptionId={}, paymentId={}, amount={}",
-			subscription.getId(), payment.getId(), payment.getAmount());
+		log.info("일반 결제 처리: subscriptionId={}, paymentId={}, amount={}, 첫결제={}",
+			subscription.getId(), payment.getId(), payment.getAmount(), isFirstPayment);
 
+		// ✅ 결제 수단은 이미 executePaymentForSubscription()에서 검증됨
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
-
-		// 현재 결제수단 유효성 검증
-		if (paymentMethod == null
-			|| paymentMethod.getIsDeleted()
-			|| !paymentMethod.getIsActive()) {
-
-			log.warn("구독의 결제수단이 유효하지 않음. 고객의 다른 결제수단 검색: subscriptionId={}, customerId={}",
-				subscription.getId(), subscription.getCustomer().getId());
-
-			// 고객의 유효한 주 결제수단 검색
-			paymentMethod = paymentMethodRepository
-				.findByCustomerAndIsPrimaryTrueAndIsDeletedFalse(subscription.getCustomer())
-				.orElse(null);
-
-			if (paymentMethod == null) {
-				log.error("유효한 결제수단 없음: customerId={}, subscriptionId={}",
-					subscription.getCustomer().getId(), subscription.getId());
-				throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_UPDATE_FAILED);
-			}
-
-			log.info("유효한 결제수단 발견: customerId={}, paymentMethodId={}",
-				subscription.getCustomer().getId(), paymentMethod.getId());
-		}
-
-		if (paymentMethod.getBillingKey() == null) {
-			log.error("결제수단에 빌링키 없음: paymentMethodId={}", paymentMethod.getId());
-			throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_UPDATE_FAILED);
-		}
 
 		try {
 			// 나이스페이 결제 실행
@@ -243,12 +285,14 @@ public class RecurringPaymentService {
 			// 결제 성공 처리
 			paymentCommandService.markPaymentAsSuccess(payment.getId(), response);
 
-			// Subscription 업데이트
-			subscriptionCommandService.updateNextBillingDate(
-				subscription.getId(),
-				nextBillingDate,
-				billingPeriodEnd
-			);
+			// Subscription 업데이트 (정기 결제인 경우에만 날짜 변경)
+			if (!isFirstPayment) {
+				subscriptionCommandService.updateNextBillingDate(
+					subscription.getId(),
+					nextBillingDate,
+					billingPeriodEnd
+				);
+			}
 
 			subscriptionCommandService.resetPaymentFailureCount(
 				subscription.getId(),

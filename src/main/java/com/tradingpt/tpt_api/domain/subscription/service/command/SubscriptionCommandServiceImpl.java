@@ -99,6 +99,11 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
             log.info("프로모션 대상 고객: 혜택 종료일={}", promotionEndDate);
         }
 
+        // 구독 기간 계산 (프로모션: 2개월, 일반: 1개월)
+        int periodMonths = (subscriptionType == SubscriptionType.PROMOTION) ? 2 : 1;
+        LocalDate currentPeriodEnd = today.plusMonths(periodMonths).minusDays(1);
+        LocalDate nextBillingDate = currentPeriodEnd.plusDays(1);
+
         // Subscription 엔티티 생성 (초기 상태: PENDING)
         Subscription subscription = Subscription.builder()
             .customer(customer)
@@ -107,8 +112,8 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
             .subscribedPrice(plan.getPrice())
             .status(Status.ACTIVE)  // 첫 결제 전이지만 ACTIVE로 설정 (첫 결제 즉시 진행 예정)
             .currentPeriodStart(today)
-            .currentPeriodEnd(today.plusMonths(1).minusDays(1))
-            .nextBillingDate(today.plusMonths(1))
+            .currentPeriodEnd(currentPeriodEnd)
+            .nextBillingDate(nextBillingDate)
             .lastBillingDate(null)
             .paymentFailedCount(0)
             .subscriptionType(subscriptionType)
