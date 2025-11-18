@@ -524,7 +524,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					dayRequestDetail.riskTaking.sum().coalesce(0)
+					dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
 				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.REVERSE)))
@@ -535,7 +535,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					dayRequestDetail.riskTaking.sum().coalesce(0)
+					dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
 				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.PULL_BACK)))
@@ -546,7 +546,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					dayRequestDetail.riskTaking.sum().coalesce(0)
+					dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
 				.where(basePredicate.and(dayRequestDetail.entryPoint1.eq(EntryPoint.BREAK_OUT)))
@@ -600,7 +600,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					swingRequestDetail.riskTaking.sum().coalesce(0)
+					swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
 				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.REVERSE)))
@@ -611,7 +611,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					swingRequestDetail.riskTaking.sum().coalesce(0)
+					swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
 				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.PULL_BACK)))
@@ -622,7 +622,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
 					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-					swingRequestDetail.riskTaking.sum().coalesce(0)
+					swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
 				.where(basePredicate.and(swingRequestDetail.entryPoint1.eq(EntryPoint.BREAK_OUT)))
@@ -687,7 +687,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						dayRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
 						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-						dayRequestDetail.riskTaking.sum().coalesce(0)
+						dayRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 					)
 					.from(dayRequestDetail)
 					.where(predicate)
@@ -711,7 +711,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						swingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
 						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-						swingRequestDetail.riskTaking.sum().coalesce(0)
+						swingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 					)
 					.from(swingRequestDetail)
 					.where(predicate)
@@ -735,7 +735,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						scalpingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
 						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
-						scalpingRequestDetail.riskTaking.sum().coalesce(0)
+						scalpingRequestDetail.riskTaking.sum().coalesce(0).castToNum(BigDecimal.class)
 					)
 					.from(scalpingRequestDetail)
 					.where(predicate)
@@ -1765,13 +1765,13 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer totalCount = result.get(0, Integer.class);
 		Integer winCount = result.get(1, Integer.class);
 		BigDecimal totalPnl = result.get(2, BigDecimal.class);
-		Integer totalRiskTaking = result.get(3, Integer.class);
+		BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
 
 		BigDecimal winRate = totalCount > 0
 			? BigDecimal.valueOf((double)winCount / totalCount * 100).setScale(2, RoundingMode.HALF_UP)
 			: BigDecimal.ZERO;
-		BigDecimal avgRnr = totalRiskTaking > 0
-			? totalPnl.divide(BigDecimal.valueOf(totalRiskTaking), 2, RoundingMode.HALF_UP)
+		BigDecimal avgRnr = totalRiskTaking.compareTo(BigDecimal.ZERO) > 0
+			? totalPnl.divide(totalRiskTaking, 2, RoundingMode.HALF_UP)
 			: BigDecimal.ZERO;
 
 		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
