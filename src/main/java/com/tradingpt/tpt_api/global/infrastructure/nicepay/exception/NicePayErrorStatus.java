@@ -19,6 +19,13 @@ public enum NicePayErrorStatus implements BaseCodeInterface {
     INVALID_TID(HttpStatus.BAD_REQUEST, "F202", "유효하지 않은 거래 ID입니다."),
     CARD_REGISTRATION_FAILED(HttpStatus.BAD_REQUEST, "F203", "카드 등록에 실패했습니다."),
 
+    // 카드 정보 검증 관련
+    INVALID_CARD_NUMBER(HttpStatus.BAD_REQUEST, "F110", "유효하지 않은 카드번호입니다. 카드번호를 확인해주세요."),
+    INVALID_EXPIRY_DATE(HttpStatus.BAD_REQUEST, "F111", "카드 유효기간이 올바르지 않습니다. 유효기간을 확인해주세요."),
+    INVALID_CVC(HttpStatus.BAD_REQUEST, "F112", "CVC 번호가 올바르지 않습니다. CVC를 확인해주세요."),
+    PASSWORD_RETRY_EXCEEDED(HttpStatus.BAD_REQUEST, "F113", "카드 비밀번호 입력 횟수를 초과했습니다. 다른 카드로 시도하거나 잠시 후 다시 시도해주세요."),
+    INVALID_BIRTH_OR_BIZ_NUMBER(HttpStatus.BAD_REQUEST, "F114", "생년월일 또는 사업자번호가 올바르지 않습니다. 정보를 확인해주세요."),
+
     // 빌키 삭제 관련
     BILLING_KEY_DELETION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F300", "빌키 삭제에 실패했습니다."),
     BILLING_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "F301", "존재하지 않는 빌키입니다."),
@@ -63,6 +70,22 @@ public enum NicePayErrorStatus implements BaseCodeInterface {
         // F100은 정상 응답이므로 이 메서드가 호출되면 안됨
         if ("F100".equals(resultCode)) {
             return UNKNOWN_ERROR;
+        }
+
+        // 특정 에러 코드 처리
+        switch (resultCode) {
+            case "F110":
+                return INVALID_CARD_NUMBER;
+            case "F111":
+                return INVALID_EXPIRY_DATE;
+            case "F112":
+                return INVALID_CVC;
+            case "F113":
+                return PASSWORD_RETRY_EXCEEDED;
+            case "F114":
+                return INVALID_BIRTH_OR_BIZ_NUMBER;
+            default:
+                break;
         }
 
         // 빌키 발급 관련 에러 (F2xx)

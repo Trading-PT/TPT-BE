@@ -50,7 +50,7 @@ public class PaymentMethod extends BaseEntity {
 	 * 연관 관계 매핑
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "customer_id")
+	@JoinColumn(name = "customer_id", referencedColumnName = "user_id")
 	private Customer customer;
 
 	@OneToOne(fetch = FetchType.LAZY)
