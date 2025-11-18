@@ -146,4 +146,12 @@ public class Subscription extends BaseEntity {
 			this.cancelledAt = LocalDateTime.now();
 		}
 	}
+
+	/**
+	 * 결제 수단 변경
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void updatePaymentMethod(PaymentMethod paymentMethod) {
+		this.paymentMethod = paymentMethod;
+	}
 }

@@ -93,6 +93,54 @@ public class RecurringPaymentService {
 		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
 			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
 
+		// ✅ 결제 수단 검증 (Payment 생성 전에 확인)
+		PaymentMethod paymentMethod = subscription.getPaymentMethod();
+
+		// 현재 구독의 결제수단이 유효하지 않으면 고객의 다른 결제수단 검색
+		if (paymentMethod == null || paymentMethod.getIsDeleted() || !paymentMethod.getIsActive()) {
+			log.warn("구독의 결제수단이 유효하지 않음. 고객의 다른 결제수단 검색: subscriptionId={}, customerId={}",
+				subscription.getId(), subscription.getCustomer().getId());
+
+			// 고객의 유효한 주 결제수단 검색
+			paymentMethod = paymentMethodRepository
+				.findByCustomerAndIsPrimaryTrueAndIsDeletedFalse(subscription.getCustomer())
+				.orElse(null);
+
+			if (paymentMethod == null) {
+				// ✅ 결제수단 없음 → Payment 생성하지 않고 구독만 EXPIRED 처리
+				log.warn("유효한 결제수단 없음 - 구독 만료 처리: subscriptionId={}, customerId={}",
+					subscription.getId(), subscription.getCustomer().getId());
+
+				subscriptionCommandService.updateSubscriptionStatus(
+					subscription.getId(),
+					Status.EXPIRED
+				);
+
+				log.info("구독 만료 완료: subscriptionId={} (사유: 결제수단 없음)", subscription.getId());
+				return; // Payment 생성하지 않고 정상 종료
+			}
+
+			log.info("유효한 결제수단 발견: customerId={}, paymentMethodId={}",
+				subscription.getCustomer().getId(), paymentMethod.getId());
+
+			// 구독의 결제수단 업데이트 (다음 결제 시 사용)
+			subscription.updatePaymentMethod(paymentMethod);
+		}
+
+		// 빌링키 검증
+		if (paymentMethod.getBillingKey() == null) {
+			log.error("결제수단에 빌링키 없음 - 구독 만료 처리: paymentMethodId={}, subscriptionId={}",
+				paymentMethod.getId(), subscription.getId());
+
+			subscriptionCommandService.updateSubscriptionStatus(
+				subscription.getId(),
+				Status.EXPIRED
+			);
+
+			log.info("구독 만료 완료: subscriptionId={} (사유: 빌링키 없음)", subscription.getId());
+			return; // Payment 생성하지 않고 정상 종료
+		}
+
 		// 결제 금액 계산 (프로모션 기간 확인)
 		BigDecimal paymentAmount = calculatePaymentAmount(subscription, activePlan);
 
@@ -222,35 +270,8 @@ public class RecurringPaymentService {
 		log.info("일반 결제 처리: subscriptionId={}, paymentId={}, amount={}, 첫결제={}",
 			subscription.getId(), payment.getId(), payment.getAmount(), isFirstPayment);
 
+		// ✅ 결제 수단은 이미 executePaymentForSubscription()에서 검증됨
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
-
-		// 현재 결제수단 유효성 검증
-		if (paymentMethod == null
-			|| paymentMethod.getIsDeleted()
-			|| !paymentMethod.getIsActive()) {
-
-			log.warn("구독의 결제수단이 유효하지 않음. 고객의 다른 결제수단 검색: subscriptionId={}, customerId={}",
-				subscription.getId(), subscription.getCustomer().getId());
-
-			// 고객의 유효한 주 결제수단 검색
-			paymentMethod = paymentMethodRepository
-				.findByCustomerAndIsPrimaryTrueAndIsDeletedFalse(subscription.getCustomer())
-				.orElse(null);
-
-			if (paymentMethod == null) {
-				log.error("유효한 결제수단 없음: customerId={}, subscriptionId={}",
-					subscription.getCustomer().getId(), subscription.getId());
-				throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_UPDATE_FAILED);
-			}
-
-			log.info("유효한 결제수단 발견: customerId={}, paymentMethodId={}",
-				subscription.getCustomer().getId(), paymentMethod.getId());
-		}
-
-		if (paymentMethod.getBillingKey() == null) {
-			log.error("결제수단에 빌링키 없음: paymentMethodId={}", paymentMethod.getId());
-			throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_UPDATE_FAILED);
-		}
 
 		try {
 			// 나이스페이 결제 실행

@@ -92,33 +92,17 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentException(PaymentErrorStatus.PAYMENT_NOT_FOUND));
 
-        // Payment 엔티티 업데이트
-        Payment updatedPayment = Payment.builder()
-            .id(payment.getId())
-            .subscription(payment.getSubscription())
-            .customer(payment.getCustomer())
-            .paymentMethod(payment.getPaymentMethod())
-            .orderId(payment.getOrderId())
-            .orderName(payment.getOrderName())
-            .amount(payment.getAmount())
-            .vat(payment.getVat())
-            .discountAmount(payment.getDiscountAmount())
-            .status(PaymentStatus.SUCCESS)
-            .paymentType(payment.getPaymentType())
-            .paymentKey(nicePayResponse.getTID())
-            .pgTid(nicePayResponse.getTID())
-            .pgAuthCode(nicePayResponse.getAuthCode())
-            .pgResponseCode(nicePayResponse.getResultCode())
-            .pgResponseMessage(nicePayResponse.getResultMsg())
-            .requestedAt(payment.getRequestedAt())
-            .paidAt(nicePayResponse.getAuthDateAsLocalDateTime())
-            .billingPeriodStart(payment.getBillingPeriodStart())
-            .billingPeriodEnd(payment.getBillingPeriodEnd())
-            .isPromotional(payment.getIsPromotional())
-            .promotionDetail(payment.getPromotionDetail())
-            .build();
+        // JPA dirty checking을 활용한 엔티티 업데이트
+        payment.markAsSuccess(
+            nicePayResponse.getTID(),               // paymentKey
+            nicePayResponse.getTID(),               // pgTid
+            nicePayResponse.getAuthCode(),          // authCode
+            nicePayResponse.getResultCode(),        // responseCode
+            nicePayResponse.getResultMsg(),         // responseMessage
+            nicePayResponse.getAuthDateAsLocalDateTime()  // paidAt
+        );
 
-        return paymentRepository.save(updatedPayment);
+        return payment;  // JPA dirty checking이 자동으로 UPDATE 처리
     }
 
     @Override
@@ -128,35 +112,9 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new PaymentException(PaymentErrorStatus.PAYMENT_NOT_FOUND));
 
-        // Payment 엔티티 업데이트
-        Payment updatedPayment = Payment.builder()
-            .id(payment.getId())
-            .subscription(payment.getSubscription())
-            .customer(payment.getCustomer())
-            .paymentMethod(payment.getPaymentMethod())
-            .orderId(payment.getOrderId())
-            .orderName(payment.getOrderName())
-            .amount(payment.getAmount())
-            .vat(payment.getVat())
-            .discountAmount(payment.getDiscountAmount())
-            .status(PaymentStatus.FAILED)
-            .paymentType(payment.getPaymentType())
-            .paymentKey(payment.getPaymentKey())
-            .pgTid(payment.getPgTid())
-            .pgAuthCode(payment.getPgAuthCode())
-            .pgResponseCode(payment.getPgResponseCode())
-            .pgResponseMessage(payment.getPgResponseMessage())
-            .requestedAt(payment.getRequestedAt())
-            .paidAt(payment.getPaidAt())
-            .failedAt(LocalDateTime.now())
-            .failureCode(failureCode)
-            .failureReason(failureReason)
-            .billingPeriodStart(payment.getBillingPeriodStart())
-            .billingPeriodEnd(payment.getBillingPeriodEnd())
-            .isPromotional(payment.getIsPromotional())
-            .promotionDetail(payment.getPromotionDetail())
-            .build();
+        // JPA dirty checking을 활용한 엔티티 업데이트
+        payment.markAsFailed(failureCode, failureReason);
 
-        return paymentRepository.save(updatedPayment);
+        return payment;  // JPA dirty checking이 자동으로 UPDATE 처리
     }
 }

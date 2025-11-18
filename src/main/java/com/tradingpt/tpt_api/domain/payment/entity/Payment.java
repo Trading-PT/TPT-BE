@@ -142,4 +142,34 @@ public class Payment extends BaseEntity {
 	private Boolean isPromotional = Boolean.FALSE; // 프로모션 결제 여부
 
 	private String promotionDetail; // 프로모션 상세 (예: 사전등록 2개월 무료)
+
+	/**
+	 * 비즈니스 메서드
+	 */
+
+	/**
+	 * 결제 성공 처리
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void markAsSuccess(String paymentKey, String pgTid, String authCode,
+							  String responseCode, String responseMessage, LocalDateTime paidAt) {
+		this.status = PaymentStatus.SUCCESS;
+		this.paymentKey = paymentKey;
+		this.pgTid = pgTid;
+		this.pgAuthCode = authCode;
+		this.pgResponseCode = responseCode;
+		this.pgResponseMessage = responseMessage;
+		this.paidAt = paidAt;
+	}
+
+	/**
+	 * 결제 실패 처리
+	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void markAsFailed(String failureCode, String failureReason) {
+		this.status = PaymentStatus.FAILED;
+		this.failedAt = LocalDateTime.now();
+		this.failureCode = failureCode;
+		this.failureReason = failureReason;
+	}
 }
