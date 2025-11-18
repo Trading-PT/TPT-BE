@@ -288,6 +288,10 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			buildMonthlyPerformanceComparison(customerId, year, month, investmentType);
 
 		return AfterCompletedGeneralMonthlySummaryDTO.of(
+			courseStatus,
+			investmentType,
+			year,
+			month,
 			monthlyFeedback,
 			isTrainerEvaluated,
 			monthlyEvaluation,

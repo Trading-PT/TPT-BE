@@ -512,7 +512,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(dayRequestDetail.customer.id.eq(customerId))
 				.and(dayRequestDetail.feedbackYear.eq(year))
-				.and(dayRequestDetail.feedbackMonth.eq(month));
+				.and(dayRequestDetail.feedbackMonth.eq(month))
+				.and(dayRequestDetail.courseStatus.eq(CourseStatus.AFTER_COMPLETION));  // ✅ 완강 후만 진입 타점 통계 수집
 
 			NumberExpression<Integer> winCase = new CaseBuilder()
 				.when(dayRequestDetail.pnl.gt(BigDecimal.ZERO))
@@ -570,8 +571,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 				),
 				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
-					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					pullBackStats != null ? pullBackStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				),
 				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
@@ -580,15 +581,16 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 				),
 				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
-					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					breakOutStats != null ? breakOutStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				)
 			);
 		} else { // SWING
 			BooleanBuilder basePredicate = new BooleanBuilder()
 				.and(swingRequestDetail.customer.id.eq(customerId))
 				.and(swingRequestDetail.feedbackYear.eq(year))
-				.and(swingRequestDetail.feedbackMonth.eq(month));
+				.and(swingRequestDetail.feedbackMonth.eq(month))
+				.and(swingRequestDetail.courseStatus.eq(CourseStatus.AFTER_COMPLETION));  // ✅ 완강 후만 진입 타점 통계 수집
 
 			NumberExpression<Integer> winCase = new CaseBuilder()
 				.when(swingRequestDetail.pnl.gt(BigDecimal.ZERO))
@@ -646,8 +648,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 				),
 				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
-					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+					pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					pullBackStats != null ? pullBackStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				),
 				// BREAK_OUT
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
@@ -656,8 +658,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 				),
 				TradingCalculationUtil.calculateAverageRnR(  // ✅ Util 사용
-					reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-					reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+					breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
+					breakOutStats != null ? breakOutStats.get(3, BigDecimal.class) : BigDecimal.ZERO
 				)
 			);
 		}
