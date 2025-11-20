@@ -34,7 +34,7 @@ public class LectureRequestDTO {
     private Integer durationSeconds;
 
     @NotNull
-    @Schema(description = "챕터 내 정렬 순서(1..N)", example = "1")
+    @Schema(description = "강의 내 정렬 순서(1..N)", example = "1")
     private Integer lectureOrder;
 
     @NotNull

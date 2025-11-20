@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface LectureProgressRepository extends JpaRepository<LectureProgress, Long>{
 
@@ -17,4 +18,13 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
     List<LectureProgress> findByCustomerId(Long customerId);
 
     Optional<LectureProgress> findByLectureIdAndCustomerId(Long lectureId, Long customerId);
+
+    @Query("""
+        SELECT COUNT(lp)
+        FROM LectureProgress lp
+        WHERE lp.customer.id = :customerId
+          AND lp.lecture.chapter.chapterType = com.tradingpt.tpt_api.domain.lecture.enums.ChapterType.PRO
+          AND lp.isCompleted = true
+        """)
+    int countCompletedProLectures(@Param("customerId") Long customerId);
 }
