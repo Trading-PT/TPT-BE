@@ -30,6 +30,9 @@ public class FeedbackRequestListItemResponseDTO {
 	@Schema(description = "고객 이름")
 	private String customerName;
 
+	@Schema(description = "매매일지 제목")
+	private String title;
+
 	@Schema(description = "투자 타입", example = "DAY")
 	private InvestmentType investmentType;
 
@@ -68,6 +71,7 @@ public class FeedbackRequestListItemResponseDTO {
 			.id(request.getId())
 			.customerId(request.getCustomer().getId())
 			.customerName(request.getCustomer().getUsername())
+			.title(request.getTitle())
 			.investmentType(request.getInvestmentType())
 			.courseStatus(request.getCourseStatus())
 			.status(request.getStatus())
