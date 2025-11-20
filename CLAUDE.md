@@ -140,8 +140,31 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
   - Document with Swagger `@Schema` annotation
 - Response: `{Entity}ResponseDTO`
   - Use `@Getter` + `@Builder` (or record for simple DTOs)
-  - Provide `from(Entity)` static factory method for entity-to-DTO conversion
+  - **MUST provide `from(Entity)` static factory method** for entity-to-DTO conversion
+  - **Never build DTO directly in Service layer** - use static factory method instead
   - Document with Swagger `@Schema` annotation
+  - Example:
+    ```java
+    // ❌ BAD: Service에서 직접 Builder 사용
+    return CustomerResponseDTO.builder()
+        .id(customer.getId())
+        .name(customer.getName())
+        .phoneNumber(customer.getPhoneNumber())
+        .build();
+
+    // ✅ GOOD: DTO에 static factory method 작성
+    // In DTO:
+    public static CustomerResponseDTO from(Customer customer) {
+        return CustomerResponseDTO.builder()
+            .id(customer.getId())
+            .name(customer.getName())
+            .phoneNumber(customer.getPhoneNumber())
+            .build();
+    }
+
+    // In Service:
+    return CustomerResponseDTO.from(customer);
+    ```
 
 **Entity**:
 - Use `@SuperBuilder` + `@NoArgsConstructor(access = PROTECTED)` + `@AllArgsConstructor`
@@ -511,6 +534,19 @@ if (memoRepository.existsByCustomer_Id(customerId)) {
 
 ### Code Style
 - Use Java 17 with four-space indentation (spaces, not tabs)
+- **Import Statements**:
+  - **Always use import statements** for class references
+  - **Never use full package paths** in method bodies or variable declarations
+  - Example:
+    ```java
+    // ❌ BAD: Full package path in code
+    List<com.tradingpt.tpt_api.domain.consultation.entity.Consultation> consultations = ...;
+
+    // ✅ GOOD: Use import statement
+    import com.tradingpt.tpt_api.domain.consultation.entity.Consultation;
+    // ...
+    List<Consultation> consultations = ...;
+    ```
 - Lombok usage:
   - `@RequiredArgsConstructor` for constructor injection (preferred)
   - `@Getter` for entities and DTOs (no `@Setter` for immutability)

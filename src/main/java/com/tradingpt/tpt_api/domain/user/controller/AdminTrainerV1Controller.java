@@ -1,17 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
-import com.tradingpt.tpt_api.domain.user.dto.request.TrainerRequestDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.AssignedCustomerDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.TrainerListResponseDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.TrainerResponseDTO;
-import com.tradingpt.tpt_api.domain.user.service.command.AdminTrainerCommandService;
-import com.tradingpt.tpt_api.domain.user.service.command.AdminTrainerQueryService;
-import com.tradingpt.tpt_api.global.common.BaseResponse;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -27,6 +17,19 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.tradingpt.tpt_api.domain.user.dto.request.TrainerRequestDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.AssignedCustomerDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.TrainerListResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.TrainerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.service.command.AdminTrainerCommandService;
+import com.tradingpt.tpt_api.domain.user.service.command.AdminTrainerQueryService;
+import com.tradingpt.tpt_api.global.common.BaseResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 @Validated
 @RestController
 @RequestMapping("/api/v1/admin/trainers")
@@ -41,8 +44,8 @@ public class AdminTrainerV1Controller {
 	@PostMapping(consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_ADMIN')") // 관리자 전용
 	public ResponseEntity<BaseResponse<TrainerResponseDTO>> createTrainer(
-			 @Valid @ModelAttribute TrainerRequestDTO request,
-			@RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+		@Valid @ModelAttribute TrainerRequestDTO request,
+		@RequestPart(value = "profileImage", required = false) MultipartFile profileImage
 	) {
 		TrainerResponseDTO trainerResponseDTO = adminTrainerCommandService.createTrainer(request, profileImage);
 		return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccessCreate(trainerResponseDTO));
@@ -52,9 +55,9 @@ public class AdminTrainerV1Controller {
 	@PutMapping(value = "/{trainerId}", consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<BaseResponse<TrainerResponseDTO>> updateTrainer(
-			@PathVariable Long trainerId,
-			@Valid @ModelAttribute TrainerRequestDTO request,
-			@RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+		@PathVariable Long trainerId,
+		@Valid @ModelAttribute TrainerRequestDTO request,
+		@RequestPart(value = "profileImage", required = false) MultipartFile profileImage
 	) {
 		TrainerResponseDTO dto = adminTrainerCommandService.updateTrainer(trainerId, request, profileImage);
 		return ResponseEntity.ok(BaseResponse.onSuccess(dto));
@@ -75,24 +78,25 @@ public class AdminTrainerV1Controller {
 		List<TrainerListResponseDTO> trainerListResponseDTO = adminTrainerQueryService.getTrainers();
 		return ResponseEntity.ok(BaseResponse.onSuccess(trainerListResponseDTO));
 	}
+	
 	@Operation(summary = "트레이너별 배정 고객 목록 조회",
-			description = "특정 트레이너에게 배정된 고객 목록(고객 ID/이름)을 반환합니다.")
+		description = "특정 트레이너에게 배정된 고객 목록(고객 ID/이름)을 반환합니다.")
 	@GetMapping("/{trainerId}/customers")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<BaseResponse<List<AssignedCustomerDTO>>> getAssignedCustomers(
-			@PathVariable Long trainerId
+		@PathVariable Long trainerId
 	) {
-		List<AssignedCustomerDTO> assignedCustomerDTO  = adminTrainerQueryService.getAssignedCustomers(trainerId);
+		List<AssignedCustomerDTO> assignedCustomerDTO = adminTrainerQueryService.getAssignedCustomers(trainerId);
 		return ResponseEntity.ok(BaseResponse.onSuccess(assignedCustomerDTO));
 	}
 
 	@Operation(summary = "고객의 배정 트레이너 변경",
-			description = "특정 고객의 배정 트레이너를 path의 {trainerId}로 변경합니다.")
+		description = "특정 고객의 배정 트레이너를 path의 {trainerId}로 변경합니다.")
 	@PutMapping("/{trainerId}/customers/{customerId}")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<BaseResponse<Long>> reassignCustomerToTrainer(
-			@PathVariable Long trainerId,
-			@PathVariable Long customerId
+		@PathVariable Long trainerId,
+		@PathVariable Long customerId
 	) {
 		Long updatedCustomerId = adminTrainerCommandService.reassignCustomerToTrainer(trainerId, customerId);
 		return ResponseEntity.ok(BaseResponse.onSuccess(updatedCustomerId));

@@ -9,7 +9,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubmitRequest
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptSubmitResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
@@ -53,7 +53,7 @@ public class LeveltestCommandServiceImpl implements LeveltestCommandService {
 		// 3) 시도 생성 (SUBMITTED)
 		LevelTestAttempt attempt = LevelTestAttempt.builder()
 			.customer(customer)
-			.status(LeveltestStaus.SUBMITTED)
+			.status(LevelTestStaus.SUBMITTED)
 			.totalScore(0)
 			.build();
 		attemptRepository.save(attempt);

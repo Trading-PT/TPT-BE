@@ -3,10 +3,16 @@ package com.tradingpt.tpt_api.domain.user.repository;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
-import java.util.Set;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public interface CustomerRepositoryCustom {
 	/**
@@ -20,8 +26,36 @@ public interface CustomerRepositoryCustom {
 	Map<Long, List<AssignedCustomerInfo>> findAssignedMapByTrainerIds(Set<Long> trainerIds);
 
 	Map<Long, List<AssignedCustomerInfo>> findAssignedMapByAdminIds(Set<Long> adminIds);
-	@lombok.Getter
-	@lombok.AllArgsConstructor
+
+	/**
+	 * 미구독(무료) 고객 목록 조회
+	 *
+	 * 조건:
+	 * - ACTIVE 상태의 Subscription이 없음
+	 * - membershipLevel이 BASIC
+	 * - 담당 트레이너가 없음 (assignedTrainer IS NULL)
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 미구독 고객 Slice
+	 */
+	Slice<Customer> findFreeCustomers(Pageable pageable);
+
+	/**
+	 * 신규 구독 고객 목록 조회
+	 *
+	 * 조건:
+	 * - ACTIVE 상태의 Subscription 보유
+	 * - 다음 중 하나에 해당:
+	 *   1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
+	 *   2. 트레이너가 아직 배정되지 않음 (assignedTrainer IS NULL)
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 신규 구독 고객 Slice
+	 */
+	Slice<Customer> findNewSubscriptionCustomers(Pageable pageable);
+
+	@Getter
+	@AllArgsConstructor
 	class AssignedCustomerInfo {
 		private Long customerId;
 		private String name;
