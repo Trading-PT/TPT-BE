@@ -17,7 +17,7 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.CreateWeeklyTradingSummaryRequestDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.exception.WeeklyTradingSummaryErrorStatus;
@@ -35,11 +35,11 @@ import lombok.extern.slf4j.Slf4j;
 public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSummaryCommandService {
 
 	private final CustomerRepository customerRepository;
-	private final UserRepository userRepository;
 	private final WeeklyTradingSummaryRepository weeklyTradingSummaryRepository;
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final ContentImageUploader contentImageUploader;
+	private final TrainerRepository trainerRepository;
 
 	/**
 	 * =============================
@@ -66,7 +66,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 3. 트레이너 조회
-		Trainer trainer = (Trainer)userRepository.findById(trainerId)
+		Trainer trainer = trainerRepository.findById(trainerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
 		// 4. 해당 주의 투자 타입 조회
@@ -180,9 +180,12 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			"weekly-summaries"
 		);
 
-		// 9. 트레이너는 임시로 고객과 동일하게 설정 (나중에 변경 가능)
-		Trainer trainer = (Trainer)userRepository.findById(customer.getAssignedTrainer().getId())
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 9. 트레이너 조회 (멤버십 미가입 고객은 트레이너가 없을 수 있음)
+		Trainer trainer = null;
+		if (customer.getAssignedTrainer() != null) {
+			trainer = trainerRepository.findById(customer.getAssignedTrainer().getId())
+				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		}
 
 		WeeklyTradingSummary summary = WeeklyTradingSummary.createFromProcessed(
 			processedMemo,
