@@ -1,11 +1,21 @@
 package com.tradingpt.tpt_api.domain.leveltest.entity;
 
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestGrade;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestGrade;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -34,14 +44,14 @@ public class LevelTestAttempt extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "grade")
-	private LeveltestGrade grade;
+	private LevelTestGrade grade;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status")
-	private LeveltestStaus status;
+	private LevelTestStaus status;
 
 	public void markGraded() {
-		this.status = LeveltestStaus.GRADED;
+		this.status = LevelTestStaus.GRADED;
 	}
 
 	public void updateTotalScore(int total) {

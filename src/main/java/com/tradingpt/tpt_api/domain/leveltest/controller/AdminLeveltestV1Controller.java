@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.leveltest.controller;
 
-import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -28,9 +27,9 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestMultipleChoic
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubjectiveRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptListResponseDTO;
-
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.service.command.AdminLeveltestCommandService;
 import com.tradingpt.tpt_api.domain.leveltest.service.query.AdminLeveltestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -148,7 +147,7 @@ public class AdminLeveltestV1Controller {
 	@Operation(summary = "레벨테스트 시도 목록 조회 (상태별)")
 	@GetMapping("attempts")
 	public ResponseEntity<BaseResponse<Page<AdminLeveltestAttemptListResponseDTO>>> getAttempts(
-		@RequestParam(defaultValue = "GRADING") LeveltestStaus status,
+		@RequestParam(defaultValue = "GRADING") LevelTestStaus status,
 		@PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
 	) {
 		Page<AdminLeveltestAttemptListResponseDTO> page = queryService.getAttemptsByStatus(status, pageable);

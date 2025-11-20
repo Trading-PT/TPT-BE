@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 
-public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
+public interface SubscriptionRepository extends JpaRepository<Subscription, Long>, SubscriptionRepositoryCustom {
 
     /**
      * 상태별 구독 조회

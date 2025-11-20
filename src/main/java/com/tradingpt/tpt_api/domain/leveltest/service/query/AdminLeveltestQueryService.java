@@ -7,7 +7,7 @@ import org.springframework.data.domain.Slice;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptListResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 
 public interface AdminLeveltestQueryService {
 
@@ -15,7 +15,7 @@ public interface AdminLeveltestQueryService {
 
 	Slice<LevelTestQuestionDetailResponseDTO> getQuestions(Pageable pageable);
 
-	Page<AdminLeveltestAttemptListResponseDTO> getAttemptsByStatus(LeveltestStaus status, Pageable pageable);
+	Page<AdminLeveltestAttemptListResponseDTO> getAttemptsByStatus(LevelTestStaus status, Pageable pageable);
 
 	AdminLeveltestAttemptDetailResponseDTO getAttemptDetail(Long attemptId);
 }

@@ -14,7 +14,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDeta
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
@@ -48,7 +48,7 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 	}
 
 	@Override
-	public Page<AdminLeveltestAttemptListResponseDTO> getAttemptsByStatus(LeveltestStaus status, Pageable pageable) {
+	public Page<AdminLeveltestAttemptListResponseDTO> getAttemptsByStatus(LevelTestStaus status, Pageable pageable) {
 		Page<LevelTestAttempt> page = leveltestAttemptRepository.findAllByStatus(status, pageable);
 
 		return page.map(attempt ->

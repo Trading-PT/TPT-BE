@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
-import com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
 import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
@@ -30,7 +30,7 @@ public class GradingService {
 	@Transactional
 	public void gradeAttemptSafely(Long attemptId) {
 		// 1) 선점: SUBMITTED → GRADING (원자적 상태 플립)
-		int acquired = attemptRepository.acquireForGrading(attemptId, LeveltestStaus.SUBMITTED, LeveltestStaus.GRADING);
+		int acquired = attemptRepository.acquireForGrading(attemptId, LevelTestStaus.SUBMITTED, LevelTestStaus.GRADING);
 		if (acquired == 0) {
 			// 이미 누군가 채점 중이거나 완료됨 → 중복 방지
 			return;

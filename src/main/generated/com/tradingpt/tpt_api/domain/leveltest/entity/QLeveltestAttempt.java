@@ -29,11 +29,11 @@ public class QLevelTestAttempt extends EntityPathBase<LevelTestAttempt> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestGrade> grade = createEnum("grade", com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestGrade.class);
+    public final EnumPath<com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestGrade> grade = createEnum("grade", com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestGrade.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus> status = createEnum("status", com.tradingpt.tpt_api.domain.leveltest.enums.LeveltestStaus.class);
+    public final EnumPath<com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus> status = createEnum("status", com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus.class);
 
     public final NumberPath<Integer> totalScore = createNumber("totalScore", Integer.class);
 
