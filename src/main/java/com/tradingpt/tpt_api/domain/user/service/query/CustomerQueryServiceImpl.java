@@ -7,6 +7,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListItemDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -48,5 +49,26 @@ public class CustomerQueryServiceImpl implements CustomerQueryService {
 		SliceInfo sliceInfo = SliceInfo.of(customerSlice);
 
 		return MyCustomerListResponseDTO.of(customerDTOs, sliceInfo);
+	}
+
+	/**
+	 * 미구독(무료) 고객 목록 조회
+	 *
+	 * 비즈니스 로직:
+	 * 1. ACTIVE 구독이 없는 BASIC 멤버십 고객 조회
+	 * 2. 담당 트레이너가 없는 고객만 조회
+	 * 3. Slice 방식 페이징 (무한 스크롤)
+	 * 4. Repository에서 조회 후 DTO 변환
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 미구독 고객 Slice
+	 */
+	@Override
+	public Slice<FreeCustomerResponseDTO> getFreeCustomers(Pageable pageable) {
+		// 1. Repository에서 미구독 고객 조회
+		Slice<Customer> customerSlice = customerRepository.findFreeCustomers(pageable);
+
+		// 2. Entity를 DTO로 변환 (Slice 유지)
+		return customerSlice.map(FreeCustomerResponseDTO::from);
 	}
 }

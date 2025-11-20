@@ -4,6 +4,7 @@ import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDTO;
@@ -90,21 +92,21 @@ public class AdminUserV1Controller {
 		summary = "내 담당 고객 목록 조회 (무한 스크롤)",
 		description = """
 			트레이너가 담당하는 고객 목록을 무한 스크롤 방식으로 조회합니다.
-			
+
 			특징:
 			- 자신이 담당하는 고객만 조회
 			- 고객 기본 정보 (이름, 전화번호, 투자 유형, 멤버십, 토큰)
 			- 최신 배정 순으로 정렬
 			- Slice 기반 무한 스크롤 지원
-			
+
 			사용 시나리오:
 			- 내 담당 고객 관리 페이지
 			- 각 고객별로 피드백 내역, 과제 관리, 평가 관리 가능
-			
+
 			페이징 파라미터:
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-			
+
 			예시:
 			- GET /api/v1/admin/customers/my-customers
 			- GET /api/v1/admin/customers/my-customers?page=0&size=20
@@ -119,5 +121,50 @@ public class AdminUserV1Controller {
 		return BaseResponse.onSuccess(
 			customerQueryService.getMyCustomers(trainerId, pageable)
 		);
+	}
+
+	@Operation(
+		summary = "미구독(무료) 고객 목록 조회",
+		description = """
+			미구독 상태의 무료 고객 목록을 조회합니다.
+
+			미구독 고객 정의:
+			1. Subscription이 없거나 ACTIVE 상태가 아닌 고객
+			2. membershipLevel이 BASIC인 고객
+			3. 담당 트레이너가 없는 고객 (assignedTrainer IS NULL)
+
+			조회 정보:
+			- 고객 ID, 이름, 전화번호
+			- 현재 투자 유형 (SCALPING, DAY, SWING)
+			- 보유 토큰 수
+			- 가입일시
+
+			정렬 옵션 (sort 파라미터):
+			- createdAt,desc: 최근 가입 순 (기본값)
+			- createdAt,asc: 오래된 가입 순
+			- name,asc: 이름 오름차순
+			- name,desc: 이름 내림차순
+			- tokenCount,desc: 토큰 많은 순
+			- tokenCount,asc: 토큰 적은 순
+
+			페이징:
+			- Slice 방식 (무한 스크롤)
+			- page: 페이지 번호 (0부터 시작)
+			- size: 페이지 크기 (기본값: 20)
+
+			예시:
+			- GET /api/v1/admin/users/free-customers
+			- GET /api/v1/admin/users/free-customers?page=0&size=20&sort=createdAt,desc
+			- GET /api/v1/admin/users/free-customers?sort=tokenCount,desc
+			"""
+	)
+	@GetMapping("/free-customers")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<Slice<FreeCustomerResponseDTO>> getFreeCustomers(
+		@Parameter(description = "페이징 정보 (page, size, sort)")
+		@PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC)
+		Pageable pageable
+	) {
+		return BaseResponse.onSuccess(customerQueryService.getFreeCustomers(pageable));
 	}
 }
