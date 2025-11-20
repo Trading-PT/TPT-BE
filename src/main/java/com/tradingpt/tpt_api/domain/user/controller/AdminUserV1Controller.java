@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
@@ -166,5 +167,50 @@ public class AdminUserV1Controller {
 		Pageable pageable
 	) {
 		return BaseResponse.onSuccess(customerQueryService.getFreeCustomers(pageable));
+	}
+
+	@Operation(
+		summary = "신규 구독 고객 목록 조회",
+		description = """
+			신규로 구독한 고객 목록을 조회합니다.
+
+			신규 구독 고객 정의:
+			- ACTIVE 상태의 Subscription 보유
+			- 다음 중 하나에 해당:
+			  1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
+			  2. 트레이너가 아직 배정되지 않은 구독 고객
+
+			조회 정보:
+			- 고객 기본 정보 (ID, 이름, 전화번호)
+			- 레벨테스트 정보 (응시 여부, 상태, 채점 결과)
+			- 상담 여부
+			- 배정된 트레이너 정보
+
+			레벨테스트 상태:
+			- SUBMITTED: 제출됨
+			- GRADING: 채점 중
+			- GRADED: 채점 완료
+
+			정렬:
+			- 구독 시작일 내림차순 (최신순)
+
+			페이징:
+			- Slice 방식 (무한 스크롤)
+			- page: 페이지 번호 (0부터 시작)
+			- size: 페이지 크기 (기본값: 20)
+
+			예시:
+			- GET /api/v1/admin/users/new-subscription-customers
+			- GET /api/v1/admin/users/new-subscription-customers?page=0&size=20
+			"""
+	)
+	@GetMapping("/new-subscription-customers")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<Slice<NewSubscriptionCustomerResponseDTO>> getNewSubscriptionCustomers(
+		@Parameter(description = "페이징 정보 (page, size)")
+		@PageableDefault(size = 20)
+		Pageable pageable
+	) {
+		return BaseResponse.onSuccess(customerQueryService.getNewSubscriptionCustomers(pageable));
 	}
 }

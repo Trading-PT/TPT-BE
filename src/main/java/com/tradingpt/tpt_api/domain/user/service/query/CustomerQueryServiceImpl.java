@@ -7,9 +7,15 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.consultation.entity.Consultation;
+import com.tradingpt.tpt_api.domain.consultation.repository.ConsultationRepository;
+import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
+import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
+import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListItemDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -28,6 +34,8 @@ public class CustomerQueryServiceImpl implements CustomerQueryService {
 
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
+	private final LeveltestAttemptRepository leveltestAttemptRepository;
+	private final ConsultationRepository consultationRepository;
 
 	@Override
 	public MyCustomerListResponseDTO getMyCustomers(Long trainerId, Pageable pageable) {
@@ -70,5 +78,92 @@ public class CustomerQueryServiceImpl implements CustomerQueryService {
 
 		// 2. Entity를 DTO로 변환 (Slice 유지)
 		return customerSlice.map(FreeCustomerResponseDTO::from);
+	}
+
+	/**
+	 * 신규 구독 고객 목록 조회
+	 *
+	 * 비즈니스 로직:
+	 * 1. Repository에서 신규 구독 고객 조회
+	 *    - 24시간 이내 구독 OR 트레이너 미배정 고객
+	 * 2. 각 고객별로 레벨테스트 정보 조회
+	 * 3. 각 고객별로 상담 여부 확인
+	 * 4. DTO로 변환하여 반환
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 신규 구독 고객 Slice
+	 */
+	@Override
+	public Slice<NewSubscriptionCustomerResponseDTO> getNewSubscriptionCustomers(Pageable pageable) {
+		// 1. Repository에서 신규 구독 고객 조회
+		Slice<Customer> customerSlice = customerRepository.findNewSubscriptionCustomers(pageable);
+
+		// 2. Entity를 DTO로 변환 (Slice 유지)
+		return customerSlice.map(this::toNewSubscriptionCustomerResponseDTO);
+	}
+
+	/**
+	 * Customer 엔티티를 NewSubscriptionCustomerResponseDTO로 변환
+	 *
+	 * @param customer Customer 엔티티
+	 * @return NewSubscriptionCustomerResponseDTO
+	 */
+	private NewSubscriptionCustomerResponseDTO toNewSubscriptionCustomerResponseDTO(Customer customer) {
+		// 1. 레벨테스트 정보 조회 (최신순으로 GRADED > GRADING > SUBMITTED 우선)
+		boolean hasAttemptedLevelTest = leveltestAttemptRepository.existsByCustomer_Id(customer.getId());
+		NewSubscriptionCustomerResponseDTO.LevelTestInfo levelTestInfo = null;
+
+		if (hasAttemptedLevelTest) {
+			// GRADED 상태 조회 시도
+			List<LevelTestAttempt> gradedAttempts = leveltestAttemptRepository
+				.findByCustomer_IdAndStatus(customer.getId(), LevelTestStaus.GRADED);
+
+			if (!gradedAttempts.isEmpty()) {
+				LevelTestAttempt latestGraded = gradedAttempts.get(0);  // 최신 것
+				levelTestInfo = NewSubscriptionCustomerResponseDTO.LevelTestInfo.builder()
+					.status(latestGraded.getStatus().name())
+					.grade(latestGraded.getGrade() != null ? latestGraded.getGrade().name() : null)
+					.gradingTrainerName(latestGraded.getTrainer() != null
+						? latestGraded.getTrainer().getName()
+						: null)  // NPE 방지
+					.build();
+			} else {
+				// GRADING 또는 SUBMITTED 상태 조회
+				List<LevelTestAttempt> gradingAttempts = leveltestAttemptRepository
+					.findByCustomer_IdAndStatus(customer.getId(), LevelTestStaus.GRADING);
+
+				if (!gradingAttempts.isEmpty()) {
+					LevelTestAttempt latestGrading = gradingAttempts.get(0);
+					levelTestInfo = NewSubscriptionCustomerResponseDTO.LevelTestInfo.builder()
+						.status(latestGrading.getStatus().name())
+						.grade(latestGrading.getGrade() != null ? latestGrading.getGrade().name() : null)
+						.gradingTrainerName(latestGrading.getTrainer() != null
+							? latestGrading.getTrainer().getName()
+							: null)  // NPE 방지
+						.build();
+				} else {
+					// SUBMITTED 상태 조회
+					List<LevelTestAttempt> submittedAttempts = leveltestAttemptRepository
+						.findByCustomer_IdAndStatus(customer.getId(), LevelTestStaus.SUBMITTED);
+
+					if (!submittedAttempts.isEmpty()) {
+						LevelTestAttempt latestSubmitted = submittedAttempts.get(0);
+						levelTestInfo = NewSubscriptionCustomerResponseDTO.LevelTestInfo.builder()
+							.status(latestSubmitted.getStatus().name())
+							.grade(null)
+							.gradingTrainerName(null)
+							.build();
+					}
+				}
+			}
+		}
+
+		// 2. 상담 여부 확인
+		List<Consultation> consultations =
+			consultationRepository.findByCustomerIdOrderByConsultationDateDescConsultationTimeDesc(customer.getId());
+		boolean hasConsultation = !consultations.isEmpty();
+
+		// 3. DTO 생성 (static factory method 사용)
+		return NewSubscriptionCustomerResponseDTO.from(customer, hasAttemptedLevelTest, levelTestInfo, hasConsultation);
 	}
 }

@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.leveltest.entity;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestGrade;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -35,10 +36,20 @@ public class LevelTestAttempt extends BaseEntity {
 	@Column(name = "leveltest_attempt_id")
 	private Long id;
 
+	/**
+	 * 연관 관계 매핑
+	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "customer_id", referencedColumnName = "user_id", nullable = false)
 	private Customer customer;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "trainer_id", nullable = true)
+	private Trainer trainer;
+
+	/**
+	 * 필드
+	 */
 	@Column(name = "total_score")
 	private Integer totalScore;
 

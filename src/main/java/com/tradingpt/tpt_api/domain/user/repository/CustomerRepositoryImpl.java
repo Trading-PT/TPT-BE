@@ -5,6 +5,7 @@ import static com.tradingpt.tpt_api.domain.subscription.entity.QSubscription.*;
 import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.*;
 import static com.tradingpt.tpt_api.domain.user.entity.QUid.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,8 +26,6 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.QUser;
-import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 
@@ -214,5 +213,60 @@ public class CustomerRepositoryImpl implements CustomerRepositoryCustom {
 		}
 
 		return orders.toArray(new OrderSpecifier[0]);
+	}
+
+	/**
+	 * 신규 구독 고객 목록 조회
+	 *
+	 * 신규 구독 고객 정의:
+	 * 1. ACTIVE 상태의 Subscription 보유
+	 * 2. 다음 중 하나에 해당:
+	 *    - Subscription.createdAt이 24시간 이내
+	 *    - 트레이너가 아직 배정되지 않음 (assignedTrainer IS NULL)
+	 *
+	 * 성능 최적화 전략:
+	 * - INNER JOIN으로 Subscription 조회 (필수 조건)
+	 * - assignedTrainer fetch join (N+1 방지)
+	 * - Slice 방식: limit + 1로 hasNext 판단
+	 *
+	 * @param pageable 페이징 정보 (정렬 포함)
+	 * @return 신규 구독 고객 Slice
+	 */
+	@Override
+	public Slice<Customer> findNewSubscriptionCustomers(Pageable pageable) {
+		// 24시간 전 시점 계산
+		LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
+
+		// 1. 신규 구독 고객 조회 (limit + 1 방식)
+		List<Customer> content = queryFactory
+			.selectDistinct(customer)
+			.from(customer)
+			.innerJoin(subscription).on(subscription.customer.eq(customer))
+			.leftJoin(customer.assignedTrainer).fetchJoin()
+			.where(
+				// 신규 구독 조건
+				subscription.status.eq(Status.ACTIVE),
+				// 24시간 이내 신규 구독 OR 트레이너 미배정
+				subscription.createdAt.after(twentyFourHoursAgo)
+					.or(customer.assignedTrainer.isNull())
+			)
+			.orderBy(subscription.createdAt.desc())  // 최신 구독순
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize() + 1)  // +1로 hasNext 판단
+			.fetch();
+
+		// 2. 빈 결과 체크
+		if (content.isEmpty()) {
+			return new SliceImpl<>(content, pageable, false);
+		}
+
+		// 3. hasNext 판단 및 마지막 요소 제거
+		boolean hasNext = false;
+		if (content.size() > pageable.getPageSize()) {
+			hasNext = true;
+			content.remove(pageable.getPageSize());
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
 	}
 }

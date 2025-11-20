@@ -1876,6 +1876,96 @@ public class LectureProgressService {
 - Constructor Injection 우선 (`@RequiredArgsConstructor`)
 - Lombok 적극 활용 (`@Getter`, `@Builder`, `@SuperBuilder`)
 
+**Import 규칙** (필수):
+- **항상 import 문 사용** - 메서드 바디에서 전체 패키지 경로 절대 금지
+- 코드 가독성 향상 및 길이 감소를 위한 필수 규칙
+
+```java
+// ❌ BAD: 전체 패키지 경로 사용
+List<com.tradingpt.tpt_api.domain.consultation.entity.Consultation> consultations =
+    consultationRepository.findByCustomerIdOrderByConsultationDateDescConsultationTimeDesc(customerId);
+
+// ✅ GOOD: import 문 사용
+import com.tradingpt.tpt_api.domain.consultation.entity.Consultation;
+// ...
+List<Consultation> consultations =
+    consultationRepository.findByCustomerIdOrderByConsultationDateDescConsultationTimeDesc(customerId);
+```
+
+**DTO 패턴** (필수):
+- Response DTO는 **반드시 static factory method** 제공
+- **Service에서 직접 Builder 사용 금지** - 코드가 너무 길어짐
+- Entity를 받아서 DTO로 변환하는 `from()` 메서드 작성
+
+```java
+// ❌ BAD: Service에서 직접 Builder 사용
+@Service
+public class CustomerQueryServiceImpl {
+    private CustomerResponseDTO toDTO(Customer customer) {
+        return CustomerResponseDTO.builder()
+            .customerId(customer.getId())
+            .name(customer.getName())
+            .phoneNumber(customer.getPhoneNumber())
+            .hasAttemptedLevelTest(hasAttemptedLevelTest)
+            .levelTestInfo(levelTestInfo)
+            .hasConsultation(hasConsultation)
+            .assignedTrainerName(customer.getAssignedTrainer() != null
+                ? customer.getAssignedTrainer().getName()
+                : null)
+            .build();  // 코드가 너무 길어짐!
+    }
+}
+
+// ✅ GOOD: DTO에 static factory method 작성
+@Getter
+@Builder
+public class CustomerResponseDTO {
+    private Long customerId;
+    private String name;
+    private String phoneNumber;
+    private Boolean hasAttemptedLevelTest;
+    private LevelTestInfo levelTestInfo;
+    private Boolean hasConsultation;
+    private String assignedTrainerName;
+
+    /**
+     * Customer 엔티티로부터 DTO 생성
+     */
+    public static CustomerResponseDTO from(
+        Customer customer,
+        boolean hasAttemptedLevelTest,
+        LevelTestInfo levelTestInfo,
+        boolean hasConsultation
+    ) {
+        return CustomerResponseDTO.builder()
+            .customerId(customer.getId())
+            .name(customer.getName())
+            .phoneNumber(customer.getPhoneNumber())
+            .hasAttemptedLevelTest(hasAttemptedLevelTest)
+            .levelTestInfo(levelTestInfo)
+            .hasConsultation(hasConsultation)
+            .assignedTrainerName(customer.getAssignedTrainer() != null
+                ? customer.getAssignedTrainer().getName()
+                : null)
+            .build();
+    }
+}
+
+// Service에서 간결하게 사용
+@Service
+public class CustomerQueryServiceImpl {
+    private CustomerResponseDTO toDTO(Customer customer) {
+        // 레벨테스트 정보 조회
+        boolean hasAttemptedLevelTest = leveltestAttemptRepository.existsByCustomer_Id(customer.getId());
+        LevelTestInfo levelTestInfo = getLevelTestInfo(customer);
+        boolean hasConsultation = hasConsultation(customer);
+
+        // DTO factory method 사용 - 한 줄로 간결!
+        return CustomerResponseDTO.from(customer, hasAttemptedLevelTest, levelTestInfo, hasConsultation);
+    }
+}
+```
+
 **네이밍**:
 - Controller: `{Entity}{Role}V{version}Controller`
 - Service: `{Entity}{Command|Query}Service` + `Impl`
