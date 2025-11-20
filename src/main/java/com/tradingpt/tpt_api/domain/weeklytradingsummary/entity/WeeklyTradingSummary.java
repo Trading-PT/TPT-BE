@@ -48,7 +48,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	private Customer customer;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "trainer_id", nullable = false)
+	@JoinColumn(name = "trainer_id", nullable = true)  // 멤버십 미가입 고객은 트레이너가 없을 수 있음
 	private Trainer trainer;
 
 	/**
