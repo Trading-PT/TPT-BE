@@ -28,4 +28,11 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
             "left join fetch l.attachments " +
             "where l.id = :id")
     Optional<Lecture> findByIdWithAttachments(@Param("id") Long id);
+
+    @Query("""
+    SELECT COUNT(l)
+    FROM Lecture l
+    WHERE l.chapter.chapterType = com.tradingpt.tpt_api.domain.lecture.enums.ChapterType.PRO
+    """)
+    int countProLectures();
 }

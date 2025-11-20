@@ -284,4 +284,12 @@ public class Customer extends User {
 		}
 		return LocalDateTime.now().isBefore(membershipExpiredAt);
 	}
+
+	public void updateOpenChapterNumber(int chapterNumber) {
+		this.openChapterNumber = chapterNumber;
+	}
+
+	public void updateCourseStatus(CourseStatus status) {
+		this.courseStatus = status;
+	}
 }
