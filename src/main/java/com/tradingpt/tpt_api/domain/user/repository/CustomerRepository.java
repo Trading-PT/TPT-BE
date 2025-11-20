@@ -1,5 +1,8 @@
 package com.tradingpt.tpt_api.domain.user.repository;
 
+import static com.tradingpt.tpt_api.domain.user.enums.CourseStatus.PENDING_COMPLETION;
+
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,4 +42,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 
 	// 여러 UID 상태 조회
 	List<Customer> findByUserStatusIn(List<UserStatus> statuses);
+
+	List<Customer> findAllByCourseStatus(CourseStatus PENDING_COMPLETION);
 }

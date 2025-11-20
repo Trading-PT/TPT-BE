@@ -11,6 +11,7 @@ import com.tradingpt.tpt_api.domain.lecture.repository.CustomerAssignmentReposit
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -95,8 +96,23 @@ public class LectureCommandServiceImpl implements LectureCommandService {
                 .findByLectureIdAndCustomerId(lectureId, customer.getId())
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
+        // 1) 개별 강의 진도 업데이트
         progress.updateProgress(currentSeconds, duration);
+
+
+        //  2) PRO 전체 강의 중 몇 개가 completed인지 체크
+        int completedCount = lectureProgressRepository.countCompletedProLectures(customer.getId());
+        int totalProLectures = lectureRepository.countProLectures();
+
+
+        //  3) 전체 완강했으면 Customer 상태를 BEFORE → PENDING 으로 변경
+        if (completedCount == totalProLectures &&
+                customer.getCourseStatus() == CourseStatus.BEFORE_COMPLETION) {
+
+            customer.updateCourseStatus(CourseStatus.PENDING_COMPLETION);
+        }
     }
+
 
     /**
      * 과제 제출

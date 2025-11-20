@@ -5,6 +5,7 @@ import com.tradingpt.tpt_api.domain.lecture.entity.Chapter;
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureAttachment;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import com.tradingpt.tpt_api.domain.lecture.repository.ChapterRepository;
@@ -214,16 +215,20 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
     @Override
     @Transactional
     public Long openLecture(Long lectureId, Long customerId) {
+        // 1. 강의 조회
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
+        // 2. 고객 조회
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
+        // 3. 해당 강의가 이미 열려 있는지 확인
         boolean exists = lectureProgressRepository
                 .existsByLectureIdAndCustomerId(lectureId, customerId);
 
         if (!exists) {
+            // 3-1. LectureProgress 저장 (실제 오픈)
             lectureProgressRepository.save(
                     LectureProgress.builder()
                             .lecture(lecture)
@@ -232,6 +237,13 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                             .isCompleted(false)
                             .build()
             );
+
+            // 3-2. PRO 챕터에 대한 강의라면, openChapterNumber + 1
+            if (lecture.getChapter().getChapterType() == ChapterType.PRO) {
+                Integer current = customer.getOpenChapterNumber();
+                int newValue = (current == null ? 0 : current) + 1;
+                customer.updateOpenChapterNumber(newValue);
+            }
         }
 
         return lectureId;

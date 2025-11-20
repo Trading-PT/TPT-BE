@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.lecture.controller;
 import com.tradingpt.tpt_api.domain.lecture.dto.LectureListResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.request.ChapterCreateRequestDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterListResponseDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.CustomerHomeworkSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureRequestDTO;
 import com.tradingpt.tpt_api.domain.lecture.service.command.AdminChapterCommandService;
@@ -148,5 +149,17 @@ public class AdminLectureV1Controller {
     ) {
         Long openedLectureId = adminLectureCommandService.openLecture(lectureId, customerId);
         return ResponseEntity.ok(BaseResponse.onSuccess(openedLectureId));
+    }
+
+    @Operation(
+            summary = "특정 회원 과제 현황 조회(어드민)",
+            description = " 내 담당 고객 관리 > 과제 관리 화면에 필요한 데이터를 반환합니다."
+    )
+    @GetMapping("/customers/{customerId}/homeworks")
+    public ResponseEntity<BaseResponse<CustomerHomeworkSummaryResponseDTO>> getCustomerHomeworkStatus(
+            @PathVariable Long customerId
+    ) {
+        CustomerHomeworkSummaryResponseDTO dto = adminLectureQueryService.getCustomerHomeworkSummary(customerId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(dto));
     }
 }
