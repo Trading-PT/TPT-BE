@@ -2,6 +2,9 @@ package com.tradingpt.tpt_api.domain.user.service.query;
 
 import java.util.List;
 
+import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
@@ -30,5 +33,13 @@ public class AdminUserQueryService {
 		return customers.stream()
 				.map(PendingUserApprovalRowResponseDTO::from)
 				.toList();
+	}
+
+	public Page<PendingUserApprovalRowResponseDTO> searchUsersByUidPrefix(String uidPrefix, Pageable pageable) {
+
+		Page<Customer> customers =
+				customerRepository.findByUidUidStartingWithIgnoreCase(uidPrefix, pageable);
+
+		return customers.map(PendingUserApprovalRowResponseDTO::from);
 	}
 }

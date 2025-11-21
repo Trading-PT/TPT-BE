@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.auth.dto.response;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -34,6 +35,7 @@ public class MeResponse {
 	private Boolean isPremium;
 	private String nickName;
 	private int token;
+	private LocalDate signedAt;
 
 	public static MeResponse from(Customer c) {
 		if (c == null)
@@ -85,6 +87,7 @@ public class MeResponse {
 				.token(c.getToken())
 			.isPremium(isPremium)
 				.nickName(c.getNickname())
+				.signedAt(c.getCreatedAt().toLocalDate())
 			.build();
 	}
 }
