@@ -42,4 +42,12 @@ public class AdminUserQueryService {
 
 		return customers.map(PendingUserApprovalRowResponseDTO::from);
 	}
+
+	public Page<PendingUserApprovalRowResponseDTO> searchUsersByName(String nameKeyword, Pageable pageable) {
+
+		Page<Customer> customers =
+				customerRepository.findByNameContainingIgnoreCase(nameKeyword, pageable);
+
+		return customers.map(PendingUserApprovalRowResponseDTO::from);
+	}
 }

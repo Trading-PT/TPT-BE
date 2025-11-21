@@ -46,4 +46,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 	List<Customer> findAllByCourseStatus(CourseStatus PENDING_COMPLETION);
 
 	Page<Customer> findByUidUidStartingWithIgnoreCase(String uidPrefix, Pageable pageable);
+
+	Page<Customer> findByNameContainingIgnoreCase(String name, Pageable pageable);
 }
