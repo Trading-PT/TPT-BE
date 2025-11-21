@@ -29,6 +29,6 @@ public class MonthlyPnlCalendarResponseDTO {
 	@Schema(description = "월 전체 PnL 합계", example = "500000.00")
 	private BigDecimal totalPnl;
 
-	@Schema(description = "월 평균 PnL 퍼센테이지", example = "3.5")
-	private Double averagePnlPercentage;
+	@Schema(description = "월 전체 승률 (%)", example = "68.5")
+	private Double totalWinRate;
 }

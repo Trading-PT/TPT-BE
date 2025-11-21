@@ -165,12 +165,21 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 		// 4. DTO 변환
 		List<DailyPnlDTO> dailyPnls = projections.stream()
-			.map(projection -> DailyPnlDTO.builder()
-				.day(projection.getFeedbackRequestDate().getDayOfMonth())
-				.pnl(projection.getTotalPnl())
-				.pnlPercentage(projection.getAveragePnlPercentage())
-				.feedbackCount(projection.getFeedbackCount().intValue())
-				.build())
+			.map(projection -> {
+				// 승률 계산: (승리 횟수 / 전체 매매 횟수) * 100
+				Long winCount = projection.getWinCount();
+				Long totalCount = projection.getFeedbackCount();
+				Double winRate = totalCount > 0 ? (winCount.doubleValue() / totalCount.doubleValue()) * 100.0 : 0.0;
+				// 소수점 2자리까지 반올림
+				winRate = Math.round(winRate * 100.0) / 100.0;
+
+				return DailyPnlDTO.builder()
+					.day(projection.getFeedbackRequestDate().getDayOfMonth())
+					.pnl(projection.getTotalPnl())
+					.feedbackCount(totalCount.intValue())
+					.winRate(winRate)
+					.build();
+			})
 			.collect(Collectors.toList());
 
 		// 5. 월 전체 통계 계산
@@ -178,14 +187,20 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.map(DailyPnlProjection::getTotalPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		Double averagePnlPercentage = projections.isEmpty() ? 0.0 :
-			projections.stream()
-				.mapToDouble(p -> p.getAveragePnlPercentage() != null ? p.getAveragePnlPercentage() : 0.0)
-				.average()
-				.orElse(0.0);
+		// 월 전체 승률 계산: (월 전체 승리 횟수 / 월 전체 매매 횟수) * 100
+		Long totalWinCount = projections.stream()
+			.mapToLong(DailyPnlProjection::getWinCount)
+			.sum();
+
+		Long totalFeedbackCount = projections.stream()
+			.mapToLong(DailyPnlProjection::getFeedbackCount)
+			.sum();
+
+		Double totalWinRate = totalFeedbackCount > 0 ?
+			(totalWinCount.doubleValue() / totalFeedbackCount.doubleValue()) * 100.0 : 0.0;
 
 		// 소수점 2자리까지 반올림
-		averagePnlPercentage = Math.round(averagePnlPercentage * 100.0) / 100.0;
+		totalWinRate = Math.round(totalWinRate * 100.0) / 100.0;
 
 		log.info("Found {} days with PnL data for {}-{}", dailyPnls.size(), year, month);
 
@@ -194,7 +209,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.month(month)
 			.dailyPnls(dailyPnls)
 			.totalPnl(totalPnl)
-			.averagePnlPercentage(averagePnlPercentage)
+			.totalWinRate(totalWinRate)
 			.build();
 	}
 
