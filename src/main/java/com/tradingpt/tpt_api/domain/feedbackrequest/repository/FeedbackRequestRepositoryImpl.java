@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
@@ -1107,7 +1105,11 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				DailyPnlProjection.class,
 				dayRequestDetail.feedbackRequestDate,
 				dayRequestDetail.totalAssetPnl.sum(),
-				dayRequestDetail.rnr.avg(),
+				new CaseBuilder()
+					.when(dayRequestDetail.totalAssetPnl.gt(BigDecimal.ZERO))
+					.then(1L)
+					.otherwise(0L)
+					.sum(),
 				dayRequestDetail.count()
 			))
 			.from(dayRequestDetail)
@@ -1124,7 +1126,11 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				DailyPnlProjection.class,
 				scalpingRequestDetail.feedbackRequestDate,
 				scalpingRequestDetail.totalAssetPnl.sum(),
-				scalpingRequestDetail.rnr.avg(),
+				new CaseBuilder()
+					.when(scalpingRequestDetail.totalAssetPnl.gt(BigDecimal.ZERO))
+					.then(1L)
+					.otherwise(0L)
+					.sum(),
 				scalpingRequestDetail.count()
 			))
 			.from(scalpingRequestDetail)
@@ -1141,7 +1147,11 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				DailyPnlProjection.class,
 				swingRequestDetail.feedbackRequestDate,
 				swingRequestDetail.totalAssetPnl.sum(),
-				swingRequestDetail.rnr.avg(),
+				new CaseBuilder()
+					.when(swingRequestDetail.totalAssetPnl.gt(BigDecimal.ZERO))
+					.then(1L)
+					.otherwise(0L)
+					.sum(),
 				swingRequestDetail.count()
 			))
 			.from(swingRequestDetail)
@@ -1166,20 +1176,19 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				LocalDate date = entry.getKey();
 				List<DailyPnlProjection> projections = entry.getValue();
 
-				java.math.BigDecimal totalPnl = projections.stream()
+				BigDecimal totalPnl = projections.stream()
 					.map(DailyPnlProjection::getTotalPnl)
-					.reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-				Double avgPercentage = projections.stream()
-					.mapToDouble(p -> p.getAveragePnlPercentage() != null ? p.getAveragePnlPercentage() : 0.0)
-					.average()
-					.orElse(0.0);
+				Long winCount = projections.stream()
+					.mapToLong(DailyPnlProjection::getWinCount)
+					.sum();
 
 				Long totalCount = projections.stream()
 					.mapToLong(DailyPnlProjection::getFeedbackCount)
 					.sum();
 
-				return new DailyPnlProjection(date, totalPnl, avgPercentage, totalCount);
+				return new DailyPnlProjection(date, totalPnl, winCount, totalCount);
 			})
 			.sorted((a, b) -> a.getFeedbackRequestDate().compareTo(b.getFeedbackRequestDate()))
 			.collect(Collectors.toList());

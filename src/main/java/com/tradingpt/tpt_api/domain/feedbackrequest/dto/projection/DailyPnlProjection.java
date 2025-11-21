@@ -11,6 +11,6 @@ import lombok.Getter;
 public class DailyPnlProjection {
 	private LocalDate feedbackRequestDate; // 날짜
 	private BigDecimal totalPnl; // 총 pnl 합
-	private Double averagePnlPercentage; // 평균 pnl
-	private Long feedbackCount; // 피드백 총 개수
+	private Long winCount; // PNL > 0인 매매 개수 (승리)
+	private Long feedbackCount; // 피드백 총 개수 (전체 매매)
 }

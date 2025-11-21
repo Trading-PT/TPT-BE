@@ -22,9 +22,9 @@ public class DailyPnlDTO {
 	@Schema(description = "PnL (손익)", example = "150000.00")
 	private BigDecimal pnl;
 
-	@Schema(description = "PnL 퍼센테이지", example = "-2.5")
-	private Double pnlPercentage;
-
 	@Schema(description = "피드백 요청 개수 (해당 날짜)", example = "3")
 	private Integer feedbackCount;
+
+	@Schema(description = "승률 (%)", example = "66.67")
+	private Double winRate;
 }
