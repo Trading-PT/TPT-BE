@@ -38,4 +38,13 @@ public interface FeedbackRequestRepository
 		Integer feedbackWeek
 	);
 
+	/**
+	 * 특정 고객의 피드백 요청 총 개수 조회
+	 * 토큰 보상 시스템의 정합성 검증용
+	 *
+	 * @param customerId 고객 ID
+	 * @return 해당 고객의 피드백 요청 개수
+	 */
+	long countByCustomer_Id(Long customerId);
+
 }

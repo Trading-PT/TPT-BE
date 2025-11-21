@@ -23,4 +23,21 @@ public interface CustomerCommandService {
 		MembershipLevel membershipLevel,
 		LocalDateTime expiredAt
 	);
+
+	/**
+	 * 특정 고객의 피드백 카운트를 실제 값으로 동기화
+	 * 스케줄러에서 데이터 정합성 보장을 위해 사용
+	 *
+	 * @param customerId 동기화할 고객 ID
+	 * @return 동기화된 카운트 (실제 피드백 요청 개수)
+	 */
+	int syncFeedbackCount(Long customerId);
+
+	/**
+	 * 모든 고객의 피드백 카운트를 실제 값으로 동기화
+	 * 스케줄러에서 전체 데이터 정합성 보장을 위해 사용
+	 *
+	 * @return 동기화된 고객 수
+	 */
+	int syncAllFeedbackCounts();
 }
