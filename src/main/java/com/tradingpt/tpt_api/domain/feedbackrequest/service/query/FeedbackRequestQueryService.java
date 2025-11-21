@@ -2,14 +2,12 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.service.query;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
@@ -20,22 +18,9 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 public interface FeedbackRequestQueryService {
 
 	/**
-	 * 피드백 요청 목록 조회 (페이징)
-	 */
-	Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, InvestmentType investmentType,
-		Status status,
-		Long customerId);
-
-	/**
 	 * 피드백 요청 상세 조회
 	 */
 	FeedbackRequestDetailResponseDTO getFeedbackRequestById(Long feedbackRequestId, Long currentUserId);
-
-	/**
-	 * 내 피드백 요청 목록 조회
-	 */
-	List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, InvestmentType investmentType,
-		Status status);
 
 	/**
 	 * 모든 피드백 요청 목록 조회

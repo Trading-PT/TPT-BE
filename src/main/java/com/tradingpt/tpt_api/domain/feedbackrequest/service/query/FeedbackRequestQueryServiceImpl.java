@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.security.core.Authentication;
@@ -22,7 +21,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardRes
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListItemDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
@@ -80,16 +78,6 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			cardSlice.getContent(),
 			SliceInfo.of(cardSlice)
 		);
-	}
-
-	@Override
-	public Page<FeedbackRequestResponseDTO> getFeedbackRequests(Pageable pageable, InvestmentType feedbackType,
-		Status status, Long customerId) {
-
-		Page<FeedbackRequest> feedbackRequestPage = feedbackRequestRepository
-			.findFeedbackRequestsWithFilters(pageable, feedbackType, status, customerId);
-
-		return feedbackRequestPage.map(FeedbackRequestResponseDTO::of);
 	}
 
 	@Override
@@ -367,18 +355,6 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		}
 
 		return builder.build();
-	}
-
-	@Override
-	public List<FeedbackRequestResponseDTO> getMyFeedbackRequests(Long customerId, InvestmentType investmentType,
-		Status status) {
-
-		List<FeedbackRequest> feedbackRequests = feedbackRequestRepository
-			.findMyFeedbackRequests(customerId, investmentType, status);
-
-		return feedbackRequests.stream()
-			.map(FeedbackRequestResponseDTO::of)
-			.toList();
 	}
 
 	/**

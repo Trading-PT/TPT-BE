@@ -2,7 +2,9 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 
@@ -101,6 +103,71 @@ public final class TradingCalculationUtil {
 
 		return totalPnl
 			.divide(totalRiskTaking, 2, RoundingMode.HALF_UP)
+			.doubleValue();
+	}
+
+	/**
+	 * 수익 매매들의 평균 R&R(Risk-Reward Ratio)을 계산합니다.
+	 *
+	 * <p><b>공식:</b> (각 수익 매매의 R&R 합계) / 수익 매매 횟수</p>
+	 * <p><b>수익 매매:</b> pnl > 0인 매매만 포함</p>
+	 * <p><b>개별 R&R:</b> pnl / riskTaking</p>
+	 * <p><b>결과:</b> 소수점 둘째 자리까지 반올림 (예: 2.34)</p>
+	 *
+	 * @param trades 개별 매매 데이터 리스트 (pnl, riskTaking 포함)
+	 * @return 수익 매매들의 평균 R&R, 수익 매매가 없으면 0.0 반환
+	 *
+	 * @example
+	 * <pre>{@code
+	 * // 수익 매매 3건
+	 * // 1번: pnl=+100, riskTaking=50 -> rnr=2.0
+	 * // 2번: pnl=+150, riskTaking=50 -> rnr=3.0
+	 * // 3번: pnl=+80, riskTaking=40 -> rnr=2.0
+	 * // 평균 = (2.0 + 3.0 + 2.0) / 3 = 2.33
+	 *
+	 * List<TradeRnRData> trades = Arrays.asList(
+	 *     new TradeRnRData(new BigDecimal("100"), new BigDecimal("50")),
+	 *     new TradeRnRData(new BigDecimal("150"), new BigDecimal("50")),
+	 *     new TradeRnRData(new BigDecimal("80"), new BigDecimal("40"))
+	 * );
+	 * Double avgRnR = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(trades);
+	 * // 결과: 2.33
+	 *
+	 * // 수익 매매가 없는 경우
+	 * List<TradeRnRData> noWinningTrades = Collections.emptyList();
+	 * Double avgRnR = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(noWinningTrades);
+	 * // 결과: 0.0
+	 * }</pre>
+	 */
+	public static Double calculateAverageRnRFromWinningTrades(List<TradeRnRData> trades) {
+		if (trades == null || trades.isEmpty()) {
+			return 0.0;
+		}
+
+		// 각 수익 매매의 R&R 계산 (rnr = pnl / riskTaking)
+		BigDecimal totalRnR = BigDecimal.ZERO;
+		int count = 0;
+
+		for (TradeRnRData trade : trades) {
+			BigDecimal pnl = trade.getPnl();
+			BigDecimal riskTaking = trade.getRiskTaking();
+
+			// pnl > 0 체크 (추가 안전장치, 쿼리에서도 필터링됨)
+			if (pnl.compareTo(BigDecimal.ZERO) > 0 && riskTaking.compareTo(BigDecimal.ZERO) > 0) {
+				BigDecimal individualRnR = pnl.divide(riskTaking, 2, RoundingMode.HALF_UP);
+				totalRnR = totalRnR.add(individualRnR);
+				count++;
+			}
+		}
+
+		// 수익 매매가 없으면 0.0 반환
+		if (count == 0) {
+			return 0.0;
+		}
+
+		// 평균 계산
+		return totalRnR
+			.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP)
 			.doubleValue();
 	}
 

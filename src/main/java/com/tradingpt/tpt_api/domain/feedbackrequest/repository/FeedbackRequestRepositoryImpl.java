@@ -28,6 +28,7 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
@@ -59,56 +60,6 @@ import lombok.RequiredArgsConstructor;
 public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
-
-	@Override
-	public Page<FeedbackRequest> findFeedbackRequestsWithFilters(
-		Pageable pageable,
-		InvestmentType investmentType,
-		Status status,
-		Long customerId
-	) {
-
-		BooleanBuilder predicate = buildBasePredicate(status, customerId);
-
-		List<FeedbackRequest> allResults = new ArrayList<>();
-
-		// InvestmentType에 따라 해당하는 서브타입만 조회
-		if (investmentType == null || investmentType == InvestmentType.DAY) {
-			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(dayRequestDetail)
-				.where(predicate)
-				.orderBy(dayRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(dayRequests);
-		}
-
-		if (investmentType == null || investmentType == InvestmentType.SCALPING) {
-			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(scalpingRequestDetail)
-				.where(predicate)
-				.orderBy(scalpingRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(scalpingRequests);
-		}
-
-		if (investmentType == null || investmentType == InvestmentType.SWING) {
-			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(swingRequestDetail)
-				.where(predicate)
-				.orderBy(swingRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(swingRequests);
-		}
-
-		// 메모리에서 정렬 및 페이징
-		allResults.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
-
-		int start = Math.min((int)pageable.getOffset(), allResults.size());
-		int end = Math.min(start + pageable.getPageSize(), allResults.size());
-		List<FeedbackRequest> pageContent = allResults.subList(start, end);
-
-		return new PageImpl<>(pageContent, pageable, allResults.size());
-	}
 
 	@Override
 	public Slice<FeedbackRequest> findAllFeedbackRequestsSlice(Pageable pageable) {
@@ -204,54 +155,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
-	public List<FeedbackRequest> findMyFeedbackRequests(
-		Long customerId,
-		InvestmentType investmentType,
-		Status status
-	) {
-		BooleanBuilder predicate = new BooleanBuilder();
-		predicate.and(feedbackRequest.customer.id.eq(customerId));
-
-		if (status != null) {
-			predicate.and(feedbackRequest.status.eq(status));
-		}
-
-		List<FeedbackRequest> allResults = new ArrayList<>();
-
-		// InvestmentType에 따라 해당하는 서브타입만 조회
-		if (investmentType == null || investmentType == InvestmentType.DAY) {
-			List<DayRequestDetail> dayRequests = queryFactory
-				.selectFrom(dayRequestDetail)
-				.where(predicate)
-				.orderBy(dayRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(dayRequests);
-		}
-
-		if (investmentType == null || investmentType == InvestmentType.SCALPING) {
-			List<ScalpingRequestDetail> scalpingRequests = queryFactory
-				.selectFrom(scalpingRequestDetail)
-				.where(predicate)
-				.orderBy(scalpingRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(scalpingRequests);
-		}
-
-		if (investmentType == null || investmentType == InvestmentType.SWING) {
-			List<SwingRequestDetail> swingRequests = queryFactory
-				.selectFrom(swingRequestDetail)
-				.where(predicate)
-				.orderBy(swingRequestDetail.createdAt.desc())
-				.fetch();
-			allResults.addAll(swingRequests);
-		}
-
-		// 메모리에서 정렬
-		allResults.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
-		return allResults;
-	}
-
-	@Override
 	public List<FeedbackRequest> findFeedbackRequestsByCustomerAndDate(Long customerId, LocalDate feedbackDate) {
 		return queryFactory
 			.selectFrom(feedbackRequest)
@@ -302,25 +205,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				FeedbackStatusUtil.determineReadStatus(p.getFnCount())
 			))
 			.toList();
-	}
-
-	/**
-	 * 기본 조건을 위한 Predicate 빌드 (상태 및 고객 ID만)
-	 */
-	private BooleanBuilder buildBasePredicate(Status status, Long customerId) {
-		BooleanBuilder predicate = new BooleanBuilder();
-
-		// 상태 필터
-		if (status != null) {
-			predicate.and(feedbackRequest.status.eq(status));
-		}
-
-		// 고객 ID 필터 (트레이너만 사용 가능)
-		if (customerId != null) {
-			predicate.and(feedbackRequest.customer.id.eq(customerId));
-		}
-
-		return predicate;
 	}
 
 	@Override
@@ -405,7 +289,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						WeeklyRawData.class,
 						dayRequestDetail.feedbackWeek,
 						dayRequestDetail.count().intValue(),
-						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),    // ✅ 추가
@@ -445,7 +329,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						WeeklyRawData.class,
 						swingRequestDetail.feedbackWeek,
 						swingRequestDetail.count().intValue(),
-						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),    // ✅ 추가
@@ -485,7 +369,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						WeeklyRawData.class,
 						scalpingRequestDetail.feedbackWeek,
 						scalpingRequestDetail.count().intValue(),
-						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						scalpingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),    // ✅ 추가
@@ -524,7 +408,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
@@ -535,7 +419,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
@@ -546,7 +430,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					dayRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(dayRequestDetail)
@@ -601,7 +485,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
@@ -612,7 +496,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
@@ -623,7 +507,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				.select(
 					swingRequestDetail.count().intValue(),
 					winCase.sum().coalesce(0),
-					swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+					swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 					swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 				)
 				.from(swingRequestDetail)
@@ -688,7 +572,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						dayRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(dayRequestDetail)
@@ -712,7 +596,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						swingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(swingRequestDetail)
@@ -736,7 +620,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						scalpingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						scalpingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(scalpingRequestDetail)
@@ -803,7 +687,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						DailyRawData.class,
 						dayRequestDetail.feedbackRequestDate,
 						dayRequestDetail.count().intValue(),
-						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),
@@ -843,7 +727,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						DailyRawData.class,
 						swingRequestDetail.feedbackRequestDate,
 						swingRequestDetail.count().intValue(),
-						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),
@@ -883,7 +767,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 						DailyRawData.class,
 						scalpingRequestDetail.feedbackRequestDate,
 						scalpingRequestDetail.count().intValue(),
-						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						winCase.sum().coalesce(0),
 						scalpingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class),
 						nCase.sum().coalesce(0),
@@ -926,7 +810,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						dayRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(dayRequestDetail)
@@ -963,7 +847,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						swingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						swingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						swingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						swingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(swingRequestDetail)
@@ -1000,7 +884,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 					.select(
 						scalpingRequestDetail.count().intValue(),
 						winCase.sum().coalesce(0),
-						scalpingRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+						scalpingRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 						scalpingRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 					)
 					.from(scalpingRequestDetail)
@@ -1051,7 +935,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				dayRequestDetail.count().intValue(),
 				winCase.sum().coalesce(0),
-				dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+				dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 				dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 			)
 			.from(dayRequestDetail)
@@ -1063,7 +947,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				dayRequestDetail.count().intValue(),
 				winCase.sum().coalesce(0),
-				dayRequestDetail.pnl.sum().coalesce(BigDecimal.ZERO),
+				dayRequestDetail.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
 				dayRequestDetail.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
 			)
 			.from(dayRequestDetail)
@@ -1222,7 +1106,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(Projections.constructor(
 				DailyPnlProjection.class,
 				dayRequestDetail.feedbackRequestDate,
-				dayRequestDetail.pnl.sum(),
+				dayRequestDetail.totalAssetPnl.sum(),
 				dayRequestDetail.rnr.avg(),
 				dayRequestDetail.count()
 			))
@@ -1239,7 +1123,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(Projections.constructor(
 				DailyPnlProjection.class,
 				scalpingRequestDetail.feedbackRequestDate,
-				scalpingRequestDetail.pnl.sum(),
+				scalpingRequestDetail.totalAssetPnl.sum(),
 				scalpingRequestDetail.rnr.avg(),
 				scalpingRequestDetail.count()
 			))
@@ -1256,7 +1140,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(Projections.constructor(
 				DailyPnlProjection.class,
 				swingRequestDetail.feedbackRequestDate,
-				swingRequestDetail.pnl.sum(),
+				swingRequestDetail.totalAssetPnl.sum(),
 				swingRequestDetail.rnr.avg(),
 				swingRequestDetail.count()
 			))
@@ -1757,6 +1641,129 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		}
 
 		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public List<TradeRnRData> findWinningTradesForWeeklySummary(
+		Long customerId,
+		Integer year,
+		Integer month,
+		CourseStatus courseStatus,
+		InvestmentType investmentType
+	) {
+		return switch (investmentType) {
+			case DAY -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						dayRequestDetail.pnl,
+						dayRequestDetail.riskTaking
+					))
+					.from(dayRequestDetail)
+					.where(
+						dayRequestDetail.customer.id.eq(customerId),
+						dayRequestDetail.feedbackYear.eq(year),
+						dayRequestDetail.feedbackMonth.eq(month),
+						dayRequestDetail.courseStatus.eq(courseStatus),
+						dayRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+			case SWING -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						swingRequestDetail.pnl,
+						swingRequestDetail.riskTaking
+					))
+					.from(swingRequestDetail)
+					.where(
+						swingRequestDetail.customer.id.eq(customerId),
+						swingRequestDetail.feedbackYear.eq(year),
+						swingRequestDetail.feedbackMonth.eq(month),
+						swingRequestDetail.courseStatus.eq(courseStatus),
+						swingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+			case SCALPING -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						scalpingRequestDetail.pnl,
+						scalpingRequestDetail.riskTaking
+					))
+					.from(scalpingRequestDetail)
+					.where(
+						scalpingRequestDetail.customer.id.eq(customerId),
+						scalpingRequestDetail.feedbackYear.eq(year),
+						scalpingRequestDetail.feedbackMonth.eq(month),
+						scalpingRequestDetail.courseStatus.eq(courseStatus),
+						scalpingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+		};
+	}
+
+	@Override
+	public List<TradeRnRData> findWinningTradesForMonthlySummary(
+		Long customerId,
+		Integer year,
+		Integer month,
+		InvestmentType investmentType
+	) {
+		// 월간 집계는 완강 전후 모두 포함
+		return switch (investmentType) {
+			case DAY -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						dayRequestDetail.pnl,
+						dayRequestDetail.riskTaking
+					))
+					.from(dayRequestDetail)
+					.where(
+						dayRequestDetail.customer.id.eq(customerId),
+						dayRequestDetail.feedbackYear.eq(year),
+						dayRequestDetail.feedbackMonth.eq(month),
+						dayRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+			case SWING -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						swingRequestDetail.pnl,
+						swingRequestDetail.riskTaking
+					))
+					.from(swingRequestDetail)
+					.where(
+						swingRequestDetail.customer.id.eq(customerId),
+						swingRequestDetail.feedbackYear.eq(year),
+						swingRequestDetail.feedbackMonth.eq(month),
+						swingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+			case SCALPING -> {
+				yield queryFactory
+					.select(Projections.constructor(
+						TradeRnRData.class,
+						scalpingRequestDetail.pnl,
+						scalpingRequestDetail.riskTaking
+					))
+					.from(scalpingRequestDetail)
+					.where(
+						scalpingRequestDetail.customer.id.eq(customerId),
+						scalpingRequestDetail.feedbackYear.eq(year),
+						scalpingRequestDetail.feedbackMonth.eq(month),
+						scalpingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 수익 매매만
+					)
+					.fetch();
+			}
+		};
 	}
 
 	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
