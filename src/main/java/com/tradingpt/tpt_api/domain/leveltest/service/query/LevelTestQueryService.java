@@ -9,7 +9,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptListR
 
 import java.util.List;
 
-public interface LeveltestQueryService {
+public interface LevelTestQueryService {
 
 	// 문제 리스트 조회 (기존)
 	Slice<LevelTestQuestionUserResponseDTO> getQuestions(Pageable pageable);

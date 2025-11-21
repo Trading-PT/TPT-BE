@@ -15,8 +15,8 @@ import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestErrorStatus;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestResponseRepository;
@@ -35,7 +35,7 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 	@Override
 	public LevelTestQuestionDetailResponseDTO getQuestion(Long questionId) {
 		LevelTestQuestion q = leveltestQuestionRepository.findById(questionId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.QUESTION_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND));
 
 		return LevelTestQuestionDetailResponseDTO.from(q);
 	}
@@ -65,7 +65,7 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 	@Override
 	public AdminLeveltestAttemptDetailResponseDTO getAttemptDetail(Long attemptId) {
 		LevelTestAttempt attempt = leveltestAttemptRepository.findById(attemptId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.ATTEMPT_NOT_FOUND));
 
 		List<LevelTestResponse> responses = leveltestResponseRepository.findAllByLeveltestAttempt_Id(attemptId);
 

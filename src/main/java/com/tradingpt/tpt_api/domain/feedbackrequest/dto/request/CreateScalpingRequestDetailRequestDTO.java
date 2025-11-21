@@ -7,11 +7,13 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
@@ -58,15 +60,13 @@ public class CreateScalpingRequestDetailRequestDTO {
 	private List<MultipartFile> screenshotFiles;
 
 	@NotNull(message = "리스크 테이킹은 필수입니다.")
-	@DecimalMin(value = "1.0", message = "리스크 테이킹은 1.0 이상이어야 합니다.")
-	@DecimalMax(value = "100.0", message = "리스크 테이킹은 100.0 이하여야 합니다.")
-	@Schema(description = "리스크 테이킹 (1.0-100.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "리스크 테이킹", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal riskTaking;
 
 	@NotNull(message = "레버리지는 필수입니다.")
 	@DecimalMin(value = "1.0", message = "레버리지는 1.0 이상이어야 합니다.")
-	@DecimalMax(value = "1000.0", message = "레버리지는 1000.0 이하여야 합니다.")
-	@Schema(description = "레버리지 (1.0-1000.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	@DecimalMax(value = "125.0", message = "레버리지는 125.0 이하여야 합니다.")
+	@Schema(description = "레버리지 (1.0-125.0)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal leverage;
 
 	@NotNull(message = "포지션은 필수입니다.")
@@ -94,10 +94,6 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@Schema(description = "사용할 토큰 개수 (기본값: 1)", example = "1")
 	private Integer tokenAmount;
 
-	// ========================================
-	// ⭐ 스캘핑 특수 필드 (완강 전/후 모두 필수)
-	// ========================================
-
 	@NotNull(message = "비중은 필수입니다.")
 	@Min(value = 1, message = "비중은 1 이상이어야 합니다.")
 	@Max(value = 100, message = "비중은 100 이하여야 합니다.")
@@ -116,15 +112,59 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@Schema(description = "설정 손절가 - 항상 필수", example = "48000.00", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal settingStopLoss;
 
-	@NotNull(message = "설정 익절가는 필수입니다.")
-	@Schema(description = "설정 익절가 - 항상 필수", example = "60000.00", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "설정 익절가 - 선택", example = "60000.00")
 	private BigDecimal settingTakeProfit;
 
-	@NotBlank(message = "포지션 진입 근거는 필수입니다.")
-	@Schema(description = "포지션 진입 근거 - 항상 필수", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "포지션 진입 근거", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String positionStartReason;
 
-	@NotBlank(message = "포지션 탈출 근거는 필수입니다.")
-	@Schema(description = "포지션 탈출 근거 - 항상 필수", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "포지션 탈출 근거", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String positionEndReason;
+
+	// ========================================
+	// Validation
+	// ========================================
+
+	/**
+	 * Entry/Exit Price와 PNL/Position 논리적 일관성 검증
+	 *
+	 * 롱 포지션 (LONG):
+	 * - PNL > 0 (수익) → Exit Price > Entry Price
+	 * - PNL < 0 (손실) → Exit Price < Entry Price
+	 *
+	 * 숏 포지션 (SHORT):
+	 * - PNL > 0 (수익) → Exit Price < Entry Price
+	 * - PNL < 0 (손실) → Exit Price > Entry Price
+	 */
+	@AssertTrue(message = "진입/탈출 가격과 PNL/포지션의 논리적 일관성이 맞지 않습니다.")
+	@JsonIgnore
+	public boolean isEntryExitPriceConsistent() {
+		// 필수 필드가 null이면 다른 검증에서 처리되므로 여기서는 통과
+		if (position == null || entryPrice == null || exitPrice == null || pnl == null) {
+			return true;
+		}
+
+		int priceComparison = exitPrice.compareTo(entryPrice);
+		int pnlComparison = pnl.compareTo(BigDecimal.ZERO);
+
+		if (position == Position.LONG) {
+			// 롱 포지션: PNL > 0이면 Exit > Entry, PNL < 0이면 Exit < Entry
+			if (pnlComparison > 0) {
+				return priceComparison > 0; // Exit Price > Entry Price
+			} else if (pnlComparison < 0) {
+				return priceComparison < 0; // Exit Price < Entry Price
+			}
+		} else if (position == Position.SHORT) {
+			// 숏 포지션: PNL > 0이면 Exit < Entry, PNL < 0이면 Exit > Entry
+			if (pnlComparison > 0) {
+				return priceComparison < 0; // Exit Price < Entry Price
+			} else if (pnlComparison < 0) {
+				return priceComparison > 0; // Exit Price > Entry Price
+			}
+		}
+
+		// PNL = 0인 경우 또는 예외 케이스는 통과
+		return true;
+	}
+
 }

@@ -10,8 +10,8 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptSubmi
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestErrorStatus;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestResponseRepository;
@@ -28,7 +28,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class LeveltestCommandServiceImpl implements LeveltestCommandService {
+public class LevelTestCommandServiceImpl implements LevelTestCommandService {
 
 	private final CustomerRepository customerRepository;
 	private final LeveltestAttemptRepository attemptRepository;
@@ -47,7 +47,7 @@ public class LeveltestCommandServiceImpl implements LeveltestCommandService {
 
 		// 2) 조건 검사
 		if (hasPreviousAttempt && customer.getCourseStatus() != CourseStatus.AFTER_COMPLETION) {
-			throw new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_ALLOWED);
+			throw new LevelTestException(LevelTestErrorStatus.ATTEMPT_NOT_ALLOWED);
 		}
 
 		// 3) 시도 생성 (SUBMITTED)
@@ -64,7 +64,7 @@ public class LeveltestCommandServiceImpl implements LeveltestCommandService {
 				.leveltestAttempt(attempt)
 				.leveltestQuestion(
 					questionRepository.findById(a.getQuestionId())
-						.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.QUESTION_NOT_FOUND))
+						.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND))
 				)
 				.choiceNumber(a.getChoiceNumber())
 				.answerText(a.getAnswerText())

@@ -30,7 +30,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttempt
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
-import com.tradingpt.tpt_api.domain.leveltest.service.command.AdminLeveltestCommandService;
+import com.tradingpt.tpt_api.domain.leveltest.service.command.AdminLevelTestCommandService;
 import com.tradingpt.tpt_api.domain.leveltest.service.query.AdminLeveltestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 
@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "관리자(Admin) - 레벨테스트(Leveltest) 관리", description = "레벨테스트 문제 관리 API")
 public class AdminLeveltestV1Controller {
 
-	private final AdminLeveltestCommandService commandService;
+	private final AdminLevelTestCommandService commandService;
 	private final AdminLeveltestQueryService queryService;
 
 	@Operation(summary = "객관식 문제 생성(multipart)")

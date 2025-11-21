@@ -12,8 +12,8 @@ import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestErrorStatus;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LevelTestQuestionRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestResponseRepository;
@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandService {
+public class AdminLevelTestCommandServiceImpl implements AdminLevelTestCommandService {
 
 	private static final String LEVELTEST_DIR = "leveltests/";
 	private final LevelTestQuestionRepository leveltestQuestionRepository;
@@ -105,7 +105,7 @@ public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandSe
 		Long questionId, LeveltestMultipleChoiceRequestDTO req, MultipartFile image
 	) {
 		LevelTestQuestion question = leveltestQuestionRepository.findById(questionId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.QUESTION_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND));
 
 		String imageKey = question.getImageKey();
 		String imageUrl = question.getImageUrl();
@@ -146,7 +146,7 @@ public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandSe
 	) {
 
 		LevelTestQuestion question = leveltestQuestionRepository.findById(questionId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.QUESTION_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND));
 
 		String imageKey = question.getImageKey();
 		String imageUrl = question.getImageUrl();
@@ -183,7 +183,7 @@ public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandSe
 	public LeveltestQuestionResponseDTO deleteQuestion(Long questionId) {
 
 		LevelTestQuestion question = leveltestQuestionRepository.findById(questionId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.QUESTION_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND));
 
 		String lastUrl = question.getImageUrl();
 		if (question.getImageKey() != null) {
@@ -202,20 +202,20 @@ public class AdminLevelTestCommandServiceImpl implements AdminLeveltestCommandSe
 
 		// 1) 시도(Attempt) 유효성
 		LevelTestAttempt attempt = leveltestAttemptRepository.findById(attemptId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.ATTEMPT_NOT_FOUND));
 
 		// 2) 응답별 점수 반영
 		for (LeveltestGradeRequestDTO.QuestionGradeDTO dto : request.getQuestionGrades()) {
 			if (dto.getResponseId() == null || dto.getScore() == null) {
-				throw new LeveltestException(LeveltestErrorStatus.INVALID_REQUEST);
+				throw new LevelTestException(LevelTestErrorStatus.INVALID_REQUEST);
 			}
 
 			LevelTestResponse response = leveltestResponseRepository.findById(dto.getResponseId())
-				.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.RESPONSE_NOT_FOUND));
+				.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.RESPONSE_NOT_FOUND));
 
 			//  응답이 해당 attempt 소속인지 검증
 			if (!response.getLeveltestAttempt().getId().equals(attemptId)) {
-				throw new LeveltestException(LeveltestErrorStatus.RESPONSE_NOT_IN_ATTEMPT);
+				throw new LevelTestException(LevelTestErrorStatus.RESPONSE_NOT_IN_ATTEMPT);
 			}
 
 			response.updateScore(dto.getScore());
