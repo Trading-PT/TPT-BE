@@ -90,6 +90,29 @@ public class AdminUserV1Controller {
 		return ResponseEntity.ok(BaseResponse.onSuccess(result));
 	}
 
+	@Operation(
+			summary = "회원 이름으로 검색 (페이지네이션)",
+			description = """
+        입력한 이름 문자열이 포함된 회원 목록을 페이지네이션으로 조회합니다.
+
+        예시:
+        - GET /api/v1/admin/users/search-by-name?name=홍길동
+        - GET /api/v1/admin/users/search-by-name?name=홍&page=0&size=20
+        """
+	)
+	@GetMapping("/search-by-name")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByName(
+			@RequestParam("name") String nameKeyword,
+			@PageableDefault(size = 20) Pageable pageable
+	) {
+		Page<PendingUserApprovalRowResponseDTO> result =
+				adminUserQueryService.searchUsersByName(nameKeyword, pageable);
+
+		return ResponseEntity.ok(BaseResponse.onSuccess(result));
+	}
+
+
 
 
 	@Operation(summary = "특정 유저 UID 값 변경", description = "관리자/트레이너가 고객의 UID 문자열을 수정합니다.")
