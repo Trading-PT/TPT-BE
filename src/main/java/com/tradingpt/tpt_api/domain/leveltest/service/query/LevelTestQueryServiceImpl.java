@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class LeveltestQueryServiceImpl implements LeveltestQueryService {
+public class LevelTestQueryServiceImpl implements LevelTestQueryService {
 
 	private final LevelTestQuestionRepository questionRepository;
 	private final LeveltestAttemptRepository attemptRepository;

@@ -6,20 +6,28 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+/**
+ * 강의 도메인 에러 상태 코드 정의
+ *
+ * 에러 코드 형식: LECTURE_{HTTP_STATUS}_{SEQUENCE}
+ * - HTTP_STATUS: 3자리 HTTP 상태 코드 (400, 404, 500 등)
+ * - SEQUENCE: 같은 HTTP 상태 내 순번 (0-9)
+ */
 @Getter
 @AllArgsConstructor
 public enum LectureErrorStatus implements BaseCodeInterface {
 
-    NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE404", "해당 강의를 찾을 수 없습니다."),
-    DELETE_FAILED(HttpStatus.BAD_REQUEST, "LECTURE400", "강의 삭제 중 오류가 발생했습니다."),
-    INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "LECTURE401", "유효하지 않은 강의 공개범위(category) 입니다."),
+    // 404 Not Found
+    NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_0", "해당 강의를 찾을 수 없습니다."),
+    ASSIGNMENT_NOT_SUBMITTED(HttpStatus.NOT_FOUND, "LECTURE_404_1", "해당 과제를 찾을 수 없습니다."),
 
-    // ------------------ 구매 관련 에러 ------------------
-    ALREADY_FREE_LECTURE(HttpStatus.BAD_REQUEST, "LECTURE402", "유료 강의는 구매할 수 없습니다."),
-    ALREADY_PURCHASED(HttpStatus.BAD_REQUEST, "LECTURE403", "이미 구매한 강의입니다."),
-    NOT_ENOUGH_TOKENS(HttpStatus.BAD_REQUEST, "LECTURE405", "보유 토큰이 부족합니다."),
-
-    ASSIGNMENT_NOT_SUBMITTED(HttpStatus.NOT_FOUND, "LECTURE406", "해당 과제를 찾을 수 없습니다.");
+    // 400 Bad Request
+    DELETE_FAILED(HttpStatus.BAD_REQUEST, "LECTURE_400_0", "강의 삭제 중 오류가 발생했습니다."),
+    INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "LECTURE_400_1", "유효하지 않은 강의 공개범위(category) 입니다."),
+    ALREADY_FREE_LECTURE(HttpStatus.BAD_REQUEST, "LECTURE_400_2", "유료 강의는 구매할 수 없습니다."),
+    ALREADY_PURCHASED(HttpStatus.BAD_REQUEST, "LECTURE_400_3", "이미 구매한 강의입니다."),
+    NOT_ENOUGH_TOKENS(HttpStatus.BAD_REQUEST, "LECTURE_400_4", "보유 토큰이 부족합니다."),
+    ;
 
     private final HttpStatus httpStatus;
     private final boolean isSuccess = false;

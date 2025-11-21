@@ -1,26 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)",
-      "Bash(./gradlew:*)",
-      "mcp__sequential-thinking__sequentialthinking",
       "Bash(find:*)",
-      "Bash(xargs:*)",
-      "WebFetch(domain:developers.nicepay.co.kr)",
-      "Bash(tree:*)",
-      "Bash(cat:*)",
-      "mcp__cloudwatch__describe_log_groups",
-      "mcp__cloudwatch__execute_log_insights_query",
-      "mcp__mysql-dev__read_query",
-      "mcp__mysql-dev__list_tables",
-      "mcp__mysql-dev__alter_table",
-      "mcp__mysql-dev__write_query",
-      "mcp__mysql-dev__describe_table",
-      "Bash(for util_class in DateValidationUtil FeedbackPeriodUtil FeedbackStatusUtil TradingCalculationUtil)",
-      "Bash(do echo \"=== $util_class ===\")",
-      "Bash(done)",
-      "Bash(for util in DateValidationUtil FeedbackPeriodUtil FeedbackStatusUtil TradingCalculationUtil)",
-      "Bash(do echo \"=== Checking $util ===\" find src -name \"*.java\" -type f -exec grep -l \"$util\" {})"
+      "Bash(./gradlew clean build:*)"
     ],
     "deny": [],
     "ask": []

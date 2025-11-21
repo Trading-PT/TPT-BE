@@ -1,8 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.controller;
 
-import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptListResponseDTO;
 import java.util.List;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -20,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubmitRequestDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LevelTestQuestionUserResponseDTO;
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptListResponseDTO;
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestAttemptSubmitResponseDTO;
-import com.tradingpt.tpt_api.domain.leveltest.service.command.LeveltestCommandService;
-import com.tradingpt.tpt_api.domain.leveltest.service.query.LeveltestQueryService;
+import com.tradingpt.tpt_api.domain.leveltest.service.command.LevelTestCommandService;
+import com.tradingpt.tpt_api.domain.leveltest.service.query.LevelTestQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,8 +38,8 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "유저 레벨테스트(Leveltest)", description = "레벨테스트 시도 API")
 public class LeveltestV1Controller {
 
-	private final LeveltestCommandService commandService;
-	private final LeveltestQueryService queryService;
+	private final LevelTestCommandService commandService;
+	private final LevelTestQueryService queryService;
 
 	@Operation(
 		summary = "문제 전체 조회(무한스크롤)",
@@ -67,27 +68,27 @@ public class LeveltestV1Controller {
 			.body(BaseResponse.onSuccessCreate(dto));
 	}
 
-	    @Operation(
-	            summary = "채점 완료된 시도 조회",
-	            description = "status = GRADED 인 시도만 반환합니다."
-	    )
-	    @GetMapping("/attempts/graded")
-	    public ResponseEntity<BaseResponse<List<LeveltestAttemptListResponseDTO>>> getGradedAttempts(
-	            @AuthenticationPrincipal(expression = "id") Long customerId
-	    ) {
-	        List<LeveltestAttemptListResponseDTO> list = queryService.getGradedAttempts(customerId);
-	        return ResponseEntity.ok(BaseResponse.onSuccess(list));
-	    }
+	@Operation(
+		summary = "채점 완료된 시도 조회",
+		description = "status = GRADED 인 시도만 반환합니다."
+	)
+	@GetMapping("/attempts/graded")
+	public ResponseEntity<BaseResponse<List<LeveltestAttemptListResponseDTO>>> getGradedAttempts(
+		@AuthenticationPrincipal(expression = "id") Long customerId
+	) {
+		List<LeveltestAttemptListResponseDTO> list = queryService.getGradedAttempts(customerId);
+		return ResponseEntity.ok(BaseResponse.onSuccess(list));
+	}
 
-	    @Operation(
-	            summary = "시도 상세 조회",
-	            description = "특정 attemptId에 해당하는 문제별 응답, 점수, 채점 상태를 반환합니다."
-	    )
-	    @GetMapping("/attempts/{attemptId}")
-	    public ResponseEntity<BaseResponse<LeveltestAttemptDetailResponseDTO>> getAttemptDetail(
-	            @PathVariable Long attemptId
-	    ) {
-	        LeveltestAttemptDetailResponseDTO dto = queryService.getAttemptDetail(attemptId);
-	        return ResponseEntity.ok(BaseResponse.onSuccess(dto));
-	    }
+	@Operation(
+		summary = "시도 상세 조회",
+		description = "특정 attemptId에 해당하는 문제별 응답, 점수, 채점 상태를 반환합니다."
+	)
+	@GetMapping("/attempts/{attemptId}")
+	public ResponseEntity<BaseResponse<LeveltestAttemptDetailResponseDTO>> getAttemptDetail(
+		@PathVariable Long attemptId
+	) {
+		LeveltestAttemptDetailResponseDTO dto = queryService.getAttemptDetail(attemptId);
+		return ResponseEntity.ok(BaseResponse.onSuccess(dto));
+	}
 }

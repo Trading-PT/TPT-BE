@@ -6,7 +6,7 @@ import com.tradingpt.tpt_api.domain.leveltest.dto.request.LeveltestSubjectiveReq
 import com.tradingpt.tpt_api.domain.leveltest.dto.response.LeveltestQuestionResponseDTO;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface AdminLeveltestCommandService {
+public interface AdminLevelTestCommandService {
 
     LeveltestQuestionResponseDTO createMultipleChoiceQuestion(LeveltestMultipleChoiceRequestDTO req, MultipartFile image);
     LeveltestQuestionResponseDTO createTextAnswerQuestion(LeveltestSubjectiveRequestDTO req, MultipartFile image);

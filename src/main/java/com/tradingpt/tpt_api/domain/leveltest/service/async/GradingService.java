@@ -10,8 +10,8 @@ import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestQuestion;
 import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestResponse;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.enums.ProblemType;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestErrorStatus;
-import com.tradingpt.tpt_api.domain.leveltest.exception.LeveltestException;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestErrorStatus;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestException;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestResponseRepository;
 
@@ -38,7 +38,7 @@ public class GradingService {
 
 		// 2) 채점
 		LevelTestAttempt attempt = attemptRepository.findById(attemptId)
-			.orElseThrow(() -> new LeveltestException(LeveltestErrorStatus.ATTEMPT_NOT_FOUND));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.ATTEMPT_NOT_FOUND));
 
 		List<LevelTestResponse> responses = responseRepository.findAllByLeveltestAttempt_Id(attemptId);
 
