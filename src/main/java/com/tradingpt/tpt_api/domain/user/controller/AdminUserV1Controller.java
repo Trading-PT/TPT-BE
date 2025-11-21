@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.user.controller;
 import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.web.PageableDefault;
@@ -66,6 +67,30 @@ public class AdminUserV1Controller {
 		UserStatusUpdateResponseDTO response = UserStatusUpdateResponseDTO.of(userId);
 		return ResponseEntity.ok(BaseResponse.onSuccess(response));
 	}
+
+	@Operation(
+			summary = "UID로 회원 검색 (페이지네이션)",
+			description = """
+        입력한 UID 문자열로 시작하는 회원 목록을 페이지네이션으로 조회합니다.
+
+        예시:
+        - GET /api/v1/admin/users/search-by-uid?uid=abc
+        - GET /api/v1/admin/users/search-by-uid?uid=abc&page=0&size=20
+        """
+	)
+	@GetMapping("/search-by-uid")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByUid(
+			@RequestParam("uid") String uidPrefix,
+			@PageableDefault(size = 20) Pageable pageable
+	) {
+		Page<PendingUserApprovalRowResponseDTO> result =
+				adminUserQueryService.searchUsersByUidPrefix(uidPrefix, pageable);
+
+		return ResponseEntity.ok(BaseResponse.onSuccess(result));
+	}
+
+
 
 	@Operation(summary = "특정 유저 UID 값 변경", description = "관리자/트레이너가 고객의 UID 문자열을 수정합니다.")
 	@PatchMapping("/{userId}/uid")
