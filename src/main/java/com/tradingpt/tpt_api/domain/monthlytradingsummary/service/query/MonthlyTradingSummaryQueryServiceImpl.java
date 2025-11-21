@@ -409,10 +409,15 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		for (int week = 1; week <= totalWeeks; week++) {
 			WeeklyRawData data = weekDataMap.get(week);
 
+			// 주차별 날짜 범위 계산
+			FeedbackPeriodUtil.WeekDateRange dateRange = FeedbackPeriodUtil.getWeekDateRange(year, month, week);
+
 			if (data != null) {
 				// ✅ 데이터가 있는 주차
 				allWeeks.add(MonthlyWeekFeedbackSummaryResponseDTO.of(
 					data.getWeek(),
+					dateRange.startDate(),
+					dateRange.endDate(),
 					data.getTradingCount(),
 					data.getWeeklyPnl(),
 					FeedbackStatusUtil.determineReadStatus(data.getFnCount())
@@ -421,6 +426,8 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 				// ✅ 데이터가 없는 주차 - null 값으로 채움
 				allWeeks.add(MonthlyWeekFeedbackSummaryResponseDTO.of(
 					week,
+					dateRange.startDate(),
+					dateRange.endDate(),
 					null,  // tradingCount = null
 					null,  // weeklyPnl = null
 					null   // status = null
