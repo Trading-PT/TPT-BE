@@ -52,6 +52,7 @@ public class ScalpingRequestDetail extends FeedbackRequest {
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.pnl(request.getPnl())
+			.totalAssetPnl(request.getTotalAssetPnl())
 			.rnr(request.getRnr())
 			.tradingReview(request.getTradingReview())
 			.operatingFundsRatio(request.getOperatingFundsRatio())

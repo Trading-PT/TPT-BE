@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -60,8 +61,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// 거래 날짜를 기반으로 제목을 자동 생성함.
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), InvestmentType.DAY) + 1);
+			request.getCategory(), request.getTotalAssetPnl());
 
 		// DayRequestDetail 생성
 		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
@@ -98,8 +98,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), InvestmentType.SCALPING) + 1);
+			request.getCategory(), request.getTotalAssetPnl());
 
 		// ScalpingRequestDetail 생성
 		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);
@@ -134,8 +133,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
 
 		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			feedbackRequestRepository.countRequestsByCustomerAndDateAndType(
-				customerId, request.getFeedbackRequestDate(), InvestmentType.SWING) + 1);
+			request.getCategory(), request.getTotalAssetPnl());
 
 		// SwingRequestDetail 생성
 		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer, title);
@@ -304,16 +302,37 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 	/**
 	 * 피드백 요청의 제목을 생성한다.
-	 * 형식: "월/일 (순서) 작성완료"
+	 * 형식: "월/일 종목 ±전체자산대비PnL%"
+	 * 예시: "11/17 주식 +5%", "11/18 코인 -3.5%"
 	 *
 	 * @param requestDate 요청 날짜
-	 * @param order 같은 날짜의 몇 번째 요청인지
+	 * @param category 종목
+	 * @param totalAssetPnl 전체 자산 대비 P&L
 	 * @return 생성된 제목
 	 */
-	private String buildFeedbackTitle(LocalDate requestDate, long order) {
+	private String buildFeedbackTitle(LocalDate requestDate, String category, BigDecimal totalAssetPnl) {
 		int month = requestDate.getMonthValue();
 		int day = requestDate.getDayOfMonth();
-		return String.format("%d/%d (%d) 작성완료", month, day, order);
+
+		// totalAssetPnl을 퍼센트 문자열로 변환
+		String pnlString;
+		if (totalAssetPnl == null) {
+			pnlString = "0%";
+		} else {
+			// 불필요한 trailing zeros 제거
+			BigDecimal strippedPnl = totalAssetPnl.stripTrailingZeros();
+
+			// 양수면 + 기호 추가, 음수는 자동으로 - 기호 포함
+			if (totalAssetPnl.compareTo(BigDecimal.ZERO) > 0) {
+				pnlString = "+" + strippedPnl.toPlainString() + "%";
+			} else if (totalAssetPnl.compareTo(BigDecimal.ZERO) < 0) {
+				pnlString = strippedPnl.toPlainString() + "%";
+			} else {
+				pnlString = "0%";
+			}
+		}
+
+		return String.format("%d/%d %s %s", month, day, category, pnlString);
 	}
 
 }

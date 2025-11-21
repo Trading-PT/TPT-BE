@@ -15,7 +15,12 @@
       "mcp__mysql-dev__list_tables",
       "mcp__mysql-dev__alter_table",
       "mcp__mysql-dev__write_query",
-      "mcp__mysql-dev__describe_table"
+      "mcp__mysql-dev__describe_table",
+      "Bash(for util_class in DateValidationUtil FeedbackPeriodUtil FeedbackStatusUtil TradingCalculationUtil)",
+      "Bash(do echo \"=== $util_class ===\")",
+      "Bash(done)",
+      "Bash(for util in DateValidationUtil FeedbackPeriodUtil FeedbackStatusUtil TradingCalculationUtil)",
+      "Bash(do echo \"=== Checking $util ===\" find src -name \"*.java\" -type f -exec grep -l \"$util\" {})"
     ],
     "deny": [],
     "ask": []

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -235,14 +236,14 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.map(DailyRawData::getDailyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		BigDecimal totalRiskTaking = dailyStats.stream()
-			.map(DailyRawData::getTotalRiskTaking)
-			.reduce(BigDecimal.ZERO, BigDecimal::add);
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
+		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForWeeklySummary(
+			customerId, year, month, courseStatus, investmentType
+		);
 
 		Double winningRate = TradingCalculationUtil.calculateWinRate(
 			totalTradingCount, totalWinCount);
-		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnR(
-			weeklyPnl, totalRiskTaking);
+		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
 			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)
@@ -300,14 +301,14 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.map(DailyRawData::getDailyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		BigDecimal totalRiskTaking = dailyStats.stream()
-			.map(DailyRawData::getTotalRiskTaking)
-			.reduce(BigDecimal.ZERO, BigDecimal::add);
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
+		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForWeeklySummary(
+			customerId, year, month, courseStatus, investmentType
+		);
 
 		Double winningRate = TradingCalculationUtil.calculateWinRate(
 			totalTradingCount, totalWinCount);
-		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnR(
-			weeklyPnl, totalRiskTaking);
+		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
 			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)

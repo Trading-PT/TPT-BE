@@ -17,6 +17,8 @@ import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -83,20 +85,24 @@ public class CreateSwingRequestDetailRequestDTO {
 	private Position position;
 
 	@NotNull(message = "리스크 테이킹은 필수입니다.")
-	@Min(value = 1, message = "리스크 테이킹은 1 이상이어야 합니다.")
-	@Max(value = 100, message = "리스크 테이킹은 100 이하여야 합니다.")
-	@Schema(description = "리스크 테이킹 (1-100)", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Integer riskTaking;
+	@DecimalMin(value = "1.0", message = "리스크 테이킹은 1.0 이상이어야 합니다.")
+	@DecimalMax(value = "100.0", message = "리스크 테이킹은 100.0 이하여야 합니다.")
+	@Schema(description = "리스크 테이킹 (1.0-100.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal riskTaking;
 
 	@NotNull(message = "레버리지는 필수입니다.")
-	@Min(value = 1, message = "레버리지는 1 이상이어야 합니다.")
-	@Max(value = 1000, message = "레버리지는 1000 이하여야 합니다.")
-	@Schema(description = "레버리지 (1-1000)", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Integer leverage;
+	@DecimalMin(value = "1.0", message = "레버리지는 1.0 이상이어야 합니다.")
+	@DecimalMax(value = "1000.0", message = "레버리지는 1000.0 이하여야 합니다.")
+	@Schema(description = "레버리지 (1.0-1000.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal leverage;
 
 	@NotNull(message = "P&L은 필수입니다.")
 	@Schema(description = "P&L", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal pnl;
+
+	@NotNull(message = "전체 자산 기준 P&L은 필수입니다.")
+	@Schema(description = "전체 자산 기준 P&L (pnl * 비중 / 100)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal totalAssetPnl;
 
 	@NotNull(message = "손익비는 필수입니다.")
 	@Schema(description = "손익비 (R&R)", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -112,23 +118,31 @@ public class CreateSwingRequestDetailRequestDTO {
 	private Integer tokenAmount;
 
 	// ========================================
-	// 완강 전 전용 필드
+	// 공통 필드 (완강 전/후 모두 필수 또는 선택)
 	// ========================================
 
-	@Schema(description = "비중 (운용 자금 대비) - 완강 전 필수", example = "50")
+	@NotNull(message = "비중은 필수입니다.")
+	@Schema(description = "비중 (운용 자금 대비) - 필수", example = "50", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Integer operatingFundsRatio;
 
-	@Schema(description = "진입 가격 - 완강 전 필수", example = "50000.00")
+	@NotNull(message = "진입 가격은 필수입니다.")
+	@Schema(description = "진입 가격 - 필수", example = "50000.00", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal entryPrice;
 
-	@Schema(description = "탈출 가격 - 완강 전 필수", example = "55000.00")
+	@NotNull(message = "탈출 가격은 필수입니다.")
+	@Schema(description = "탈출 가격 - 필수", example = "55000.00", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal exitPrice;
 
-	@Schema(description = "설정 손절가 - 완강 전 필수", example = "48000.00")
+	@NotNull(message = "설정 손절가는 필수입니다.")
+	@Schema(description = "설정 손절가 - 필수", example = "48000.00", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal settingStopLoss;
 
-	@Schema(description = "설정 익절가 - 완강 전 필수", example = "60000.00")
+	@Schema(description = "설정 익절가 - 선택", example = "60000.00")
 	private BigDecimal settingTakeProfit;
+
+	// ========================================
+	// 완강 전 전용 필드
+	// ========================================
 
 	@Schema(description = "포지션 진입 근거 - 완강 전 필수")
 	private String positionStartReason;
@@ -166,19 +180,17 @@ public class CreateSwingRequestDetailRequestDTO {
 	@Schema(description = "담당 트레이너 피드백 요청 사항 - 완강 후 선택")
 	private String trainerFeedbackRequestContent;
 
-	@Schema(description = "1차 진입 타점 - 완강 후 필수")
-	private EntryPoint entryPoint1;
+	@Schema(description = "진입 타점 - 완강 후 필수")
+	private EntryPoint entryPoint;
 
 	@Schema(description = "등급")
 	private Grade grade;
 
-	@Schema(description = "2차 진입 타점 - 완강 후 필수")
-	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-	private String entryPoint2;
+	@Schema(description = "추가 매수 횟수")
+	private Integer additionalBuyCount;
 
-	@Schema(description = "3차 진입 타점 - 완강 후 필수")
-	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-	private String entryPoint3;
+	@Schema(description = "분할 매도 횟수")
+	private Integer splitSellCount;
 
 	// ========================================
 	// Validation
@@ -213,12 +225,7 @@ public class CreateSwingRequestDetailRequestDTO {
 	@JsonIgnore
 	public boolean isBeforeCompletionFieldsValid() {
 		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
-			return operatingFundsRatio != null
-				&& entryPrice != null
-				&& exitPrice != null
-				&& settingStopLoss != null
-				&& settingTakeProfit != null
-				&& positionStartReason != null && !positionStartReason.isBlank()
+			return positionStartReason != null && !positionStartReason.isBlank()
 				&& positionEndReason != null && !positionEndReason.isBlank();
 		}
 		return true;
@@ -238,9 +245,7 @@ public class CreateSwingRequestDetailRequestDTO {
 				&& mainFrame != null && !mainFrame.isBlank()
 				&& subFrame != null && !subFrame.isBlank()
 				&& trendAnalysis != null && !trendAnalysis.isBlank()
-				&& entryPoint1 != null
-				&& entryPoint2 != null
-				&& entryPoint3 != null;
+				&& entryPoint != null;
 		}
 		return true;
 	}

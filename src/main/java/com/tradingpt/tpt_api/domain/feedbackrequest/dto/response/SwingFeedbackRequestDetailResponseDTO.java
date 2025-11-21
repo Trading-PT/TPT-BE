@@ -71,10 +71,10 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	private List<String> screenshotImageUrls;
 
 	@Schema(description = "리스크 테이킹")
-	private Integer riskTaking;
+	private BigDecimal riskTaking;
 
 	@Schema(description = "레버리지")
-	private Integer leverage;
+	private BigDecimal leverage;
 
 	@Schema(description = "포지션 진입 날짜")
 	private LocalDate positionStartDate;
@@ -109,20 +109,23 @@ public class SwingFeedbackRequestDetailResponseDTO {
 	@Schema(description = "P&L")
 	private BigDecimal pnl;
 
+	@Schema(description = "전체 자산 기준 P&L")
+	private BigDecimal totalAssetPnl;
+
 	@Schema(description = "R&R")
 	private Double rnr;
 
-	@Schema(description = "1차 진입 타점")
-	private EntryPoint entryPoint1;
+	@Schema(description = "진입 타점")
+	private EntryPoint entryPoint;
 
 	@Schema(description = "등급")
 	private Grade grade;
 
-	@Schema(description = "2차 진입 타점")
-	private String entryPoint2;
+	@Schema(description = "추가 매수 횟수")
+	private Integer additionalBuyCount;
 
-	@Schema(description = "3차 진입 타점")
-	private String entryPoint3;
+	@Schema(description = "분할 매도 횟수")
+	private Integer splitSellCount;
 
 	@Schema(description = "매매 복기")
 	private String tradingReview;
@@ -160,11 +163,12 @@ public class SwingFeedbackRequestDetailResponseDTO {
 			.subFrame(swingRequest.getSubFrame())
 			.trendAnalysis(swingRequest.getTrendAnalysis())
 			.pnl(swingRequest.getPnl())
+			.totalAssetPnl(swingRequest.getTotalAssetPnl())
 			.rnr(swingRequest.getRnr())
-			.entryPoint1(swingRequest.getEntryPoint1())
+			.entryPoint(swingRequest.getEntryPoint())
 			.grade(swingRequest.getGrade())
-			.entryPoint2(swingRequest.getEntryPoint2())
-			.entryPoint3(swingRequest.getEntryPoint3())
+			.additionalBuyCount(swingRequest.getAdditionalBuyCount())
+			.splitSellCount(swingRequest.getSplitSellCount())
 			.tradingReview(swingRequest.getTradingReview())
 			.build();
 	}

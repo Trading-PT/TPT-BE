@@ -24,6 +24,8 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final QFeedbackRequest _super;
 
+    public final NumberPath<Integer> additionalBuyCount = createNumber("additionalBuyCount", Integer.class);
+
     //inherited
     public final StringPath category;
 
@@ -40,9 +42,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     public final BooleanPath directionFrameExists = createBoolean("directionFrameExists");
 
-    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint1 = createEnum("entryPoint1", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
-
-    public final StringPath entryPoint2 = createString("entryPoint2");
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint = createEnum("entryPoint", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
     //inherited
     public final NumberPath<java.math.BigDecimal> entryPrice;
@@ -89,7 +89,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final BooleanPath isTrainerWritten;
 
     //inherited
-    public final NumberPath<Integer> leverage;
+    public final NumberPath<java.math.BigDecimal> leverage;
 
     public final StringPath mainFrame = createString("mainFrame");
 
@@ -115,7 +115,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
     public final StringPath positionStartReason;
 
     //inherited
-    public final NumberPath<Integer> riskTaking;
+    public final NumberPath<java.math.BigDecimal> riskTaking;
 
     //inherited
     public final NumberPath<Double> rnr;
@@ -125,6 +125,8 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     //inherited
     public final NumberPath<java.math.BigDecimal> settingTakeProfit;
+
+    public final NumberPath<Integer> splitSellCount = createNumber("splitSellCount", Integer.class);
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status;
@@ -136,6 +138,9 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
 
     //inherited
     public final NumberPath<Integer> tokenAmount;
+
+    //inherited
+    public final NumberPath<java.math.BigDecimal> totalAssetPnl;
 
     //inherited
     public final StringPath tradingReview;
@@ -199,6 +204,7 @@ public class QDayRequestDetail extends EntityPathBase<DayRequestDetail> {
         this.status = _super.status;
         this.title = _super.title;
         this.tokenAmount = _super.tokenAmount;
+        this.totalAssetPnl = _super.totalAssetPnl;
         this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }
