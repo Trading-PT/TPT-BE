@@ -81,7 +81,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final BooleanPath isTrainerWritten;
 
     //inherited
-    public final NumberPath<Integer> leverage;
+    public final NumberPath<java.math.BigDecimal> leverage;
 
     //inherited
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel;
@@ -105,7 +105,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
     public final StringPath positionStartReason;
 
     //inherited
-    public final NumberPath<Integer> riskTaking;
+    public final NumberPath<java.math.BigDecimal> riskTaking;
 
     //inherited
     public final NumberPath<Double> rnr;
@@ -124,6 +124,9 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
 
     //inherited
     public final NumberPath<Integer> tokenAmount;
+
+    //inherited
+    public final NumberPath<java.math.BigDecimal> totalAssetPnl;
 
     //inherited
     public final StringPath tradingReview;
@@ -183,6 +186,7 @@ public class QScalpingRequestDetail extends EntityPathBase<ScalpingRequestDetail
         this.status = _super.status;
         this.title = _super.title;
         this.tokenAmount = _super.tokenAmount;
+        this.totalAssetPnl = _super.totalAssetPnl;
         this.tradingReview = _super.tradingReview;
         this.updatedAt = _super.updatedAt;
     }

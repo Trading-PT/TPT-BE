@@ -69,16 +69,19 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 	private List<String> screenshotImageUrls;
 
 	@Schema(description = "초기 설정 리스크")
-	private Integer riskTaking;
+	private BigDecimal riskTaking;
 
 	@Schema(description = "레버리지")
-	private Integer leverage;
+	private BigDecimal leverage;
 
 	@Schema(description = "포지션 (LONG/SHORT)")
 	private Position position;
 
 	@Schema(description = "P&L")
 	private BigDecimal pnl;
+
+	@Schema(description = "전체 자산 기준 P&L")
+	private BigDecimal totalAssetPnl;
 
 	@Schema(description = "손익비")
 	private Double rnr;
@@ -131,6 +134,7 @@ public class ScalpingFeedbackRequestDetailResponseDTO {
 			.leverage(scalpingRequest.getLeverage())
 			.position(scalpingRequest.getPosition())
 			.pnl(scalpingRequest.getPnl())
+			.totalAssetPnl(scalpingRequest.getTotalAssetPnl())
 			.rnr(scalpingRequest.getRnr())
 			.operatingFundsRatio(scalpingRequest.getOperatingFundsRatio())
 			.entryPrice(scalpingRequest.getEntryPrice())

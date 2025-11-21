@@ -71,10 +71,10 @@ public class DayFeedbackRequestDetailResponseDTO {
 	private List<String> screenshotImageUrls;
 
 	@Schema(description = "리스크 테이킹")
-	private Integer riskTaking;
+	private BigDecimal riskTaking;
 
 	@Schema(description = "레버리지")
-	private Integer leverage;
+	private BigDecimal leverage;
 
 	@Schema(description = "포지션 진입 날짜")
 	private LocalDate positionStartDate;
@@ -112,17 +112,23 @@ public class DayFeedbackRequestDetailResponseDTO {
 	@Schema(description = "P&L")
 	private BigDecimal pnl;
 
+	@Schema(description = "전체 자산 기준 P&L")
+	private BigDecimal totalAssetPnl;
+
 	@Schema(description = "R&R")
 	private Double rnr;
 
-	@Schema(description = "1차 진입 타점")
-	private EntryPoint entryPoint1;
+	@Schema(description = "진입 타점")
+	private EntryPoint entryPoint;
 
 	@Schema(description = "등급")
 	private Grade grade;
 
-	@Schema(description = "2차 진입 타점")
-	private String entryPoint2;
+	@Schema(description = "추가 매수 횟수")
+	private Integer additionalBuyCount;
+
+	@Schema(description = "분할 매도 횟수")
+	private Integer splitSellCount;
 
 	@Schema(description = "매매 복기")
 	private String tradingReview;
@@ -158,10 +164,12 @@ public class DayFeedbackRequestDetailResponseDTO {
 			.subFrame(dayRequest.getSubFrame())
 			.trendAnalysis(dayRequest.getTrendAnalysis())
 			.pnl(dayRequest.getPnl())
+			.totalAssetPnl(dayRequest.getTotalAssetPnl())
 			.rnr(dayRequest.getRnr())
-			.entryPoint1(dayRequest.getEntryPoint1())
+			.entryPoint(dayRequest.getEntryPoint())
 			.grade(dayRequest.getGrade())
-			.entryPoint2(dayRequest.getEntryPoint2())
+			.additionalBuyCount(dayRequest.getAdditionalBuyCount())
+			.splitSellCount(dayRequest.getSplitSellCount())
 			.tradingReview(dayRequest.getTradingReview())
 			.build();
 	}

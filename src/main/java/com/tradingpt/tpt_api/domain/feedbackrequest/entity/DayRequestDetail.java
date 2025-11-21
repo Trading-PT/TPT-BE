@@ -47,12 +47,13 @@ public class DayRequestDetail extends FeedbackRequest {
 	private String trainerFeedbackRequestContent; // 담당 트레이너 피드백 요청 사항
 
 	@Enumerated(EnumType.STRING)
-	private EntryPoint entryPoint1; // 1 진입 타점
+	private EntryPoint entryPoint; // 진입 타점
 
 	@Enumerated(EnumType.STRING)
 	private Grade grade; // 등급
 
-	private String entryPoint2; // 2 진입 타점
+	private Integer additionalBuyCount; // 추가 매수 횟수
+	private Integer splitSellCount; // 분할 매도 횟수
 
 	/**
 	 * DTO로부터 DayRequestDetail 엔티티를 생성하는 정적 팩토리 메서드
@@ -85,18 +86,19 @@ public class DayRequestDetail extends FeedbackRequest {
 			.riskTaking(request.getRiskTaking())
 			.leverage(request.getLeverage())
 			.pnl(request.getPnl())
+			.totalAssetPnl(request.getTotalAssetPnl())
 			.rnr(request.getRnr())
-			.tradingReview(request.getTradingReview());
+			.tradingReview(request.getTradingReview())
+			.operatingFundsRatio(request.getOperatingFundsRatio())
+			.entryPrice(request.getEntryPrice())
+			.exitPrice(request.getExitPrice())
+			.settingStopLoss(request.getSettingStopLoss())
+			.settingTakeProfit(request.getSettingTakeProfit());
 
 		// 2. 완강 여부에 따른 조건부 필드 설정
 		if (request.getCourseStatus() == CourseStatus.BEFORE_COMPLETION) {
 			// 완강 전 필드
 			builder
-				.operatingFundsRatio(request.getOperatingFundsRatio())
-				.entryPrice(request.getEntryPrice())
-				.exitPrice(request.getExitPrice())
-				.settingStopLoss(request.getSettingStopLoss())
-				.settingTakeProfit(request.getSettingTakeProfit())
 				.positionStartReason(request.getPositionStartReason())
 				.positionEndReason(request.getPositionEndReason());
 		} else if (request.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
@@ -107,9 +109,10 @@ public class DayRequestDetail extends FeedbackRequest {
 				.mainFrame(request.getMainFrame())
 				.subFrame(request.getSubFrame())
 				.trendAnalysis(request.getTrendAnalysis())
-				.entryPoint1(request.getEntryPoint1())
+				.entryPoint(request.getEntryPoint())
 				.grade(request.getGrade())
-				.entryPoint2(request.getEntryPoint2())
+				.additionalBuyCount(request.getAdditionalBuyCount())
+				.splitSellCount(request.getSplitSellCount())
 				.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent());
 		}
 

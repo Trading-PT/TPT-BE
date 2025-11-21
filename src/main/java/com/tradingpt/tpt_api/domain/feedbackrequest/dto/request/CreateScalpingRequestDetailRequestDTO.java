@@ -12,6 +12,8 @@ import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -56,16 +58,16 @@ public class CreateScalpingRequestDetailRequestDTO {
 	private List<MultipartFile> screenshotFiles;
 
 	@NotNull(message = "리스크 테이킹은 필수입니다.")
-	@Min(value = 1, message = "리스크 테이킹은 1 이상이어야 합니다.")
-	@Max(value = 100, message = "리스크 테이킹은 100 이하여야 합니다.")
-	@Schema(description = "리스크 테이킹 (1-100)", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Integer riskTaking;
+	@DecimalMin(value = "1.0", message = "리스크 테이킹은 1.0 이상이어야 합니다.")
+	@DecimalMax(value = "100.0", message = "리스크 테이킹은 100.0 이하여야 합니다.")
+	@Schema(description = "리스크 테이킹 (1.0-100.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal riskTaking;
 
 	@NotNull(message = "레버리지는 필수입니다.")
-	@Min(value = 1, message = "레버리지는 1 이상이어야 합니다.")
-	@Max(value = 1000, message = "레버리지는 1000 이하여야 합니다.")
-	@Schema(description = "레버리지 (1-1000)", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Integer leverage;
+	@DecimalMin(value = "1.0", message = "레버리지는 1.0 이상이어야 합니다.")
+	@DecimalMax(value = "1000.0", message = "레버리지는 1000.0 이하여야 합니다.")
+	@Schema(description = "레버리지 (1.0-1000.0)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal leverage;
 
 	@NotNull(message = "포지션은 필수입니다.")
 	@Schema(description = "포지션 (LONG/SHORT)", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -74,6 +76,10 @@ public class CreateScalpingRequestDetailRequestDTO {
 	@NotNull(message = "P&L은 필수입니다.")
 	@Schema(description = "P&L", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal pnl;
+
+	@NotNull(message = "전체 자산 기준 P&L은 필수입니다.")
+	@Schema(description = "전체 자산 기준 P&L (pnl * 비중 / 100)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private BigDecimal totalAssetPnl;
 
 	@NotNull(message = "손익비는 필수입니다.")
 	@Schema(description = "손익비", requiredMode = Schema.RequiredMode.REQUIRED)

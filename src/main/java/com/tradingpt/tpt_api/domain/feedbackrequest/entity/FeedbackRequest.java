@@ -84,8 +84,8 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private String category; // 종목
 	private String positionHoldingTime; // 포지션 홀딩 시간
 
-	private Integer riskTaking; // 리스크 테이킹
-	private Integer leverage; // 레버리지
+	private BigDecimal riskTaking; // 리스크 테이킹
+	private BigDecimal leverage; // 레버리지
 
 	@Enumerated(EnumType.STRING)
 	private Position position; // 포지션
@@ -97,6 +97,7 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private MembershipLevel membershipLevel;
 
 	private BigDecimal pnl; // P&L
+	private BigDecimal totalAssetPnl; // 전체 자산 기준 P&L (pnl * operatingFundsRatio / 100)
 	private Double rnr; // R&R
 
 	private Integer feedbackYear; // 피드백 연도
@@ -104,14 +105,14 @@ public abstract class FeedbackRequest extends BaseEntity {
 	private Integer feedbackWeek; // 피드백 주차
 
 	/**
-	 * ⭐ 완강 전 모든 타입 + 스캘핑 완강 후 사용 필드
-	 * - 모든 타입의 완강 전: 필수
-	 * - 스캘핑 완강 후: 필수
-	 * - 데이/스윙 완강 후: null
+	 * ⭐ 매매 관련 필드
+	 * - operatingFundsRatio: 완강 전 모든 타입 + 스캘핑 완강 후 필수
+	 * - entryPrice, exitPrice, settingStopLoss: 모든 타입 완강 전/후 필수
+	 * - settingTakeProfit: 모든 타입 선택 (필수 아님)
 	 */
 	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
-	private BigDecimal entryPrice; // 진입 자금
-	private BigDecimal exitPrice; // 탈출 자금
+	private BigDecimal entryPrice; // 진입 가격
+	private BigDecimal exitPrice; // 탈출 가격
 	private BigDecimal settingStopLoss; // 설정 손절가
 	private BigDecimal settingTakeProfit; // 설정 익절가
 

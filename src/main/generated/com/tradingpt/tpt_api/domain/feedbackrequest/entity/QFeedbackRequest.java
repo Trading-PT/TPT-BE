@@ -61,7 +61,7 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final BooleanPath isTrainerWritten = createBoolean("isTrainerWritten");
 
-    public final NumberPath<Integer> leverage = createNumber("leverage", Integer.class);
+    public final NumberPath<java.math.BigDecimal> leverage = createNumber("leverage", java.math.BigDecimal.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);
 
@@ -77,7 +77,7 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final StringPath positionStartReason = createString("positionStartReason");
 
-    public final NumberPath<Integer> riskTaking = createNumber("riskTaking", Integer.class);
+    public final NumberPath<java.math.BigDecimal> riskTaking = createNumber("riskTaking", java.math.BigDecimal.class);
 
     public final NumberPath<Double> rnr = createNumber("rnr", Double.class);
 
@@ -90,6 +90,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
     public final StringPath title = createString("title");
 
     public final NumberPath<Integer> tokenAmount = createNumber("tokenAmount", Integer.class);
+
+    public final NumberPath<java.math.BigDecimal> totalAssetPnl = createNumber("totalAssetPnl", java.math.BigDecimal.class);
 
     public final StringPath tradingReview = createString("tradingReview");
 
