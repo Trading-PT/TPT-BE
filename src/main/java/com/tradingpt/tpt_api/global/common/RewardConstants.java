@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.global.common;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 /**
@@ -11,7 +10,6 @@ import lombok.NoArgsConstructor;
  * 이 클래스의 값을 변경하면 전체 시스템에 즉시 적용됨
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RewardConstants {
 
 	/**
