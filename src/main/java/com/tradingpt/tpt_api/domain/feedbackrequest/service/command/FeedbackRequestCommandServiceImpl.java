@@ -29,6 +29,7 @@ import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
+import com.tradingpt.tpt_api.global.common.RewardConstants;
 import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 
@@ -81,6 +82,24 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
+
+		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
+		customer.incrementFeedbackCount();
+		boolean rewarded = customer.rewardTokensIfEligible(
+			RewardConstants.FEEDBACK_THRESHOLD,
+			RewardConstants.TOKEN_REWARD_AMOUNT
+		);
+
+		if (rewarded) {
+			log.info("🎉 Token reward milestone reached! customerId={}, feedbackCount={}, tokensEarned={}, totalTokens={}",
+				customerId,
+				customer.getFeedbackRequestCount(),
+				RewardConstants.TOKEN_REWARD_AMOUNT,
+				customer.getToken());
+		}
+
+		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
+
 		return DayFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
@@ -118,6 +137,24 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
+
+		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
+		customer.incrementFeedbackCount();
+		boolean rewarded = customer.rewardTokensIfEligible(
+			RewardConstants.FEEDBACK_THRESHOLD,
+			RewardConstants.TOKEN_REWARD_AMOUNT
+		);
+
+		if (rewarded) {
+			log.info("🎉 Token reward milestone reached! customerId={}, feedbackCount={}, tokensEarned={}, totalTokens={}",
+				customerId,
+				customer.getFeedbackRequestCount(),
+				RewardConstants.TOKEN_REWARD_AMOUNT,
+				customer.getToken());
+		}
+
+		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
+
 		return ScalpingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
@@ -153,6 +190,24 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
 		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
+
+		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
+		customer.incrementFeedbackCount();
+		boolean rewarded = customer.rewardTokensIfEligible(
+			RewardConstants.FEEDBACK_THRESHOLD,
+			RewardConstants.TOKEN_REWARD_AMOUNT
+		);
+
+		if (rewarded) {
+			log.info("🎉 Token reward milestone reached! customerId={}, feedbackCount={}, tokensEarned={}, totalTokens={}",
+				customerId,
+				customer.getFeedbackRequestCount(),
+				RewardConstants.TOKEN_REWARD_AMOUNT,
+				customer.getToken());
+		}
+
+		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
+
 		return SwingFeedbackRequestDetailResponseDTO.of(saved);
 	}
 
@@ -166,7 +221,13 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.DELETE_PERMISSION_DENIED);
 		}
 
+		// ✅ 누적 작성 횟수는 삭제 시에도 감소하지 않음 (총 몇 개를 작성했는지만 카운트)
+		// 피드백 카운트는 단조증가하므로 decrementFeedbackCount() 호출 제거
+
 		feedbackRequestRepository.delete(feedbackRequest);
+
+		log.info("Feedback deleted: feedbackRequestId={}, customerId={}",
+			feedbackRequestId, customerId);
 
 		return null;
 	}

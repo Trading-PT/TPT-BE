@@ -1,17 +1,20 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
-import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
-import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
+
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.user.enums.AccountStatus;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -50,6 +53,8 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @DiscriminatorValue(value = "ROLE_CUSTOMER")
 @PrimaryKeyJoinColumn(name = "user_id")
+@DynamicUpdate  // ⭐ 변경된 필드만 UPDATE 쿼리에 포함
+@DynamicInsert
 public class Customer extends User {
 
 	/**
@@ -111,13 +116,25 @@ public class Customer extends User {
 	@Builder.Default
 	private Integer token = 0; // 토큰의 개수
 
+	/**
+	 * 피드백 요청 누적 작성 횟수
+	 * 매매일지(피드백 요청) 작성 시 자동 증가 (단조증가)
+	 * 삭제 시에는 감소하지 않음 (누적 개념)
+	 * 토큰 보상 기준으로 사용됨 (N개마다 M개 토큰 지급)
+	 */
+	@Column(name = "feedback_request_count")
+	@Builder.Default
+	private Integer feedbackRequestCount = 0;
+
 	// ⭐ getRole() 구현
 	@Override
 	public Role getRole() {
 		return Role.ROLE_CUSTOMER;
 	}
 
-	/** uid 값 통째로 교체/설정 */
+	/**
+	 * uid 값 통째로 교체/설정
+	 */
 	public void setUid(Uid uid) {
 		// 기존 연관 끊기
 		if (this.uid != null) {
@@ -133,7 +150,9 @@ public class Customer extends User {
 		this.assignedTrainer = trainer;
 	}
 
-	/** 값으로 신규 생성(없으면 생성, 있으면 값만 변경) */
+	/**
+	 * 값으로 신규 생성(없으면 생성, 있으면 값만 변경)
+	 */
 	public void upsertUid(String exchangeName, String uidValue) {
 		if (this.uid == null) {
 			Uid newUid = Uid.builder()
@@ -148,7 +167,9 @@ public class Customer extends User {
 		}
 	}
 
-	/** uid 제거 */
+	/**
+	 * uid 제거
+	 */
 	public void removeUid() {
 		if (this.uid != null) {
 			this.uid.setCustomer(null);
@@ -246,7 +267,9 @@ public class Customer extends User {
 		this.userStatus = status;
 	}
 
-	public void setCourseStatus(CourseStatus status){this.courseStatus = status;}
+	public void setCourseStatus(CourseStatus status) {
+		this.courseStatus = status;
+	}
 
 	public void updatePrimaryInvestmentType(InvestmentType requestedType) {
 		primaryInvestmentType = requestedType;
@@ -291,5 +314,48 @@ public class Customer extends User {
 
 	public void updateCourseStatus(CourseStatus status) {
 		this.courseStatus = status;
+	}
+
+	// ========================================
+	// 피드백 카운트 및 토큰 보상 비즈니스 메서드
+	// ========================================
+
+	/**
+	 * 피드백 요청 누적 카운트 증가 (단조증가)
+	 * 매매일지 작성 시 호출
+	 * 삭제 시에는 감소하지 않음 (누적 작성 횟수 개념)
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 */
+	public void incrementFeedbackCount() {
+		this.feedbackRequestCount++;
+	}
+
+	/**
+	 * 조건 충족 시 토큰 보상
+	 * N개마다 M개 토큰을 자동 발급
+	 *
+	 * @param threshold    몇 개마다 보상할지 (예: 5)
+	 * @param rewardAmount 보상 토큰 개수 (예: 3)
+	 * @return 보상 여부 (true: 보상 받음, false: 조건 미충족)
+	 */
+	public boolean rewardTokensIfEligible(int threshold, int rewardAmount) {
+		// 카운트가 임계값의 배수인지 확인
+		if (this.feedbackRequestCount > 0 && this.feedbackRequestCount % threshold == 0) {
+			this.token += rewardAmount;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * 현재 다음 보상까지 남은 피드백 개수 계산
+	 * UI에 표시하거나 로깅 용도로 사용 가능
+	 *
+	 * @param threshold 보상 임계값 (예: 5)
+	 * @return 다음 보상까지 남은 피드백 개수
+	 */
+	public int getRemainingFeedbacksForNextReward(int threshold) {
+		int remainder = this.feedbackRequestCount % threshold;
+		return threshold - remainder;
 	}
 }
