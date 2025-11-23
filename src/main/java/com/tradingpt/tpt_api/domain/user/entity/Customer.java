@@ -358,4 +358,14 @@ public class Customer extends User {
 		int remainder = this.feedbackRequestCount % threshold;
 		return threshold - remainder;
 	}
+	// 토큰 더하는 메서드
+	public void addToken(int amount) {
+		if (amount <= 0) {
+			return;
+		}
+		if (this.token == null) {
+			this.token = 0;
+		}
+		this.token += amount;
+	}
 }

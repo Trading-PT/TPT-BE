@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.auth.service;
 
 import com.tradingpt.tpt_api.domain.auth.dto.request.PasswordUpdateRequestDTO;
 import com.tradingpt.tpt_api.domain.auth.dto.response.PasswordUpdateResponseDTO;
+import com.tradingpt.tpt_api.domain.event.service.EventTokenService;
 import com.tradingpt.tpt_api.domain.user.entity.PasswordHistory;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
@@ -38,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
 	private static final int PASSWORD_HISTORY_CHECK_SIZE = 5;
 	private final VerificationService verificationService;
+	private final EventTokenService eventTokenService;
 	private final UserService userService;
 	private final PasswordEncoder passwordEncoder;
 	private final UserRepository userRepository;
@@ -116,6 +118,7 @@ public class AuthServiceImpl implements AuthService {
 
 		attachUid(customer, req);     // 자식 먼저 붙이고
 		userRepository.save(customer); // 저장은 한 번 (cascade로 Uid 함께 INSERT)
+		eventTokenService.grantSignupTokens(customer);
 
 		verificationService.clearPhoneTrace(phone);
 		verificationService.clearEmailTrace(email);
@@ -192,6 +195,8 @@ public class AuthServiceImpl implements AuthService {
 
 		// 기존 엔티티 저장 (변경 감지 + cascade)
 		userRepository.save(customer);
+		// 여기서 이벤트 토큰 발급
+		eventTokenService.grantSignupTokens(customer);
 
 		verificationService.clearPhoneTrace(phone);
 		verificationService.clearEmailTrace(email);
