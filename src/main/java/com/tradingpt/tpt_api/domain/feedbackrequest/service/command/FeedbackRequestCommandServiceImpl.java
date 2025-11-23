@@ -221,14 +221,13 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.DELETE_PERMISSION_DENIED);
 		}
 
-		// ⭐ 피드백 카운트 감소
-		Customer customer = feedbackRequest.getCustomer();
-		customer.decrementFeedbackCount();
+		// ✅ 누적 작성 횟수는 삭제 시에도 감소하지 않음 (총 몇 개를 작성했는지만 카운트)
+		// 피드백 카운트는 단조증가하므로 decrementFeedbackCount() 호출 제거
 
 		feedbackRequestRepository.delete(feedbackRequest);
 
-		log.info("Feedback deleted and count decremented: customerId={}, remainingCount={}",
-			customerId, customer.getFeedbackRequestCount());
+		log.info("Feedback deleted: feedbackRequestId={}, customerId={}",
+			feedbackRequestId, customerId);
 
 		return null;
 	}

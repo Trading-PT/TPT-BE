@@ -1,11 +1,17 @@
 package com.tradingpt.tpt_api.global.common;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 /**
  * 토큰 보상 관련 상수 정의
  *
  * 매매일지 n개 작성 시 토큰 m개 발급 기능의 상수 관리
  * 이 클래스의 값을 변경하면 전체 시스템에 즉시 적용됨
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public final class RewardConstants {
 
 	/**
@@ -23,12 +29,7 @@ public final class RewardConstants {
 	 * 예: 3으로 설정 시, 조건 만족 시마다 3토큰 발급
 	 */
 	public static final int TOKEN_REWARD_AMOUNT = 3;
-
-	// 인스턴스화 방지
-	private RewardConstants() {
-		throw new AssertionError("Cannot instantiate constants class");
-	}
-
+	
 	/**
 	 * 다음 보상까지 남은 개수 계산
 	 *

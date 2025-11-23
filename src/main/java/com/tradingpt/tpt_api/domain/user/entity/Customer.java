@@ -117,9 +117,10 @@ public class Customer extends User {
 	private Integer token = 0; // 토큰의 개수
 
 	/**
-	 * 피드백 요청 누적 카운트
-	 * 매매일지(피드백 요청) 작성 시 자동 증가
-	 * 토큰 보상 기준으로 사용됨
+	 * 피드백 요청 누적 작성 횟수
+	 * 매매일지(피드백 요청) 작성 시 자동 증가 (단조증가)
+	 * 삭제 시에는 감소하지 않음 (누적 개념)
+	 * 토큰 보상 기준으로 사용됨 (N개마다 M개 토큰 지급)
 	 */
 	@Column(name = "feedback_request_count")
 	@Builder.Default
@@ -320,22 +321,13 @@ public class Customer extends User {
 	// ========================================
 
 	/**
-	 * 피드백 요청 카운트 증가
+	 * 피드백 요청 누적 카운트 증가 (단조증가)
 	 * 매매일지 작성 시 호출
+	 * 삭제 시에는 감소하지 않음 (누적 작성 횟수 개념)
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
 	public void incrementFeedbackCount() {
 		this.feedbackRequestCount++;
-	}
-
-	/**
-	 * 피드백 요청 카운트 감소
-	 * 매매일지 삭제 시 호출
-	 */
-	public void decrementFeedbackCount() {
-		if (this.feedbackRequestCount > 0) {
-			this.feedbackRequestCount--;
-		}
 	}
 
 	/**
@@ -365,15 +357,5 @@ public class Customer extends User {
 	public int getRemainingFeedbacksForNextReward(int threshold) {
 		int remainder = this.feedbackRequestCount % threshold;
 		return threshold - remainder;
-	}
-
-	/**
-	 * 피드백 카운트를 실제 값으로 동기화
-	 * 스케줄러에서 정합성 보장을 위해 사용
-	 *
-	 * @param actualCount 실제 피드백 요청 개수
-	 */
-	public void syncFeedbackRequestCount(int actualCount) {
-		this.feedbackRequestCount = actualCount;
 	}
 }
