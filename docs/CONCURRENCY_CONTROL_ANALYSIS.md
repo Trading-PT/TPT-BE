@@ -1,6 +1,6 @@
 # 멀티 인스턴스 환경의 동시성 제어 전략 분석 및 최소 방어 구현
 
-> **작성일**: 2025년 1월
+> **작성일**: 2025년 11월
 > **프로젝트**: TradingPT API (tpt-api)
 > **도메인**: User, FeedbackRequest, Payment
 > **문제 유형**: 동시성 제어, 데이터 정합성
@@ -20,31 +20,34 @@
 ## 1. 문제 발견 배경
 
 ### 발견 경위
+
 - **상황**: 멀티 인스턴스 환경으로 운영 서버 배포 준비 단계
 - **트리거**: 동시성 문제 가능성에 대한 사전 검토
 - **발견 시점**: 개발 단계 (프로덕션 배포 전)
 - **관련 기능**:
-  1. 매매일지(피드백 요청) n개 작성 시 토큰 m개 발급 기능
-  2. 결제 수단 등록 및 구독 결제 기능
+    1. 매매일지(피드백 요청) n개 작성 시 토큰 m개 발급 기능
+    2. 결제 수단 등록 및 구독 결제 기능
 
 ### 관찰된 잠재적 위험
+
 - **사용자 시나리오**:
-  - 동일 사용자가 여러 브라우저/탭에서 동시에 매매일지 작성
-  - 결제 버튼 연타로 인한 중복 결제 가능성
+    - 동일 사용자가 여러 브라우저/탭에서 동시에 매매일지 작성
+    - 결제 버튼 연타로 인한 중복 결제 가능성
 - **시스템 지표**:
-  - 멀티 인스턴스 환경 (운영 서버 2개 이상 인스턴스 예정)
-  - 단일 MySQL DB (공유 리소스)
+    - 멀티 인스턴스 환경 (운영 서버 2개 이상 인스턴스 예정)
+    - 단일 MySQL DB (공유 리소스)
 - **비즈니스 영향**:
-  - 토큰 중복 지급 → 금전적 손실
-  - 결제 중복 처리 → 고객 클레임, 환불 처리, 법적 리스크
+    - 토큰 중복 지급 → 금전적 손실
+    - 결제 중복 처리 → 고객 클레임, 환불 처리, 법적 리스크
 
 ### 잠재적 비즈니스 임팩트
+
 - **예상 발생 빈도**: 극히 낮음 (< 0.01%)
-  - 토큰 보상: 동일 사용자가 동시에 매매일지를 작성할 확률 거의 0%
-  - 결제: 프론트엔드 버튼 비활성화 + NicePay SDK 중복 방지 로직 존재
+    - 토큰 보상: 동일 사용자가 동시에 매매일지를 작성할 확률 거의 0%
+    - 결제: 프론트엔드 버튼 비활성화 + NicePay SDK 중복 방지 로직 존재
 - **발생 시 영향**: 중간~높음
-  - 토큰 중복 지급: 금전적 손실 (토큰 1개당 가치 추정 필요)
-  - 결제 중복: 고객 불만, 환불 처리 비용, 브랜드 신뢰 하락
+    - 토큰 중복 지급: 금전적 손실 (토큰 1개당 가치 추정 필요)
+    - 결제 중복: 고객 불만, 환불 처리 비용, 브랜드 신뢰 하락
 
 ---
 
@@ -63,19 +66,20 @@
 // 기존 코드 (동시성 제어 없음)
 @Transactional
 public DayFeedbackRequestDetailResponseDTO createDayRequest(...) {
-    // 매매일지 저장
-    DayFeedbackRequest request = feedbackRequestRepository.save(...);
+	// 매매일지 저장
+	DayFeedbackRequest request = feedbackRequestRepository.save(...);
 
-    // Customer 조회 및 업데이트
-    Customer customer = customerRepository.findById(customerId).orElseThrow();
-    customer.incrementFeedbackCount();  // count++
-    customer.rewardTokensIfEligible(5, 3);  // 5개마다 3토큰 지급
+	// Customer 조회 및 업데이트
+	Customer customer = customerRepository.findById(customerId).orElseThrow();
+	customer.incrementFeedbackCount();  // count++
+	customer.rewardTokensIfEligible(5, 3);  // 5개마다 3토큰 지급
 
-    // JPA Dirty Checking으로 자동 UPDATE
+	// JPA Dirty Checking으로 자동 UPDATE
 }
 ```
 
 **동시성 문제 발생 시나리오**:
+
 ```
 초기 상태: feedbackRequestCount = 4, token = 0
 
@@ -93,12 +97,13 @@ T6: Instance-2: UPDATE customer SET count=5, token=3 WHERE id=1
 ```
 
 **실제 발생 확률 분석**:
+
 - **물리적 제약**: 매매일지 작성에는 최소 수십 초~수 분 소요
 - **사용자 행동 패턴**: 일반적으로 순차적으로 작성
 - **극단적 시나리오**:
-  - 여러 탭에서 동시 작성? → 거의 없음
-  - 네트워크 지연으로 재시도? → 가능하지만 희귀
-  - 봇/해커? → Session 기반이므로 순차 처리
+    - 여러 탭에서 동시 작성? → 거의 없음
+    - 네트워크 지연으로 재시도? → 가능하지만 희귀
+    - 봇/해커? → Session 기반이므로 순차 처리
 - **결론**: 발생 확률 < 0.01%
 
 ---
@@ -106,6 +111,7 @@ T6: Instance-2: UPDATE customer SET count=5, token=3 WHERE id=1
 #### Case 2: 결제 처리
 
 **기존 방어 메커니즘**:
+
 ```
 1차 방어: 프론트엔드
    └─ 버튼 비활성화 (클릭 후 disabled)
@@ -121,6 +127,7 @@ T6: Instance-2: UPDATE customer SET count=5, token=3 WHERE id=1
 ```
 
 **실제 발생 확률 분석**:
+
 - 프론트엔드 + SDK + PG사 3중 방어 존재
 - 백엔드까지 중복 요청이 도달할 확률: 극히 낮음
 - **결론**: 백엔드 추가 방어 필요성 낮음
@@ -129,35 +136,43 @@ T6: Instance-2: UPDATE customer SET count=5, token=3 WHERE id=1
 
 ### 영향도 평가 매트릭스
 
-| 케이스 | 발생 확률 | 영향도 | 우선순위 | 대응 전략 |
-|--------|----------|--------|----------|-----------|
-| **토큰 보상 중복** | 극히 낮음 (< 0.01%) | 중간 | **중** | 최소 방어 코드 |
-| **결제 중복** | 극히 낮음 (< 0.001%) | 높음 | 낮음 | 기존 방어로 충분 |
+| 케이스          | 발생 확률            | 영향도 | 우선순위  | 대응 전략     |
+|--------------|------------------|-----|-------|-----------|
+| **토큰 보상 중복** | 극히 낮음 (< 0.01%)  | 중간  | **중** | 최소 방어 코드  |
+| **결제 중복**    | 극히 낮음 (< 0.001%) | 높음  | 낮음    | 기존 방어로 충분 |
 
 ---
 
 ## 3. 근본 원인 분석 (5 Whys)
 
 ### Why 1: 왜 동시성 문제가 발생하는가?
+
 **답변**: 여러 인스턴스에서 동시에 같은 Customer 데이터를 조회하고 수정하기 때문
 
 ### Why 2: 왜 여러 인스턴스에서 동시 접근이 가능한가?
+
 **답변**: 멀티 인스턴스 환경에서 로드 밸런서가 요청을 분산하기 때문
 
 ### Why 3: 왜 멀티 인스턴스 환경이 필요한가?
+
 **답변**:
+
 - 단일 장애점(SPOF) 제거로 가용성 향상
 - 부하 분산으로 성능 향상
 - 무중단 배포 가능
 
 ### Why 4: 왜 DB 레벨의 동시성 제어가 없는가?
+
 **답변**:
+
 - 초기 개발 시 단일 인스턴스 환경을 가정
 - 동시성 제어 필요성이 낮다고 판단
 - JPA의 기본 동작(Dirty Checking)만 사용
 
 ### Why 5: 왜 낙관적 락(@Version)을 사용하지 않았는가?
+
 **답변**:
+
 - 동시성 문제 발생 확률이 매우 낮음
 - YAGNI 원칙 (You Aren't Gonna Need It) 적용
 - 최소한의 코드로 MVP 구현 우선
@@ -175,31 +190,49 @@ T6: Instance-2: UPDATE customer SET count=5, token=3 WHERE id=1
 ### 해결 방안 1: 낙관적 락 (@Version)
 
 #### 개념
+
 ```java
+
 @Entity
 public class Customer extends User {
-    @Version
-    private Long version;  // JPA가 자동으로 관리
+	@Version
+	private Long version;  // JPA가 자동으로 관리
 
-    private Integer feedbackRequestCount;
-    private Integer token;
+	private Integer feedbackRequestCount;
+	private Integer token;
 }
 ```
 
 #### 동작 원리
+
 ```sql
 -- Instance-1
-SELECT * FROM customer WHERE id = 1;  -- version = 10
-UPDATE customer SET count = 5, token = 3, version = 11 WHERE id = 1 AND version = 10;
+SELECT *
+FROM customer
+WHERE id = 1; -- version = 10
+UPDATE customer
+SET count   = 5,
+    token   = 3,
+    version = 11
+WHERE id = 1
+  AND version = 10;
 -- ✅ 성공 (1 row affected)
 
 -- Instance-2 (약간 늦게)
-SELECT * FROM customer WHERE id = 1;  -- version = 10 (이전 데이터)
-UPDATE customer SET count = 5, token = 3, version = 11 WHERE id = 1 AND version = 10;
+SELECT *
+FROM customer
+WHERE id = 1; -- version = 10 (이전 데이터)
+UPDATE customer
+SET count   = 5,
+    token   = 3,
+    version = 11
+WHERE id = 1
+  AND version = 10;
 -- ❌ 실패 (0 rows affected) → OptimisticLockException
 ```
 
 #### 장점
+
 - ✅ 구현 비용: **30초** (어노테이션 1개 + 컬럼 1개)
 - ✅ 성능 영향: 거의 없음 (LONG 컬럼 1개 증가)
 - ✅ 멀티 인스턴스 완벽 대응 (DB가 단일 진실 공급원)
@@ -207,6 +240,7 @@ UPDATE customer SET count = 5, token = 3, version = 11 WHERE id = 1 AND version 
 - ✅ 코드 수정 최소화
 
 #### 단점
+
 - △ 충돌 발생 시 재시도 필요 (실제로는 거의 발생 안 함)
 - △ DB 컬럼 1개 추가 (마이그레이션 필요)
 
@@ -215,29 +249,41 @@ UPDATE customer SET count = 5, token = 3, version = 11 WHERE id = 1 AND version 
 ### 해결 방안 2: 비관적 락 (SELECT FOR UPDATE)
 
 #### 개념
+
 ```java
+
 @Lock(LockModeType.PESSIMISTIC_WRITE)
 @Query("SELECT c FROM Customer c WHERE c.id = :id")
 Optional<Customer> findByIdForUpdate(@Param("id") Long id);
 ```
 
 #### 동작 원리
+
 ```sql
 -- Instance-1
-SELECT * FROM customer WHERE id = 1 FOR UPDATE;  -- 🔒 락 획득
+SELECT *
+FROM customer
+WHERE id = 1 FOR UPDATE;
+-- 🔒 락 획득
 -- UPDATE 수행
-COMMIT;  -- 🔓 락 해제
+COMMIT;
+-- 🔓 락 해제
 
 -- Instance-2
-SELECT * FROM customer WHERE id = 1 FOR UPDATE;  -- ⏳ 대기...
+SELECT *
+FROM customer
+WHERE id = 1 FOR UPDATE;
+-- ⏳ 대기...
 -- Instance-1 커밋 후 락 획득
 ```
 
 #### 장점
+
 - ✅ 충돌이 아예 발생하지 않음 (순차 처리)
 - ✅ 멀티 인스턴스 완벽 대응
 
 #### 단점
+
 - ❌ 성능 저하 (락 대기 시간 발생)
 - ❌ Deadlock 가능성
 - ❌ 오버 엔지니어링 (발생 확률 < 0.01%)
@@ -248,26 +294,30 @@ SELECT * FROM customer WHERE id = 1 FOR UPDATE;  -- ⏳ 대기...
 ### 해결 방안 3: 분산 락 (Redis Redisson)
 
 #### 개념
+
 ```java
+
 @Transactional
 public void createFeedback(Long customerId) {
-    RLock lock = redissonClient.getLock("feedback:" + customerId);
+	RLock lock = redissonClient.getLock("feedback:" + customerId);
 
-    try {
-        if (lock.tryLock(10, 30, TimeUnit.SECONDS)) {
-            // 비즈니스 로직
-        }
-    } finally {
-        lock.unlock();
-    }
+	try {
+		if (lock.tryLock(10, 30, TimeUnit.SECONDS)) {
+			// 비즈니스 로직
+		}
+	} finally {
+		lock.unlock();
+	}
 }
 ```
 
 #### 장점
+
 - ✅ DB 외부 작업에도 적용 가능 (외부 API 호출 등)
 - ✅ 멀티 인스턴스 완벽 대응
 
 #### 단점
+
 - ❌ Redis 추가 필요 (비용 증가: $15~60/월)
 - ❌ 인프라 복잡도 증가 (모니터링, 장애 대응)
 - ❌ 구현 복잡도 높음
@@ -278,17 +328,20 @@ public void createFeedback(Long customerId) {
 ### 해결 방안 4: 아무것도 하지 않음
 
 #### 근거
+
 - 발생 확률: < 0.01%
 - 1인 1접근 패턴
 - 프론트엔드 + SDK가 이미 방어
 - YAGNI 원칙
 
 #### 장점
+
 - ✅ 개발 시간 절약
 - ✅ 코드 복잡도 최소
 - ✅ 실용적 판단
 
 #### 단점
+
 - △ 극히 드물게 문제 발생 가능
 - △ 사후 대응 필요 (수동 보정)
 
@@ -296,12 +349,12 @@ public void createFeedback(Long customerId) {
 
 ### 최종 비교표
 
-| 해결 방안 | 구현 비용 | 성능 영향 | 복잡도 | 효과 | 추천도 |
-|----------|----------|----------|--------|------|--------|
-| **낙관적 락 (@Version)** | ⭐ 30초 | ⭐⭐⭐⭐⭐ 거의 없음 | ⭐⭐⭐⭐⭐ 매우 낮음 | ⭐⭐⭐⭐⭐ 완벽 | ✅ **강력 추천** |
-| **비관적 락 (FOR UPDATE)** | ⭐⭐ 1시간 | ⭐⭐ 락 대기 발생 | ⭐⭐⭐ 중간 | ⭐⭐⭐⭐ 완벽 | △ 과함 |
-| **분산 락 (Redis)** | ⭐⭐⭐⭐ 반나절 | ⭐⭐⭐ 네트워크 오버헤드 | ⭐ 매우 높음 | ⭐⭐⭐⭐⭐ 완벽 | ❌ 오버 엔지니어링 |
-| **아무것도 안 함** | ⭐⭐⭐⭐⭐ 0초 | ⭐⭐⭐⭐⭐ 없음 | ⭐⭐⭐⭐⭐ 최저 | ⭐ 없음 | △ 실용적이지만 위험 |
+| 해결 방안                  | 구현 비용    | 성능 영향         | 복잡도         | 효과       | 추천도         |
+|------------------------|----------|---------------|-------------|----------|-------------|
+| **낙관적 락 (@Version)**   | ⭐ 30초    | ⭐⭐⭐⭐⭐ 거의 없음   | ⭐⭐⭐⭐⭐ 매우 낮음 | ⭐⭐⭐⭐⭐ 완벽 | ✅ **강력 추천** |
+| **비관적 락 (FOR UPDATE)** | ⭐⭐ 1시간   | ⭐⭐ 락 대기 발생    | ⭐⭐⭐ 중간      | ⭐⭐⭐⭐ 완벽  | △ 과함        |
+| **분산 락 (Redis)**       | ⭐⭐⭐⭐ 반나절 | ⭐⭐⭐ 네트워크 오버헤드 | ⭐ 매우 높음     | ⭐⭐⭐⭐⭐ 완벽 | ❌ 오버 엔지니어링  |
+| **아무것도 안 함**           | ⭐⭐⭐⭐⭐ 0초 | ⭐⭐⭐⭐⭐ 없음      | ⭐⭐⭐⭐⭐ 최저    | ⭐ 없음     | △ 실용적이지만 위험 |
 
 ---
 
@@ -310,6 +363,7 @@ public void createFeedback(Long customerId) {
 ### 선택한 방안: **낙관적 락 (@Version) + 예외 처리**
 
 **선택 이유**:
+
 - ✅ 투자 비용(30초) << 문제 발생 시 대응 비용(수 시간)
 - ✅ 성능 영향 거의 없음
 - ✅ 방어적 프로그래밍: 예상치 못한 케이스 대비
@@ -322,45 +376,47 @@ public void createFeedback(Long customerId) {
 **파일**: `Customer.java`
 
 ```java
+
 @Entity
 @Table(name = "customer")
 @DynamicUpdate  // 변경된 필드만 UPDATE
 public class Customer extends User {
 
-    @Builder.Default
-    private Integer token = 0;
+	@Builder.Default
+	private Integer token = 0;
 
-    @Column(name = "feedback_request_count")
-    @Builder.Default
-    private Integer feedbackRequestCount = 0;
+	@Column(name = "feedback_request_count")
+	@Builder.Default
+	private Integer feedbackRequestCount = 0;
 
-    /**
-     * JPA Optimistic Locking을 위한 버전 필드
-     * 동시성 제어: 토큰 보상 중복 지급 방지
-     * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
-     * - 방어적 프로그래밍: 예상치 못한 네트워크 재시도, 브라우저 중복 요청 대비
-     * - 비용: 거의 없음 (컬럼 1개 추가, 성능 영향 미미)
-     */
-    @Version
-    @Column(name = "version")
-    private Long version;
+	/**
+	 * JPA Optimistic Locking을 위한 버전 필드
+	 * 동시성 제어: 토큰 보상 중복 지급 방지
+	 * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
+	 * - 방어적 프로그래밍: 예상치 못한 네트워크 재시도, 브라우저 중복 요청 대비
+	 * - 비용: 거의 없음 (컬럼 1개 추가, 성능 영향 미미)
+	 */
+	@Version
+	@Column(name = "version")
+	private Long version;
 
-    // 비즈니스 메서드
-    public void incrementFeedbackCount() {
-        this.feedbackRequestCount++;
-    }
+	// 비즈니스 메서드
+	public void incrementFeedbackCount() {
+		this.feedbackRequestCount++;
+	}
 
-    public boolean rewardTokensIfEligible(int threshold, int rewardAmount) {
-        if (this.feedbackRequestCount > 0 && this.feedbackRequestCount % threshold == 0) {
-            this.token += rewardAmount;
-            return true;
-        }
-        return false;
-    }
+	public boolean rewardTokensIfEligible(int threshold, int rewardAmount) {
+		if (this.feedbackRequestCount > 0 && this.feedbackRequestCount % threshold == 0) {
+			this.token += rewardAmount;
+			return true;
+		}
+		return false;
+	}
 }
 ```
 
 **변경 사항**:
+
 - `@Version` 어노테이션 추가
 - `version` 필드 추가 (BIGINT, DEFAULT 0)
 - JavaDoc으로 의도 명확화
@@ -377,30 +433,31 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    /**
-     * JPA 낙관적 락 충돌 (Optimistic Locking Failure)
-     *
-     * 동시에 같은 데이터를 수정하려 할 때 발생 (예: 토큰 보상 중복 지급 시도)
-     * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
-     * - 발생 시: 사용자에게 재시도 요청
-     * - 로그: 모니터링용으로 기록 (발생 빈도 추적)
-     */
-    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
-    public ResponseEntity<BaseResponse<String>> handleOptimisticLockException(
-        ObjectOptimisticLockingFailureException e) {
-        log.warn("[handleOptimisticLockException] Optimistic lock conflict detected. " +
-            "Entity: {}, Identifier: {}. This is expected in rare concurrent scenarios.",
-            e.getPersistentClassName(), e.getIdentifier());
+	/**
+	 * JPA 낙관적 락 충돌 (Optimistic Locking Failure)
+	 *
+	 * 동시에 같은 데이터를 수정하려 할 때 발생 (예: 토큰 보상 중복 지급 시도)
+	 * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
+	 * - 발생 시: 사용자에게 재시도 요청
+	 * - 로그: 모니터링용으로 기록 (발생 빈도 추적)
+	 */
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ResponseEntity<BaseResponse<String>> handleOptimisticLockException(
+		ObjectOptimisticLockingFailureException e) {
+		log.warn("[handleOptimisticLockException] Optimistic lock conflict detected. " +
+				"Entity: {}, Identifier: {}. This is expected in rare concurrent scenarios.",
+			e.getPersistentClassName(), e.getIdentifier());
 
-        return handleExceptionInternal(
-            GlobalErrorStatus.CONFLICT,
-            "동시에 같은 작업이 처리되었습니다. 잠시 후 다시 시도해주세요."
-        );
-    }
+		return handleExceptionInternal(
+			GlobalErrorStatus.CONFLICT,
+			"동시에 같은 작업이 처리되었습니다. 잠시 후 다시 시도해주세요."
+		);
+	}
 }
 ```
 
 **변경 사항**:
+
 - `ObjectOptimisticLockingFailureException` 핸들러 추가
 - 409 CONFLICT 응답 반환
 - 사용자 친화적 에러 메시지
@@ -428,7 +485,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 -- customer 테이블에 version 컬럼 추가
 ALTER TABLE customer
-ADD COLUMN version BIGINT DEFAULT 0 NOT NULL COMMENT 'JPA Optimistic Locking 버전 (동시성 제어)';
+    ADD COLUMN version BIGINT DEFAULT 0 NOT NULL COMMENT 'JPA Optimistic Locking 버전 (동시성 제어)';
 
 -- 기존 데이터에 대해 version 초기화 (0으로 설정)
 -- 이미 DEFAULT 0이 설정되어 있어 자동으로 0으로 초기화됨
@@ -441,27 +498,29 @@ ADD COLUMN version BIGINT DEFAULT 0 NOT NULL COMMENT 'JPA Optimistic Locking 버
 #### 4) Service 레이어 변경 없음
 
 ```java
+
 @Service
 @Transactional
 public class FeedbackRequestCommandServiceImpl {
 
-    @Override
-    public DayFeedbackRequestDetailResponseDTO createDayRequest(...) {
-        // 기존 코드 그대로 유지!
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
+	@Override
+	public DayFeedbackRequestDetailResponseDTO createDayRequest(...) {
+		// 기존 코드 그대로 유지!
+		Customer customer = customerRepository.findById(customerId).orElseThrow();
 
-        customer.incrementFeedbackCount();
-        boolean rewarded = customer.rewardTokensIfEligible(5, 3);
+		customer.incrementFeedbackCount();
+		boolean rewarded = customer.rewardTokensIfEligible(5, 3);
 
-        // JPA가 자동으로 version 체크 및 UPDATE
-        // 충돌 시 OptimisticLockException 발생 → GlobalExceptionHandler 처리
+		// JPA가 자동으로 version 체크 및 UPDATE
+		// 충돌 시 OptimisticLockException 발생 → GlobalExceptionHandler 처리
 
-        return responseDTO;
-    }
+		return responseDTO;
+	}
 }
 ```
 
 **변경 사항**: **없음** ✅
+
 - JPA가 `@Version`을 감지하면 자동으로 동시성 제어
 - Service 코드 수정 불필요
 - 기존 비즈니스 로직 그대로 유지
@@ -496,25 +555,25 @@ public class FeedbackRequestCommandServiceImpl {
 
 ### 구현 비용
 
-| 항목 | 투입 시간 | 난이도 |
-|------|----------|--------|
-| **Customer 엔티티 수정** | 30초 | ⭐ 매우 쉬움 |
-| **GlobalExceptionHandler 수정** | 5분 | ⭐ 매우 쉬움 |
-| **DB 마이그레이션 작성** | 3분 | ⭐ 매우 쉬움 |
-| **테스트 및 검증** | 10분 | ⭐⭐ 쉬움 |
-| **총 투입 시간** | **약 20분** | **⭐ 매우 쉬움** |
+| 항목                            | 투입 시간     | 난이도         |
+|-------------------------------|-----------|-------------|
+| **Customer 엔티티 수정**           | 30초       | ⭐ 매우 쉬움     |
+| **GlobalExceptionHandler 수정** | 5분        | ⭐ 매우 쉬움     |
+| **DB 마이그레이션 작성**              | 3분        | ⭐ 매우 쉬움     |
+| **테스트 및 검증**                  | 10분       | ⭐⭐ 쉬움       |
+| **총 투입 시간**                   | **약 20분** | **⭐ 매우 쉬움** |
 
 ---
 
 ### 성능 영향
 
-| 지표 | Before | After | 변화 |
-|------|--------|-------|------|
-| **UPDATE 쿼리** | `UPDATE customer SET count=?, token=? WHERE id=?` | `UPDATE customer SET count=?, token=?, version=? WHERE id=? AND version=?` | +1 필드 |
-| **DB 저장 공간** | - | +8 bytes/row | 무시 가능 |
-| **쿼리 실행 시간** | ~5ms | ~5ms | 변화 없음 |
-| **응답 시간** | 200ms | 200ms | 변화 없음 |
-| **충돌 재시도 오버헤드** | - | ~50ms (0.01% 케이스) | 무시 가능 |
+| 지표              | Before                                            | After                                                                      | 변화    |
+|-----------------|---------------------------------------------------|----------------------------------------------------------------------------|-------|
+| **UPDATE 쿼리**   | `UPDATE customer SET count=?, token=? WHERE id=?` | `UPDATE customer SET count=?, token=?, version=? WHERE id=? AND version=?` | +1 필드 |
+| **DB 저장 공간**    | -                                                 | +8 bytes/row                                                               | 무시 가능 |
+| **쿼리 실행 시간**    | ~5ms                                              | ~5ms                                                                       | 변화 없음 |
+| **응답 시간**       | 200ms                                             | 200ms                                                                      | 변화 없음 |
+| **충돌 재시도 오버헤드** | -                                                 | ~50ms (0.01% 케이스)                                                          | 무시 가능 |
 
 **결론**: **성능 영향 없음** ✅
 
@@ -522,13 +581,13 @@ public class FeedbackRequestCommandServiceImpl {
 
 ### 트레이드오프 분석
 
-| 항목 | 얻은 것 (Gain) | 잃은 것 (Loss) | 평가 |
-|------|---------------|---------------|------|
-| **안정성** | ✅ 토큰 중복 지급 방지<br>✅ 데이터 정합성 보장 | - | **매우 우수** |
-| **성능** | - | △ version 컬럼 8bytes<br>△ 극히 드문 재시도 | **영향 미미** |
-| **복잡도** | - | △ DB 컬럼 1개 증가<br>△ Exception 핸들러 1개 | **매우 낮음** |
-| **개발 비용** | - | 20분 투자 | **매우 낮음** |
-| **운영 비용** | ✅ 문제 발생 시 수동 보정 불필요 | - | **우수** |
+| 항목        | 얻은 것 (Gain)                   | 잃은 것 (Loss)                         | 평가        |
+|-----------|-------------------------------|-------------------------------------|-----------|
+| **안정성**   | ✅ 토큰 중복 지급 방지<br>✅ 데이터 정합성 보장 | -                                   | **매우 우수** |
+| **성능**    | -                             | △ version 컬럼 8bytes<br>△ 극히 드문 재시도  | **영향 미미** |
+| **복잡도**   | -                             | △ DB 컬럼 1개 증가<br>△ Exception 핸들러 1개 | **매우 낮음** |
+| **개발 비용** | -                             | 20분 투자                              | **매우 낮음** |
+| **운영 비용** | ✅ 문제 발생 시 수동 보정 불필요           | -                                   | **우수**    |
 
 **종합 평가**: **20분 투자로 안정성 대폭 향상, 손해는 거의 없음** 🎯
 
@@ -537,17 +596,19 @@ public class FeedbackRequestCommandServiceImpl {
 ### ROI 분석
 
 **투자 비용**:
+
 - 개발 시간: 20분
 - 개발자 시급 추정: ₩50,000/시간
 - 투입 비용: ₩16,667
 
 **예상 수익** (연간):
+
 - 토큰 중복 지급 방지: 추정 ₩100,000~500,000/년
-  - 월 1000명 사용자 기준
-  - 중복 지급 확률 0.01%
-  - 토큰 1개당 가치 ₩1,000 추정
+    - 월 1000명 사용자 기준
+    - 중복 지급 확률 0.01%
+    - 토큰 1개당 가치 ₩1,000 추정
 - 수동 보정 비용 절감: ₩200,000/년
-  - 시간 절약 + 고객 대응 비용 감소
+    - 시간 절약 + 고객 대응 비용 감소
 - **총 예상 수익**: ₩300,000~700,000/년
 
 **ROI**: **1,800% ~ 4,200%** (18배 ~ 42배 수익)
@@ -561,6 +622,7 @@ public class FeedbackRequestCommandServiceImpl {
 ### 1. 방어적 프로그래밍 vs 실용주의의 균형
 
 **상황**:
+
 - 동시성 문제 발생 확률: < 0.01%
 - 구현 비용: 20분
 - 문제 발생 시 대응 비용: 수 시간
@@ -569,6 +631,7 @@ public class FeedbackRequestCommandServiceImpl {
 > "구현 비용이 충분히 낮다면, 발생 확률이 낮아도 방어 코드를 추가하는 것이 합리적이다."
 
 **적용**:
+
 - 30초 투자로 안정성 확보 가능 → **무조건 한다**
 - 반나절 투자 필요 → 발생 확률과 비교해서 판단
 - 며칠 투자 필요 → 실제 문제 발생 후 대응
@@ -584,6 +647,7 @@ public class FeedbackRequestCommandServiceImpl {
 > "DB가 단일 진실 공급원이므로 낙관적 락으로 충분하다"
 
 **교훈**:
+
 - 멀티 인스턴스 ≠ 분산 락 필수
 - DB 내부 작업만 있으면 낙관적/비관적 락으로 충분
 - 분산 락은 외부 API 호출, 파일 처리 등 DB 외부 작업에만 필요
@@ -593,6 +657,7 @@ public class FeedbackRequestCommandServiceImpl {
 ### 3. 오버 엔지니어링 경계
 
 **시나리오별 판단**:
+
 ```
 토큰 보상 (DB 내부):
    낙관적 락 ✅ → 30초 투자, 완벽 해결
@@ -611,6 +676,7 @@ public class FeedbackRequestCommandServiceImpl {
 ### 4. 단계별 접근의 중요성
 
 **우리의 접근**:
+
 ```
 1단계 (지금): 낙관적 락으로 최소 방어 ✅
    → 20분 투자, 안정성 확보
@@ -631,6 +697,7 @@ public class FeedbackRequestCommandServiceImpl {
 ### 5. 실전 의사결정 프레임워크
 
 **의사결정 매트릭스**:
+
 ```
                     발생 확률
                  낮음         높음
@@ -646,6 +713,7 @@ public class FeedbackRequestCommandServiceImpl {
 ```
 
 **적용 예시**:
+
 - 토큰 보상: 영향도 중간 + 구현 비용 30초 → **구현** ✅
 - 결제 중복: 영향도 높음 + 기존 방어 존재 → **보류** △
 - 조회수/좋아요: 영향도 낮음 + 발생 확률 높음 → **무시** ✅
@@ -685,12 +753,11 @@ metrics:
 ```sql
 -- OptimisticLockException 발생 빈도 추적
 SELECT
-    DATE(timestamp) as date,
-    COUNT(*) as exception_count
+    DATE (timestamp) as date, COUNT (*) as exception_count
 FROM application_logs
 WHERE message LIKE '%OptimisticLockException%'
   AND timestamp >= NOW() - INTERVAL 30 DAY
-GROUP BY DATE(timestamp)
+GROUP BY DATE (timestamp)
 ORDER BY date DESC;
 ```
 
