@@ -20,6 +20,7 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -70,6 +71,18 @@ public abstract class User extends BaseEntity {
 
 	@Column(name = "nickname", length = 30)
 	private String nickname;
+
+	/**
+	 * JPA Optimistic Locking을 위한 버전 필드
+	 * 동시성 제어: 모든 User 계층(Customer, Trainer, Admin)에 적용
+	 * - Customer: 토큰 보상 중복 지급 방지
+	 * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
+	 * - 방어적 프로그래밍: 예상치 못한 네트워크 재시도, 브라우저 중복 요청 대비
+	 * - 비용: 거의 없음 (컬럼 1개 추가, 성능 영향 미미)
+	 */
+	@Version
+	@Column(name = "version")
+	private Long version;
 
 	public void changeNickname(String nickname) {
 		this.nickname = nickname;
