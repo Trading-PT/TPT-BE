@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -129,6 +130,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
 		// 프로덕션에서는 민감한 정보 숨김
 		return handleExceptionInternal(GlobalErrorStatus.DATABASE_ERROR);
+	}
+
+	/**
+	 * 7-1) JPA 낙관적 락 충돌 (Optimistic Locking Failure)
+	 *
+	 * 동시에 같은 데이터를 수정하려 할 때 발생 (예: 토큰 보상 중복 지급 시도)
+	 * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
+	 * - 발생 시: 사용자에게 재시도 요청
+	 * - 로그: 모니터링용으로 기록 (발생 빈도 추적)
+	 */
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ResponseEntity<BaseResponse<String>> handleOptimisticLockException(
+		ObjectOptimisticLockingFailureException e) {
+		log.warn("[handleOptimisticLockException] Optimistic lock conflict detected. " +
+			"Entity: {}, Identifier: {}. This is expected in rare concurrent scenarios.",
+			e.getPersistentClassName(), e.getIdentifier());
+
+		return handleExceptionInternal(
+			GlobalErrorStatus.CONFLICT,
+			"동시에 같은 작업이 처리되었습니다. 잠시 후 다시 시도해주세요."
+		);
 	}
 
 	/**

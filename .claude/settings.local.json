@@ -3,7 +3,8 @@
     "allow": [
       "Bash(find:*)",
       "Bash(./gradlew clean build:*)",
-      "Skill(spring-boot-quality)"
+      "Skill(spring-boot-quality)",
+      "Bash(./gradlew clean compileJava:*)"
     ],
     "deny": [],
     "ask": []
