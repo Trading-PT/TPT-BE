@@ -7,13 +7,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -132,6 +131,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
+	 * 7-1) JPA 낙관적 락 충돌 (Optimistic Locking Failure)
+	 *
+	 * 동시에 같은 데이터를 수정하려 할 때 발생 (예: 토큰 보상 중복 지급 시도)
+	 * - 실제 발생 확률: 거의 0% (1인 1접근 패턴)
+	 * - 발생 시: 사용자에게 재시도 요청
+	 * - 로그: 모니터링용으로 기록 (발생 빈도 추적)
+	 */
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ResponseEntity<BaseResponse<String>> handleOptimisticLockException(
+		ObjectOptimisticLockingFailureException e) {
+		log.warn("[handleOptimisticLockException] Optimistic lock conflict detected. " +
+			"Entity: {}, Identifier: {}. This is expected in rare concurrent scenarios.",
+			e.getPersistentClassName(), e.getIdentifier());
+
+		return handleExceptionInternal(
+			GlobalErrorStatus.CONFLICT,
+			"동시에 같은 작업이 처리되었습니다. 잠시 후 다시 시도해주세요."
+		);
+	}
+
+	/**
 	 * 8) Bean Validation 제약조건 위반
 	 */
 	@ExceptionHandler(ConstraintViolationException.class)
@@ -192,27 +212,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 11) Spring Security 기본 인증 예외 (일반적인 인증 실패)
-	 */
-	@ExceptionHandler(AuthenticationException.class)
-	public ResponseEntity<BaseResponse<String>> handleAuthenticationException(AuthenticationException e) {
-		log.warn("[handleAuthenticationException] Authentication failed: {}", e.getMessage());
-		// ✅ GlobalErrorStatusCode의 _UNAUTHORIZED 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._UNAUTHORIZED);
-	}
-
-	/**
-	 * 12) Spring Security 기본 인가 예외 (권한 부족)
-	 */
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<BaseResponse<String>> handleAccessDeniedException(AccessDeniedException e) {
-		log.warn("[handleAccessDeniedException] Access denied: {}", e.getMessage());
-		// ✅ GlobalErrorStatusCode의 _FORBIDDEN 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._FORBIDDEN);
-	}
-
-	/**
-	 * 13) 핸들러 없음 (404)
+	 * 11) 핸들러 없음 (404)
 	 */
 	@Override
 	protected ResponseEntity<Object> handleNoHandlerFoundException(
@@ -225,7 +225,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 14) 지원하지 않는 HTTP 메서드 (405)
+	 * 12) 지원하지 않는 HTTP 메서드 (405)
 	 */
 	@Override
 	protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
@@ -242,7 +242,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 15) 모든 예상치 못한 예외 (최종 안전망)
+	 * 13) 모든 예상치 못한 예외 (최종 안전망)
 	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<BaseResponse<String>> handleException(Exception e) {

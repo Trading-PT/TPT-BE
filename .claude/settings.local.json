@@ -3,7 +3,23 @@
     "allow": [
       "Bash(find:*)",
       "Bash(./gradlew clean build:*)",
-      "Skill(spring-boot-quality)"
+      "Skill(spring-boot-quality)",
+      "Bash(./gradlew clean compileJava:*)",
+      "Bash(tree:*)",
+      "Bash(aws ec2 describe-vpcs:*)",
+      "Bash(aws ec2 describe-subnets:*)",
+      "Bash(aws ec2 describe-instances:*)",
+      "Bash(aws rds describe-db-instances:*)",
+      "Bash(aws elbv2 describe-load-balancers:*)",
+      "Bash(aws elbv2 describe-target-groups:*)",
+      "Bash(aws ec2 describe-internet-gateways:*)",
+      "Bash(aws ec2 describe-nat-gateways:*)",
+      "Bash(aws ec2 describe-security-groups:*)",
+      "Bash(aws ec2 describe-route-tables:*)",
+      "Bash(aws ec2 describe-addresses:*)",
+      "Bash(pip3 list:*)",
+      "Bash(python3:*)",
+      "Bash(brew install:*)"
     ],
     "deny": [],
     "ask": []
