@@ -4,7 +4,8 @@
       "Bash(find:*)",
       "Bash(./gradlew clean build:*)",
       "Skill(spring-boot-quality)",
-      "Bash(./gradlew clean compileJava:*)"
+      "Bash(./gradlew clean compileJava:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

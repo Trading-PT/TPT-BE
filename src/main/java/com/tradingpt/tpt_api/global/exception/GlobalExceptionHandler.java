@@ -13,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -214,27 +212,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 11) Spring Security 기본 인증 예외 (일반적인 인증 실패)
-	 */
-	@ExceptionHandler(AuthenticationException.class)
-	public ResponseEntity<BaseResponse<String>> handleAuthenticationException(AuthenticationException e) {
-		log.warn("[handleAuthenticationException] Authentication failed: {}", e.getMessage());
-		// ✅ GlobalErrorStatusCode의 _UNAUTHORIZED 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._UNAUTHORIZED);
-	}
-
-	/**
-	 * 12) Spring Security 기본 인가 예외 (권한 부족)
-	 */
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<BaseResponse<String>> handleAccessDeniedException(AccessDeniedException e) {
-		log.warn("[handleAccessDeniedException] Access denied: {}", e.getMessage());
-		// ✅ GlobalErrorStatusCode의 _FORBIDDEN 사용 (Spring Security 기본 예외)
-		return handleExceptionInternal(GlobalErrorStatus._FORBIDDEN);
-	}
-
-	/**
-	 * 13) 핸들러 없음 (404)
+	 * 11) 핸들러 없음 (404)
 	 */
 	@Override
 	protected ResponseEntity<Object> handleNoHandlerFoundException(
@@ -247,7 +225,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 14) 지원하지 않는 HTTP 메서드 (405)
+	 * 12) 지원하지 않는 HTTP 메서드 (405)
 	 */
 	@Override
 	protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(
@@ -264,7 +242,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	}
 
 	/**
-	 * 15) 모든 예상치 못한 예외 (최종 안전망)
+	 * 13) 모든 예상치 못한 예외 (최종 안전망)
 	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<BaseResponse<String>> handleException(Exception e) {
