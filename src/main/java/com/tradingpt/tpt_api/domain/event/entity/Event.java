@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.event.entity;
 
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,9 +20,10 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "event")
-public class Event {
+public class Event extends BaseEntity {
 
     @Id @GeneratedValue
+    @Column(name = "event_id")
     private Long id;
 
     @Column(name = "name")
