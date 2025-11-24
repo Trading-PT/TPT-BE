@@ -64,6 +64,9 @@ public class QTrainer extends EntityPathBase<Trainer> {
     //inherited
     public final StringPath username = _super.username;
 
+    //inherited
+    public final NumberPath<Long> version = _super.version;
+
     public QTrainer(String variable) {
         super(Trainer.class, forVariable(variable));
     }

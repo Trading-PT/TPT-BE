@@ -93,7 +93,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.UserStatus> userStatus = createEnum("userStatus", com.tradingpt.tpt_api.domain.user.enums.UserStatus.class);
 
-    public final NumberPath<Long> version = createNumber("version", Long.class);
+    //inherited
+    public final NumberPath<Long> version = _super.version;
 
     public QCustomer(String variable) {
         this(Customer.class, forVariable(variable), INITS);

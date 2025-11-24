@@ -64,6 +64,9 @@ public class QAdmin extends EntityPathBase<Admin> {
     //inherited
     public final StringPath username = _super.username;
 
+    //inherited
+    public final NumberPath<Long> version = _super.version;
+
     public QAdmin(String variable) {
         super(Admin.class, forVariable(variable));
     }
