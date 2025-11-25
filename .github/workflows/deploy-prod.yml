@@ -111,6 +111,6 @@ jobs:
           echo "🚀 무중단 배포 시작: $DEPLOYMENT_ID"
           echo "📌 배포 버전: ${{ github.ref_name }}"
 
-          # 배포 완료 대기 (OneAtATime으로 점진적 배포)
-          aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID --waiter-config max_attempts=60
+          # 배포 완료 대기 (OneAtATime으로 점진적 배포, 최대 30분)
+          AWS_MAX_ATTEMPTS=60 aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
           echo "✅ 운영 환경 배포 완료: ${{ github.ref_name }}"
