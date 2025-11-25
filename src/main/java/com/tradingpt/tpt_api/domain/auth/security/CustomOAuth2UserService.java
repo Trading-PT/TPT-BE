@@ -19,7 +19,9 @@ import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -29,8 +31,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 	@Override
 	@Transactional
 	public OAuth2User loadUser(OAuth2UserRequest req) throws OAuth2AuthenticationException {
-		OAuth2User oAuth2User = super.loadUser(req);
+		log.info("[OAuth2] loadUser 시작 - provider: {}", req.getClientRegistration().getRegistrationId());
+
+		OAuth2User oAuth2User;
+		try {
+			oAuth2User = super.loadUser(req);
+		} catch (Exception e) {
+			log.error("[OAuth2] super.loadUser 실패: {}", e.getMessage(), e);
+			throw e;
+		}
+
 		var attributes = oAuth2User.getAttributes();
+		log.info("[OAuth2] 카카오 응답 attributes: {}", attributes);
 
 		String providerName = req.getClientRegistration().getRegistrationId(); // kakao/naver
 		OAuth2Response rsp = switch (providerName) {
@@ -50,7 +62,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 		// 2) 첫 소셜 로그인: 이메일은 받되, "중복 허용" (유일성 검증 제거)
 		final String email = rsp.getEmail();
+		log.info("[OAuth2] 파싱된 이메일: {}, 이름: {}, providerId: {}", email, rsp.getName(), rsp.getProviderId());
+
 		if (email == null || email.isBlank()) {
+			log.error("[OAuth2] 이메일이 없습니다! attributes: {}", attributes);
 			throw new OAuth2AuthenticationException("SOCIAL_EMAIL_MISSING");
 		}
 
