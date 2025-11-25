@@ -59,7 +59,14 @@
       "Bash(aws elbv2 describe-target-health:*)",
       "Bash(aws iam get-policy:*)",
       "Bash(aws ecr list-images:*)",
-      "Bash(aws acm describe-certificate:*)"
+      "Bash(aws acm describe-certificate:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(./gradlew clean bootJar:*)",
+      "Bash(gh run list:*)",
+      "Bash(xxd:*)",
+      "Bash(cat:*)",
+      "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline develop...HEAD)",
+      "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline -5)"
     ],
     "deny": [],
     "ask": []

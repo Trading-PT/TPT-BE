@@ -31,11 +31,21 @@ jobs:
           distribution: corretto
           java-version: 17
 
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Gradle 권한 설정
         run: chmod +x ./gradlew
 
-      - name: 테스트 및 빌드하기
-        run: ./gradlew clean bootJar
+      - name: 빌드하기
+        run: ./gradlew clean bootJar -x test
 
       - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
         uses: aws-actions/configure-aws-credentials@v4

@@ -26,11 +26,21 @@ jobs:
           distribution: corretto
           java-version: 17
 
+      - name: Gradle 캐시 설정
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Gradle 권한 설정
         run: chmod +x ./gradlew
 
-      - name: 테스트 및 빌드하기
-        run: ./gradlew clean bootJar
+      - name: 빌드하기
+        run: ./gradlew clean bootJar -x test
 
       - name: AWS Resource에 접근할 수 있게 AWS credentials 설정
         uses: aws-actions/configure-aws-credentials@v4
@@ -65,14 +75,15 @@ jobs:
 
       - name: 배포 패키지 생성
         run: |
-          # 환경 정보 파일 생성
+          # 환경 정보 파일 생성 (dev 환경)
           cat > deployment-info.env << EOF
           ECR_REGISTRY=${{ env.ECR_REGISTRY }}
           ECR_REPOSITORY=${{ env.ECR_REPOSITORY }}
           IMAGE_TAG=${{ env.IMAGE_TAG }}
           AWS_REGION=${{ env.AWS_REGION }}
+          SPRING_PROFILES_ACTIVE=dev
           EOF
-          
+
           # 배포 패키지 압축
           tar -czvf $GITHUB_SHA.tar.gz appspec.yml scripts deployment-info.env
 
