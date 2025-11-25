@@ -28,7 +28,21 @@
       "mcp__sequential-thinking__sequentialthinking",
       "mcp__aws-core__prompt_understanding",
       "Bash(git restore:*)",
-      "Bash(aws rds describe-orderable-db-instance-options:*)"
+      "Bash(aws rds describe-orderable-db-instance-options:*)",
+      "WebSearch",
+      "Bash(aws elasticache describe-cache-clusters:*)",
+      "Bash(aws iam list-roles:*)",
+      "Bash(aws iam list-policies:*)",
+      "Bash(aws iam list-instance-profiles:*)",
+      "Bash(aws iam get-role:*)",
+      "Bash(aws iam list-attached-role-policies:*)",
+      "Bash(aws iam get-policy-version:*)",
+      "Bash(aws deploy:*)",
+      "Bash(aws iam get-user:*)",
+      "Bash(aws iam list-attached-user-policies:*)",
+      "Bash(aws s3 ls:*)",
+      "Bash(xargs -I {} sh -c 'aws iam get-role --role-name {} --query \"\"\"\"Role.AssumeRolePolicyDocument.Statement[?Principal.Service==\\`codedeploy.amazonaws.com\\`]\"\"\"\" 2>/dev/null | grep -l codedeploy && echo {}')",
+      "Bash(aws ssm describe-parameters:*)"
     ],
     "deny": [],
     "ask": []
