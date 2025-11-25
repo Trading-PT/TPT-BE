@@ -78,6 +78,7 @@ app:
       - https://localhost:3000
       - https://localhost:3001
       - https://www.tradingpt.kr
+      - https://manage-tradingpt.vercel.app/
     
     exposed-headers:
       - XSRF-TOKEN
