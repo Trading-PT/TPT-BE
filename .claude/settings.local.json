@@ -24,7 +24,11 @@
       "mcp__cloudwatch__execute_log_insights_query",
       "Bash(git add src/main/java/com/tradingpt/tpt_api/domain/user/entity/Customer.java src/main/java/com/tradingpt/tpt_api/domain/user/entity/User.java)",
       "Bash(git commit -m \"$(cat <<''EOF''\n🐛 fix: JPA 상속 구조 @Version 위치 수정하여 배포 실패 해결\n\n- Customer 서브클래스에서 @Version 필드 제거\n- User 부모 클래스로 @Version 필드 이동\n- JPA 상속 계층에서 @Version은 부모 클래스에만 존재해야 함\n- Hibernate AnnotationException 해결\n\nIssue: Entity ''Customer'' is a subclass in an entity class hierarchy \nand may not have a property annotated ''@Version''\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push origin develop)"
+      "Bash(git push origin develop)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__aws-core__prompt_understanding",
+      "Bash(git restore:*)",
+      "Bash(aws rds describe-orderable-db-instance-options:*)"
     ],
     "deny": [],
     "ask": []
