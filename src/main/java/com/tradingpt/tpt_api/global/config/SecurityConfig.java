@@ -86,11 +86,11 @@ public class SecurityConfig {
 		return new SpringSessionBackedSessionRegistry<>(sessionRepository);
 	}
 
-	/** OAuth2 AuthorizationRequest를 세션 대신 쿠키에 저장 */
-	@Bean
-	public AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository() {
-		return new HttpCookieOAuth2AuthorizationRequestRepository(objectMapper);
-	}
+	/**
+	 * OAuth2 AuthorizationRequest를 세션 대신 쿠키에 저장
+	 * HttpCookieOAuth2AuthorizationRequestRepository는 @Component로 등록되어 있으므로
+	 * 별도 @Bean 정의 없이 자동 주입됨
+	 */
 
 	/** 사용자 전용 Provider: ADMIN/TRAINER 계정은 사용자 로그인에서 인증 실패 */
 	@Bean(name = "userAuthProvider")
