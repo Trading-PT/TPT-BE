@@ -1,13 +1,20 @@
 package com.tradingpt.tpt_api.domain.user.service;
 
+import com.tradingpt.tpt_api.domain.auth.dto.response.AdminMeResponse;
 import com.tradingpt.tpt_api.domain.user.dto.response.ProfileImageResponseDTO;
+import com.tradingpt.tpt_api.domain.user.entity.Admin;
+import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.AdminRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.task.DelegatingSecurityContextAsyncTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +43,8 @@ public class UserServiceImpl implements UserService {
 
 	private final UserRepository userRepository;
 	private final CustomerRepository customerRepository;
+	private final TrainerRepository trainerRepository;
+	private final AdminRepository adminRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final PasswordHistoryRepository passwordHistoryRepository;
 
@@ -160,4 +169,30 @@ public class UserServiceImpl implements UserService {
 
 		return userId;
 	}
+
+	@Transactional(readOnly = true)
+	public AdminMeResponse getAdminMe(Long userId) {
+
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
+
+		Role role = user.getRole();
+
+		if (role == Role.ROLE_TRAINER) {
+			Trainer trainer = trainerRepository.findById(userId)
+					.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+			return AdminMeResponse.from(user, trainer);
+		}
+
+		if (role == Role.ROLE_ADMIN) {
+			Admin admin = adminRepository.findById(userId)
+					.orElseThrow(() -> new UserException(UserErrorStatus.ADMIN_NOT_FOUND));
+
+			return AdminMeResponse.from(user, admin);
+		}
+
+		return null;
+	}
+
 }
