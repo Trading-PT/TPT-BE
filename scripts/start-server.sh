@@ -4,8 +4,8 @@ set -e
 echo "============= 서버 배포 시작 ============="
 
 # 배포 정보 로드 (먼저 환경 확인을 위해)
-# CodeDeploy는 작업 디렉토리를 배포 디렉토리로 설정함
-DEPLOY_DIR=$(pwd)
+# CodeDeploy agent의 작업 디렉토리가 아닌 appspec.yml에 정의된 배포 경로 사용
+DEPLOY_DIR="/home/ubuntu/tpt-server"
 echo "배포 디렉토리: $DEPLOY_DIR"
 
 if [ -f "$DEPLOY_DIR/deployment-info.env" ]; then
