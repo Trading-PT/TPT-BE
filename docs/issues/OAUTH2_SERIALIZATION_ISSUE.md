@@ -103,6 +103,47 @@ Spring Security는 `AuthorizationRequestRepository` 인터페이스를 통해 `O
 | `HttpSessionOAuth2AuthorizationRequestRepository` | **세션** (기본값) | Stateful 아키텍처 |
 | `HttpCookieOAuth2AuthorizationRequestRepository` | **쿠키** (커스텀) | Stateless 아키텍처 |
 
+### JWT 프로젝트 vs 세션 프로젝트: 직렬화 차이
+
+OAuth2 인증 과정에서 `OAuth2AuthorizationRequest`를 저장하는 방식은 프로젝트의 인증 아키텍처에 따라 다릅니다.
+
+#### JWT 프로젝트 (Stateless)
+
+```
+OAuth2 로그인 중 OAuth2AuthorizationRequest 저장:
+    → Tomcat 내장 세션 (메모리)
+    → Java 객체를 그대로 메모리에 저장
+    → 직렬화 자체가 불필요! (네트워크 전송 없음)
+    → 로그인 완료 후 JWT 발급 → 세션 버림
+```
+
+**핵심**: Tomcat 메모리 세션은 **Java 객체 참조**를 저장하므로 직렬화가 필요 없습니다.
+
+#### 세션 프로젝트 (Stateful + Redis)
+
+```
+OAuth2 로그인 중 OAuth2AuthorizationRequest 저장:
+    → HttpSession
+    → Spring Session이 Redis로 전송
+    → 네트워크 전송을 위해 직렬화 필수!
+    → Jackson? ❌ 실패 (기본 생성자 없음)
+    → JDK Serialization? ✅ 성공 (Serializable 구현됨)
+```
+
+**핵심**: Redis 세션은 네트워크를 통해 데이터를 전송하므로 **직렬화가 필수**입니다.
+
+#### 비교표
+
+| 항목 | JWT 프로젝트 | 세션 프로젝트 (Redis) |
+|-----|------------|---------------------|
+| **세션 저장소** | Tomcat 메모리 | Redis |
+| **네트워크 전송** | ❌ 없음 | ✅ 있음 (서버 ↔ Redis) |
+| **직렬화 필요** | ❌ 불필요 | ✅ 필수 |
+| **JdkSerializationRedisSerializer** | ❌ 불필요 | ✅ 필요 |
+| **OAuth2 인증 후** | JWT 발급, 세션 폐기 | 세션 유지 |
+
+이것이 JWT 기반 프로젝트에서는 `JdkSerializationRedisSerializer` 설정 없이도 OAuth2 로그인이 정상 동작하고, 세션 기반 프로젝트에서는 해당 설정이 필수인 이유입니다.
+
 ---
 
 ## 2. 문제 발견 배경

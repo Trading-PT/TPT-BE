@@ -3,21 +3,39 @@ set -e
 
 echo "============= 서버 배포 시작 ============="
 
-# 작업 디렉토리 이동
-cd /home/ubuntu/tpt-server-dev
+# 배포 정보 로드 (먼저 환경 확인을 위해)
+# CodeDeploy는 작업 디렉토리를 배포 디렉토리로 설정함
+DEPLOY_DIR=$(pwd)
+echo "배포 디렉토리: $DEPLOY_DIR"
 
-# 배포 정보 로드
-if [ -f deployment-info.env ]; then
-    source deployment-info.env
+if [ -f "$DEPLOY_DIR/deployment-info.env" ]; then
+    source "$DEPLOY_DIR/deployment-info.env"
     echo "✅ 배포 정보 로드 완료"
     echo "ECR Registry: $ECR_REGISTRY"
     echo "Repository: $ECR_REPOSITORY"
     echo "Image Tag: $IMAGE_TAG"
     echo "AWS Region: $AWS_REGION"
+    echo "Spring Profile: ${SPRING_PROFILES_ACTIVE:-dev}"
 else
     echo "❌ deployment-info.env 파일을 찾을 수 없습니다!"
     exit 1
 fi
+
+# 환경 감지 (SPRING_PROFILES_ACTIVE로 결정)
+PROFILE="${SPRING_PROFILES_ACTIVE:-dev}"
+echo "🔧 환경: $PROFILE"
+
+# 환경별 설정
+if [ "$PROFILE" = "prod" ]; then
+    SSM_PATH="/tpt-api/prod/"
+    LOG_GROUP="/tpt/prod/application"
+else
+    SSM_PATH="/tpt-api/dev/"
+    LOG_GROUP="/tpt/dev/application"
+fi
+
+echo "SSM 경로: $SSM_PATH"
+echo "로그 그룹: $LOG_GROUP"
 
 # ECR 로그인
 echo "ECR 로그인 중..."
@@ -30,22 +48,22 @@ echo "Parameter Store에서 환경변수 가져오는 중..."
 ENV_FILE="/tmp/app.env"
 rm -f $ENV_FILE
 
-# Parameter Store에서 환경변수 추출
-aws ssm get-parameters-by-path \
-  --path "/tpt-api/dev/" \
+# Parameter Store에서 환경변수 추출 (환경별 경로 사용)
+# Process Substitution 사용 (서브쉘 문제 방지)
+while IFS=$'\t' read -r name value; do
+  # /tpt-api/{env}/VARIABLE_NAME -> VARIABLE_NAME 형태로 변환
+  env_name=$(echo "$name" | sed "s|^$SSM_PATH||")
+  echo "$env_name=$value" >> $ENV_FILE
+done < <(aws ssm get-parameters-by-path \
+  --path "$SSM_PATH" \
   --recursive \
   --with-decryption \
   --region $AWS_REGION \
   --query 'Parameters[*].[Name,Value]' \
-  --output text | \
-while IFS=$'\t' read -r name value; do
-  # /tpt-api/dev/VARIABLE_NAME -> VARIABLE_NAME 형태로 변환
-  env_name=$(echo "$name" | sed 's|^/tpt-api/dev/||')
-  echo "$env_name=$value" >> $ENV_FILE
-done
+  --output text)
 
-# Spring Boot 기본 설정 추가
-echo "SPRING_PROFILES_ACTIVE=dev" >> $ENV_FILE
+# Spring Boot 프로파일 설정 추가
+echo "SPRING_PROFILES_ACTIVE=$PROFILE" >> $ENV_FILE
 
 # Parameter Store에서 가져온 환경변수 개수 확인
 if [ -f $ENV_FILE ]; then
@@ -67,7 +85,7 @@ docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 # Spring Boot 애플리케이션 실행
 echo "Spring Boot 애플리케이션 시작 중..."
 
-# 컨테이너 실행 부분을 다음으로 변경
+# 컨테이너 실행 (환경별 로그 그룹 사용)
 docker run -d \
   --name tpt-spring-app \
   --env-file $ENV_FILE \
@@ -76,7 +94,7 @@ docker run -d \
   --memory-swap="1g" \
   --restart unless-stopped \
   --log-driver awslogs \
-  --log-opt awslogs-group="/tpt/dev/application" \
+  --log-opt awslogs-group="$LOG_GROUP" \
   --log-opt awslogs-stream="tpt-spring-app-$(date +%Y%m%d)" \
   --log-opt awslogs-region="ap-northeast-2" \
   $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
