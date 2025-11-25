@@ -1,0 +1,101 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:mysql://${PROD_DB_HOST}:3306/${PROD_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=true&requireSSL=true
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+    hikari:
+      pool-name: HikariCP-Prod
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      leak-detection-threshold: 60000
+
+  # Redis 설정 (Encryption in-transit 활성화)
+  data:
+    redis:
+      host: ${PROD_REDIS_HOST}
+      port: 6379
+      ssl:
+        enabled: true
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+
+  session:
+    store-type: redis
+    timeout: 7d
+    redis:
+      configure-action: NONE
+      flush-mode: immediate
+      repository-type: indexed
+
+  # JPA 설정 (운영 환경)
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 20
+        connection:
+          provider_disables_autocommit: false
+
+# 로깅 설정 (운영 환경 - 최소화)
+logging:
+  level:
+    root: WARN
+    com.tradingpt.tpt_api: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql: WARN
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    bucket-name: ${S3_BUCKET_NAME}
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        same-site: Lax
+        path: /
+        domain: .tradingpt.kr
+
+app:
+  frontend:
+    base-url: https://www.tradingpt.kr
+  cors:
+    allowed-origins:
+      - https://www.tradingpt.kr
+      - https://tradingpt.kr
+      - https://api.tradingpt.kr
+    exposed-headers:
+      - XSRF-TOKEN
+      - X-XSRF-TOKEN
+  swagger:
+    servers:
+      - url: https://api.tradingpt.kr
+        description: Production API Server
+
+# NicePay 운영 환경 설정
+nicepay:
+  credentials:
+    mid: ${NICEPAY_MID}
+    merchant-key: ${NICEPAY_MERCHANT_KEY}
