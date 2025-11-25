@@ -11,6 +11,7 @@ import java.net.URLEncoder;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.savedrequest.SavedRequest;
@@ -23,6 +24,7 @@ import org.springframework.util.StringUtils;
  * - 장점: Redis 세션에 복잡한 객체가 안 들어감
  * - 주의: 쿠키 사이즈 제한(보통 4KB) 내에서 동작
  */
+@Slf4j
 @Component
 public class HttpCookieOAuth2AuthorizationRequestRepository
         implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
@@ -39,11 +41,19 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         Cookie cookie = getCookie(request, OAUTH2_AUTH_REQUEST_COOKIE_NAME);
-        if (cookie == null || !StringUtils.hasText(cookie.getValue())) return null;
+        log.info("[OAuth2 Cookie] loadAuthorizationRequest - cookie 존재: {}", cookie != null);
+
+        if (cookie == null || !StringUtils.hasText(cookie.getValue())) {
+            log.warn("[OAuth2 Cookie] 쿠키가 없거나 값이 비어있음! 요청 URL: {}", request.getRequestURI());
+            return null;
+        }
         try {
             String json = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
-            return objectMapper.readValue(json, OAuth2AuthorizationRequest.class);
+            OAuth2AuthorizationRequest authRequest = objectMapper.readValue(json, OAuth2AuthorizationRequest.class);
+            log.info("[OAuth2 Cookie] 쿠키에서 AuthorizationRequest 로드 성공 - state: {}", authRequest.getState());
+            return authRequest;
         } catch (Exception e) {
+            log.error("[OAuth2 Cookie] 쿠키 파싱 실패: {}", e.getMessage());
             return null;
         }
     }
@@ -59,13 +69,23 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
         try {
             String json = objectMapper.writeValueAsString(authorizationRequest);
             String enc = URLEncoder.encode(json, StandardCharsets.UTF_8);
+
+            // HTTPS 환경 감지 (X-Forwarded-Proto 헤더 또는 request.isSecure())
+            boolean isSecure = request.isSecure()
+                    || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
+
+            log.info("[OAuth2 Cookie] saveAuthorizationRequest - state: {}, isSecure: {}",
+                    authorizationRequest.getState(), isSecure);
+
             Cookie cookie = new Cookie(OAUTH2_AUTH_REQUEST_COOKIE_NAME, enc);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
             cookie.setMaxAge(EXPIRE_SECONDS);
-            cookie.setSecure(false); // HTTPS면 true 권장
+            cookie.setSecure(isSecure);  // HTTPS 환경에서는 true
             response.addCookie(cookie);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            log.error("[OAuth2 Cookie] 쿠키 저장 실패: {}", e.getMessage());
+        }
     }
 
     @Override
