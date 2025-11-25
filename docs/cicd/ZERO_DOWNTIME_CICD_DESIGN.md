@@ -2,7 +2,7 @@
 
 ## 문서 개요
 
-**작성일**: 2025-01-15
+**작성일**: 2025-11-25
 **대상 환경**: AWS 운영 서버 (tpt-prod)
 **애플리케이션**: Spring Boot 3.5.5 (Java 17) REST API
 **목표**: 무중단 배포 자동화 시스템 설계
@@ -86,15 +86,15 @@
 
 ### 2.1 도구 비교 분석
 
-| 항목 | GitHub Actions | AWS CodePipeline | Jenkins |
-|------|----------------|------------------|---------|
-| **구축 비용** | $0 (2,000분/월 무료) | ~$1/파이프라인/월 | EC2 비용 (~$30/월) |
-| **학습 곡선** | 낮음 | 중간 | 높음 |
-| **유지보수** | GitHub 관리 | AWS 관리 | 자체 관리 필요 |
-| **통합성** | GitHub 네이티브 | AWS 네이티브 | 플러그인 필요 |
-| **확장성** | 우수 | 우수 | 높음 (커스터마이징) |
-| **보안** | Secrets 관리 | IAM 통합 | 자체 관리 |
-| **모니터링** | Actions 대시보드 | CloudWatch 통합 | 별도 플러그인 |
+| 항목        | GitHub Actions   | AWS CodePipeline | Jenkins         |
+|-----------|------------------|------------------|-----------------|
+| **구축 비용** | $0 (2,000분/월 무료) | ~$1/파이프라인/월      | EC2 비용 (~$30/월) |
+| **학습 곡선** | 낮음               | 중간               | 높음              |
+| **유지보수**  | GitHub 관리        | AWS 관리           | 자체 관리 필요        |
+| **통합성**   | GitHub 네이티브      | AWS 네이티브         | 플러그인 필요         |
+| **확장성**   | 우수               | 우수               | 높음 (커스터마이징)     |
+| **보안**    | Secrets 관리       | IAM 통합           | 자체 관리           |
+| **모니터링**  | Actions 대시보드     | CloudWatch 통합    | 별도 플러그인         |
 
 ### 2.2 선정 결과 및 근거
 
@@ -103,24 +103,24 @@
 **선정 이유:**
 
 1. **비용 효율성**
-   - GitHub Free tier로 충분 (월 2,000분 무료)
-   - CodeDeploy는 EC2 배포 시 추가 비용 없음
-   - 총 CI/CD 비용: ~$0-5/월
+    - GitHub Free tier로 충분 (월 2,000분 무료)
+    - CodeDeploy는 EC2 배포 시 추가 비용 없음
+    - 총 CI/CD 비용: ~$0-5/월
 
 2. **개발팀 친화성**
-   - 이미 GitHub을 소스 저장소로 사용 중
-   - 코드 리뷰 → 머지 → 배포 워크플로우 자연스러움
-   - Pull Request 기반 자동화 가능
+    - 이미 GitHub을 소스 저장소로 사용 중
+    - 코드 리뷰 → 머지 → 배포 워크플로우 자연스러움
+    - Pull Request 기반 자동화 가능
 
 3. **구축 및 유지보수 용이성**
-   - YAML 기반 간단한 설정
-   - GitHub Marketplace의 풍부한 액션
-   - 별도 서버 관리 불필요
+    - YAML 기반 간단한 설정
+    - GitHub Marketplace의 풍부한 액션
+    - 별도 서버 관리 불필요
 
 4. **기존 환경과의 호환성**
-   - 현재 개발 환경에서 이미 사용 중
-   - ECR, CodeDeploy 연동 검증됨
-   - 운영 환경 확장이 자연스러움
+    - 현재 개발 환경에서 이미 사용 중
+    - ECR, CodeDeploy 연동 검증됨
+    - 운영 환경 확장이 자연스러움
 
 ---
 
@@ -128,15 +128,16 @@
 
 ### 3.1 배포 전략 비교
 
-| 전략 | 장점 | 단점 | 적합성 |
-|------|------|------|--------|
-| **Rolling** | - 단순한 구조<br>- 추가 인프라 불필요<br>- 점진적 배포 | - 배포 시간 길어짐<br>- 버전 혼재 가능 | ⭐⭐⭐ 적합 |
-| **Blue/Green** | - 완전한 격리<br>- 빠른 롤백<br>- 테스트 용이 | - 2배 리소스 필요<br>- 비용 증가 | ⭐⭐ 오버스펙 |
-| **Canary** | - 점진적 트래픽 전환<br>- 위험 최소화 | - 복잡한 모니터링 필요<br>- 구현 난이도 높음 | ⭐ 과도함 |
+| 전략             | 장점                                   | 단점                           | 적합성     |
+|----------------|--------------------------------------|------------------------------|---------|
+| **Rolling**    | - 단순한 구조<br>- 추가 인프라 불필요<br>- 점진적 배포 | - 배포 시간 길어짐<br>- 버전 혼재 가능    | ⭐⭐⭐ 적합  |
+| **Blue/Green** | - 완전한 격리<br>- 빠른 롤백<br>- 테스트 용이      | - 2배 리소스 필요<br>- 비용 증가       | ⭐⭐ 오버스펙 |
+| **Canary**     | - 점진적 트래픽 전환<br>- 위험 최소화             | - 복잡한 모니터링 필요<br>- 구현 난이도 높음 | ⭐ 과도함   |
 
 ### 3.2 선정 전략: Rolling Deployment
 
 **선정 근거:**
+
 - 현재 인프라 규모 (2-4대)에 최적
 - ALB + Auto Scaling 이미 구축됨
 - 추가 비용 없이 무중단 배포 가능
@@ -174,37 +175,37 @@
 
 ```yaml
 Phase 1: 배포 준비
-  - ECR에 새 Docker 이미지 푸시
-  - CodeDeploy 배포 그룹 트리거
-  - 배포 전략: CodeDeployDefault.OneAtATime
+           - ECR에 새 Docker 이미지 푸시
+           - CodeDeploy 배포 그룹 트리거
+           - 배포 전략: CodeDeployDefault.OneAtATime
 
 Phase 2: 인스턴스별 배포 (순차 진행)
-  1. ApplicationStop (기존 컨테이너 중지)
-     - docker stop tpt-spring-app
-     - 타임아웃: 60초
+           1. ApplicationStop (기존 컨테이너 중지)
+           - docker stop tpt-spring-app
+           - 타임아웃: 60초
 
-  2. BeforeInstall (사전 준비)
-     - 기존 컨테이너 제거
-     - Docker 이미지 정리
-     - 타임아웃: 300초
+           2. BeforeInstall (사전 준비)
+           - 기존 컨테이너 제거
+           - Docker 이미지 정리
+           - 타임아웃: 300초
 
-  3. AfterInstall (ECR 로그인 & 이미지 Pull)
-     - AWS ECR 인증
-     - 최신 이미지 다운로드
-     - 타임아웃: 300초
+           3. AfterInstall (ECR 로그인 & 이미지 Pull)
+           - AWS ECR 인증
+           - 최신 이미지 다운로드
+           - 타임아웃: 300초
 
-  4. ApplicationStart (새 컨테이너 시작)
-     - Parameter Store에서 환경변수 로드
-     - Docker 컨테이너 실행
-     - CloudWatch Logs 연결
-     - 타임아웃: 300초
+           4. ApplicationStart (새 컨테이너 시작)
+           - Parameter Store에서 환경변수 로드
+           - Docker 컨테이너 실행
+           - CloudWatch Logs 연결
+           - 타임아웃: 300초
 
-  5. ValidateService (헬스체크)
-     - 30초 대기 (애플리케이션 부팅)
-     - /actuator/health 엔드포인트 검증 (30회 시도, 10초 간격)
-     - 성공 시 다음 인스턴스로 진행
-     - 실패 시 롤백 트리거
-     - 타임아웃: 300초
+           5. ValidateService (헬스체크)
+           - 30초 대기 (애플리케이션 부팅)
+           - /actuator/health 엔드포인트 검증 (30회 시도, 10초 간격)
+           - 성공 시 다음 인스턴스로 진행
+           - 실패 시 롤백 트리거
+           - 타임아웃: 300초
 
 Phase 3: 배포 완료
   - 모든 인스턴스 정상 확인
@@ -215,6 +216,7 @@ Phase 3: 배포 완료
 ### 3.5 세션 관리 전략
 
 **현재 구성 (유지):**
+
 ```yaml
 세션 저장소: Redis (ElastiCache)
 세션 타임아웃: 7일 (604,800초)
@@ -233,6 +235,7 @@ Phase 3: 배포 완료
 ### 4.1 현재 Dockerfile 분석
 
 **현재 구조:**
+
 ```dockerfile
 # 단일 스테이지 빌드
 FROM amazoncorretto:17-alpine-jdk
@@ -243,6 +246,7 @@ ENTRYPOINT ["java", "-jar", "app.jar"]
 ```
 
 **문제점:**
+
 - 빌드 도구 포함 (불필요한 용량 증가)
 - 레이어 캐싱 최적화 부족
 - 프로덕션 최적화 미흡
@@ -300,13 +304,13 @@ CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
 
 ### 4.3 최적화 효과
 
-| 항목 | 기존 | 최적화 후 | 개선율 |
-|------|------|-----------|--------|
-| 이미지 크기 | ~450MB | ~280MB | 38% 감소 |
-| 빌드 시간 (초기) | ~3분 | ~3분 | 동일 |
-| 빌드 시간 (캐시) | ~3분 | ~30초 | 83% 감소 |
-| 보안 | root 실행 | 일반 사용자 | 향상 |
-| Graceful Shutdown | 미지원 | 지원 | 추가 |
+| 항목                | 기존      | 최적화 후  | 개선율    |
+|-------------------|---------|--------|--------|
+| 이미지 크기            | ~450MB  | ~280MB | 38% 감소 |
+| 빌드 시간 (초기)        | ~3분     | ~3분    | 동일     |
+| 빌드 시간 (캐시)        | ~3분     | ~30초   | 83% 감소 |
+| 보안                | root 실행 | 일반 사용자 | 향상     |
+| Graceful Shutdown | 미지원     | 지원     | 추가     |
 
 ### 4.4 이미지 관리 전략
 
@@ -317,7 +321,7 @@ ECR 저장소:
 
 태깅 전략:
   - latest: 최신 프로덕션 이미지
-  - {git-sha}: 커밋 해시 기반 (추적용)
+  - { git-sha }: 커밋 해시 기반 (추적용)
   - v{version}: 시맨틱 버전 (릴리즈용)
   - dev-{timestamp}: 개발 환경 이미지
 
@@ -398,9 +402,9 @@ name: Build and Test
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
   build:
@@ -734,16 +738,16 @@ DeploymentGroup:
 
 CloudWatch Alarms (자동 롤백 트리거):
   1. HealthyHostCount < 1
-     - 1분간 정상 인스턴스 0대
+  - 1분간 정상 인스턴스 0대
 
   2. TargetResponseTime > 2000ms
-     - 5분간 평균 응답시간 2초 초과
+  - 5분간 평균 응답시간 2초 초과
 
   3. HTTPCode_Target_5XX_Count > 10
-     - 5분간 5xx 에러 10건 이상
+  - 5분간 5xx 에러 10건 이상
 
   4. UnHealthyHostCount > 0
-     - 1분간 비정상 인스턴스 발생
+  - 1분간 비정상 인스턴스 발생
 ```
 
 **롤백 프로세스:**
@@ -838,6 +842,7 @@ jobs:
 ### 6.5 데이터베이스 마이그레이션 롤백
 
 **주의사항:**
+
 - 배포와 DB 마이그레이션은 분리하여 관리
 - 역호환성(Backward Compatibility) 유지 필수
 
@@ -859,6 +864,7 @@ Phase 3: 정리 (충분한 검증 후)
 ```
 
 **DB 롤백 불가능한 경우:**
+
 ```
 ❌ 피해야 할 마이그레이션:
   - 컬럼 삭제 (데이터 손실)
@@ -880,25 +886,28 @@ Phase 3: 정리 (충분한 검증 후)
 ### 7.1 개발 환경 (tpt-dev)
 
 **트리거 조건:**
+
 ```yaml
 on:
   push:
-    branches: [develop]
+    branches: [ develop ]
 ```
 
 **배포 특징:**
+
 - 빠른 피드백 (테스트 최소화)
 - AllAtOnce 배포 (단일 인스턴스)
 - 자동 롤백 비활성화
 - 슬랙 알림 간소화
 
 **워크플로우:**
+
 ```yaml
 name: Deploy to Development
 
 on:
   push:
-    branches: [develop]
+    branches: [ develop ]
 
 jobs:
   deploy-dev:
@@ -937,14 +946,16 @@ jobs:
 ### 7.2 운영 환경 (tpt-prod)
 
 **트리거 조건:**
+
 ```yaml
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:  # 수동 트리거 허용
 ```
 
 **배포 특징:**
+
 - 전체 테스트 실행
 - Rolling 배포 (OneAtATime)
 - 자동 롤백 활성화
@@ -952,12 +963,13 @@ on:
 - 배포 승인 프로세스 (선택)
 
 **워크플로우:**
+
 ```yaml
 name: Deploy to Production
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       skip_tests:
@@ -1060,6 +1072,7 @@ Protection Rules:
 ```
 
 **승인 프로세스:**
+
 ```
 1. 개발자가 main 브랜치에 푸시
    ↓
@@ -1078,16 +1091,16 @@ Protection Rules:
 
 ### 7.4 환경별 설정 비교
 
-| 항목 | 개발 (tpt-dev) | 운영 (tpt-prod) |
-|------|----------------|-----------------|
-| 트리거 | develop 브랜치 푸시 | main 브랜치 푸시 |
-| 테스트 | 생략 가능 | 필수 실행 |
-| 보안 스캔 | 선택 | 필수 |
-| 배포 전략 | AllAtOnce | OneAtATime (Rolling) |
-| 롤백 | 수동 | 자동 + 수동 |
-| 승인 | 불필요 | 선택 (권장) |
-| 알림 | 간소화 | 상세 |
-| 소요 시간 | 8-12분 | 25-35분 |
+| 항목    | 개발 (tpt-dev)   | 운영 (tpt-prod)        |
+|-------|----------------|----------------------|
+| 트리거   | develop 브랜치 푸시 | main 브랜치 푸시          |
+| 테스트   | 생략 가능          | 필수 실행                |
+| 보안 스캔 | 선택             | 필수                   |
+| 배포 전략 | AllAtOnce      | OneAtATime (Rolling) |
+| 롤백    | 수동             | 자동 + 수동              |
+| 승인    | 불필요            | 선택 (권장)              |
+| 알림    | 간소화            | 상세                   |
+| 소요 시간 | 8-12분          | 25-35분               |
 
 ---
 
@@ -1101,37 +1114,37 @@ Protection Rules:
 Namespace: TPT/Application
 
 메트릭:
-  1. RequestCount (요청 수)
-     - 통계: Sum
-     - 기간: 1분
-     - 임계값: > 1000/min (경고)
+    1. RequestCount (요청 수)
+      - 통계: Sum
+      - 기간: 1분
+      - 임계값: > 1000/min (경고)
 
-  2. ResponseTime (응답 시간)
-     - 통계: Average, p95, p99
-     - 기간: 1분
-     - 임계값:
-       - Average > 500ms (경고)
-       - p95 > 1000ms (경고)
-       - p99 > 2000ms (심각)
+      2. ResponseTime (응답 시간)
+      - 통계: Average, p95, p99
+      - 기간: 1분
+      - 임계값:
+          - Average > 500ms (경고)
+          - p95 > 1000ms (경고)
+          - p99 > 2000ms (심각)
 
-  3. ErrorRate (에러율)
-     - 통계: Average
-     - 기간: 5분
-     - 임계값:
-       - > 1% (경고)
-       - > 5% (심각)
+      3. ErrorRate (에러율)
+      - 통계: Average
+      - 기간: 5분
+      - 임계값:
+          - > 1% (경고)
+          - > 5% (심각)
 
-  4. ActiveSessions (활성 세션)
-     - 통계: Average
-     - 기간: 5분
-     - 임계값: > 10000 (경고)
+      4. ActiveSessions (활성 세션)
+      - 통계: Average
+      - 기간: 5분
+      - 임계값: > 10000 (경고)
 
-  5. DatabaseConnectionPool
-     - 통계: Average, Maximum
-     - 기간: 1분
-     - 임계값:
-       - Average > 7/10 (경고)
-       - Max = 10 (심각)
+      5. DatabaseConnectionPool
+      - 통계: Average, Maximum
+      - 기간: 1분
+      - 임계값:
+          - Average > 7/10 (경고)
+          - Max = 10 (심각)
 ```
 
 **인프라 메트릭:**
@@ -1142,37 +1155,37 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
 메트릭:
   EC2:
     - CPUUtilization (CPU 사용률)
-      - 임계값: > 70% (경고), > 85% (심각)
+        - 임계값: > 70% (경고), > 85% (심각)
     - MemoryUtilization (메모리 사용률)
-      - 임계값: > 80% (경고), > 90% (심각)
+        - 임계값: > 80% (경고), > 90% (심각)
     - DiskUtilization (디스크 사용률)
-      - 임계값: > 80% (경고)
+        - 임계값: > 80% (경고)
 
   ALB:
     - TargetResponseTime (대상 응답 시간)
-      - 임계값: > 1000ms (경고)
+        - 임계값: > 1000ms (경고)
     - HealthyHostCount (정상 호스트 수)
-      - 임계값: < 2 (심각)
+        - 임계값: < 2 (심각)
     - UnHealthyHostCount (비정상 호스트)
-      - 임계값: > 0 (경고)
+        - 임계값: > 0 (경고)
     - HTTPCode_Target_5XX_Count (5xx 에러)
-      - 임계값: > 10/5min (경고)
+        - 임계값: > 10/5min (경고)
 
   RDS:
     - DatabaseConnections (DB 연결 수)
-      - 임계값: > 80 (경고)
+        - 임계값: > 80 (경고)
     - FreeableMemory (사용 가능 메모리)
-      - 임계값: < 200MB (경고)
+        - 임계값: < 200MB (경고)
     - CPUUtilization
-      - 임계값: > 70% (경고)
+        - 임계값: > 70% (경고)
 
   ElastiCache:
     - CPUUtilization
-      - 임계값: > 70% (경고)
+        - 임계값: > 70% (경고)
     - NetworkBytesIn/Out
-      - 임계값: > 100MB/s (경고)
+        - 임계값: > 100MB/s (경고)
     - CurrConnections (현재 연결 수)
-      - 임계값: > 5000 (경고)
+        - 임계값: > 5000 (경고)
 ```
 
 ### 8.2 CloudWatch Alarms 설정
@@ -1181,47 +1194,47 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
 
 ```yaml
 1. HealthyHostCount < 1
-   - 설명: 모든 인스턴스 다운
-   - 평가: 1분간 데이터포인트 1/1
-   - 액션: SNS → 슬랙, 이메일, SMS
-   - 자동 롤백: 활성화
+  - 설명: 모든 인스턴스 다운
+- 평가: 1분간 데이터포인트 1/1
+- 액션: SNS → 슬랙, 이메일, SMS
+- 자동 롤백: 활성화
 
-2. HTTPCode_Target_5XX_Count > 50
-   - 설명: 5분간 5xx 에러 50건 이상
-   - 평가: 5분간 데이터포인트 1/1
-   - 액션: SNS → 슬랙, 이메일
-   - 자동 롤백: 활성화
+  2. HTTPCode_Target_5XX_Count > 50
+- 설명: 5분간 5xx 에러 50건 이상
+- 평가: 5분간 데이터포인트 1/1
+- 액션: SNS → 슬랙, 이메일
+- 자동 롤백: 활성화
 
-3. DatabaseConnections = 0
-   - 설명: DB 연결 불가
-   - 평가: 1분간 데이터포인트 2/2
-   - 액션: SNS → 슬랙, 이메일, SMS
+  3. DatabaseConnections = 0
+- 설명: DB 연결 불가
+- 평가: 1분간 데이터포인트 2/2
+- 액션: SNS → 슬랙, 이메일, SMS
 
-4. EC2 StatusCheckFailed
-   - 설명: 인스턴스 상태 체크 실패
-   - 평가: 2분간 데이터포인트 2/2
-   - 액션: SNS → 슬랙, 이메일
-   - 자동 복구: 활성화
+  4. EC2 StatusCheckFailed
+- 설명: 인스턴스 상태 체크 실패
+- 평가: 2분간 데이터포인트 2/2
+- 액션: SNS → 슬랙, 이메일
+- 자동 복구: 활성화
 ```
 
 **Warning Alarms (모니터링 필요):**
 
 ```yaml
 1. ResponseTime > 500ms
-   - 평가: 5분간 데이터포인트 3/5
-   - 액션: SNS → 슬랙
+  - 평가: 5분간 데이터포인트 3/5
+- 액션: SNS → 슬랙
 
-2. ErrorRate > 1%
-   - 평가: 5분간 데이터포인트 2/5
-   - 액션: SNS → 슬랙
+  2. ErrorRate > 1%
+- 평가: 5분간 데이터포인트 2/5
+- 액션: SNS → 슬랙
 
-3. CPUUtilization > 70%
-   - 평가: 5분간 데이터포인트 3/5
-   - 액션: SNS → 슬랙
+  3. CPUUtilization > 70%
+- 평가: 5분간 데이터포인트 3/5
+- 액션: SNS → 슬랙
 
-4. MemoryUtilization > 80%
-   - 평가: 5분간 데이터포인트 3/5
-   - 액션: SNS → 슬랙
+  4. MemoryUtilization > 80%
+- 평가: 5분간 데이터포인트 3/5
+- 액션: SNS → 슬랙
 ```
 
 ### 8.3 CloudWatch Logs 설정
@@ -1235,9 +1248,9 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
     - 소스: Spring Boot 애플리케이션
     - 로그 스트림: 인스턴스별 (instance-id)
     - 메트릭 필터:
-      - ERROR 로그 카운트
-      - Exception 발생 횟수
-      - 느린 쿼리 (> 1초)
+        - ERROR 로그 카운트
+        - Exception 발생 횟수
+        - 느린 쿼리 (> 1초)
 
   /tpt/prod/deployment:
     - 보존 기간: 90일
@@ -1254,24 +1267,24 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
 
 ```yaml
 1. ERROR 로그 카운트:
-   Pattern: [timestamp, level=ERROR*, ...]
-   Metric: TPT/Application/ErrorCount
-   Value: 1
+  Pattern: [ timestamp, level=ERROR*, ... ]
+  Metric: TPT/Application/ErrorCount
+  Value: 1
 
 2. Exception 발생:
-   Pattern: "Exception"
-   Metric: TPT/Application/ExceptionCount
-   Value: 1
+  Pattern: "Exception"
+  Metric: TPT/Application/ExceptionCount
+  Value: 1
 
 3. 느린 쿼리:
-   Pattern: [timestamp, level, msg="*", duration>1000*]
-   Metric: TPT/Application/SlowQueryCount
-   Value: 1
+  Pattern: [ timestamp, level, msg="*", duration>1000* ]
+  Metric: TPT/Application/SlowQueryCount
+  Value: 1
 
 4. 배포 실패:
-   Pattern: "❌" "배포 실패" "Deployment failed"
-   Metric: TPT/Deployment/FailureCount
-   Value: 1
+  Pattern: "❌" "배포 실패" "Deployment failed"
+  Metric: TPT/Deployment/FailureCount
+  Value: 1
 ```
 
 ### 8.4 슬랙 알림 설정
@@ -1281,19 +1294,19 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
 ```yaml
 슬랙 채널:
   #tpt-prod-alerts:
-    - Critical 알람
-    - 배포 실패
-    - 롤백 발생
+  - Critical 알람
+  - 배포 실패
+  - 롤백 발생
 
   #tpt-prod-deployments:
-    - 배포 시작
-    - 배포 완료
-    - 배포 승인 요청
+  - 배포 시작
+  - 배포 완료
+  - 배포 승인 요청
 
   #tpt-prod-monitoring:
-    - Warning 알람
-    - 성능 이슈
-    - 리소스 사용량
+  - Warning 알람
+  - 성능 이슈
+  - 리소스 사용량
 ```
 
 **알림 메시지 템플릿:**
@@ -1315,7 +1328,10 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
       "elements": [
         {
           "type": "button",
-          "text": {"type": "plain_text", "text": "View Logs"},
+          "text": {
+            "type": "plain_text",
+            "text": "View Logs"
+          },
           "url": "https://console.aws.amazon.com/cloudwatch/..."
         }
       ]
@@ -1353,13 +1369,19 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
       "elements": [
         {
           "type": "button",
-          "text": {"type": "plain_text", "text": "View CloudWatch"},
+          "text": {
+            "type": "plain_text",
+            "text": "View CloudWatch"
+          },
           "url": "https://console.aws.amazon.com/cloudwatch/...",
           "style": "danger"
         },
         {
           "type": "button",
-          "text": {"type": "plain_text", "text": "Trigger Rollback"},
+          "text": {
+            "type": "plain_text",
+            "text": "Trigger Rollback"
+          },
           "url": "https://github.com/org/repo/actions/..."
         }
       ]
@@ -1619,13 +1641,13 @@ Namespace: AWS/EC2, AWS/ApplicationELB, AWS/RDS, AWS/ElastiCache
 
 **AWS Secrets Manager vs Parameter Store:**
 
-| 항목 | Secrets Manager | Parameter Store |
-|------|----------------|-----------------|
-| 비용 | $0.40/secret/월 + API 비용 | 무료 (Standard), $0.05/파라미터/월 (Advanced) |
-| 자동 교체 | 지원 (Lambda 통합) | 미지원 |
-| 버전 관리 | 자동 | 수동 (Advanced) |
-| 암호화 | 기본 (KMS) | 선택적 (KMS) |
-| 용도 | DB 비밀번호, API 키 | 설정값, 비민감 정보 |
+| 항목    | Secrets Manager         | Parameter Store                        |
+|-------|-------------------------|----------------------------------------|
+| 비용    | $0.40/secret/월 + API 비용 | 무료 (Standard), $0.05/파라미터/월 (Advanced) |
+| 자동 교체 | 지원 (Lambda 통합)          | 미지원                                    |
+| 버전 관리 | 자동                      | 수동 (Advanced)                          |
+| 암호화   | 기본 (KMS)                | 선택적 (KMS)                              |
+| 용도    | DB 비밀번호, API 키          | 설정값, 비민감 정보                            |
 
 **권장 사용 전략:**
 
@@ -1762,32 +1784,32 @@ VPC (10.0.0.0/16)
 
 ### 10.1 CI/CD 인프라 비용
 
-| 서비스 | 사양 | 월 비용 (USD) |
-|--------|------|---------------|
-| **GitHub Actions** | 2,000분 무료 (충분) | $0 |
-| **AWS CodeDeploy** | EC2 배포 (무료) | $0 |
-| **Amazon ECR** | 0.5GB 스토리지 (월 10개 이미지) | $0.05 |
-| **S3 (배포 버킷)** | 1GB 스토리지, 100 요청 | $0.50 |
-| **CloudWatch Logs** | 5GB/월 수집, 30일 보존 | $2.50 |
-| **CloudWatch Alarms** | 10개 알람 | $1.00 |
-| **SNS (알림)** | 1,000 알림/월 | $0.50 |
-| **Secrets Manager** | 5개 시크릿 | $2.00 |
-| **Parameter Store** | Standard (무료) | $0 |
-| **CloudTrail** | 관리 이벤트만 (무료) | $0 |
-| **데이터 전송** | 배포 패키지 전송 (1GB/월) | $1.00 |
-| **총 CI/CD 비용** | - | **~$7.55/월** |
+| 서비스                   | 사양                     | 월 비용 (USD)   |
+|-----------------------|------------------------|--------------|
+| **GitHub Actions**    | 2,000분 무료 (충분)         | $0           |
+| **AWS CodeDeploy**    | EC2 배포 (무료)            | $0           |
+| **Amazon ECR**        | 0.5GB 스토리지 (월 10개 이미지) | $0.05        |
+| **S3 (배포 버킷)**        | 1GB 스토리지, 100 요청       | $0.50        |
+| **CloudWatch Logs**   | 5GB/월 수집, 30일 보존       | $2.50        |
+| **CloudWatch Alarms** | 10개 알람                 | $1.00        |
+| **SNS (알림)**          | 1,000 알림/월             | $0.50        |
+| **Secrets Manager**   | 5개 시크릿                 | $2.00        |
+| **Parameter Store**   | Standard (무료)          | $0           |
+| **CloudTrail**        | 관리 이벤트만 (무료)           | $0           |
+| **데이터 전송**            | 배포 패키지 전송 (1GB/월)      | $1.00        |
+| **총 CI/CD 비용**        | -                      | **~$7.55/월** |
 
 ### 10.2 기존 인프라 비용 (참고)
 
-| 서비스 | 사양 | 월 비용 (USD) |
-|--------|------|---------------|
-| **EC2** | t3.small × 2대 (730h) | $30.37 × 2 = $60.74 |
-| **RDS MySQL** | db.t3.micro (Multi-AZ) | $24.82 |
-| **ElastiCache Redis** | cache.t3.micro | $12.41 |
-| **Application Load Balancer** | 730h + 1GB 처리 | $16.20 + $0.008 = $16.21 |
-| **EBS** | gp3 50GB × 2 | $4.00 × 2 = $8.00 |
-| **데이터 전송** | 100GB 아웃바운드 | $9.00 |
-| **총 운영 인프라** | - | **~$131/월** |
+| 서비스                           | 사양                     | 월 비용 (USD)               |
+|-------------------------------|------------------------|--------------------------|
+| **EC2**                       | t3.small × 2대 (730h)   | $30.37 × 2 = $60.74      |
+| **RDS MySQL**                 | db.t3.micro (Multi-AZ) | $24.82                   |
+| **ElastiCache Redis**         | cache.t3.micro         | $12.41                   |
+| **Application Load Balancer** | 730h + 1GB 처리          | $16.20 + $0.008 = $16.21 |
+| **EBS**                       | gp3 50GB × 2           | $4.00 × 2 = $8.00        |
+| **데이터 전송**                    | 100GB 아웃바운드            | $9.00                    |
+| **총 운영 인프라**                  | -                      | **~$131/월**              |
 
 ### 10.3 총 비용 요약
 
@@ -1805,44 +1827,44 @@ CI/CD 비용 비율: 5.8%
 **단기 (즉시 적용 가능):**
 
 1. **ECR Lifecycle Policy 설정**
-   - 최근 10개 이미지만 유지
-   - 태그 없는 이미지 7일 후 삭제
-   - 절감: ~$0.03/월
+    - 최근 10개 이미지만 유지
+    - 태그 없는 이미지 7일 후 삭제
+    - 절감: ~$0.03/월
 
 2. **CloudWatch Logs 보존 기간 단축**
-   - 애플리케이션 로그: 30일 → 14일
-   - 배포 로그: 90일 → 30일
-   - 절감: ~$1.00/월
+    - 애플리케이션 로그: 30일 → 14일
+    - 배포 로그: 90일 → 30일
+    - 절감: ~$1.00/월
 
 3. **S3 Lifecycle Policy**
-   - 배포 패키지 30일 후 IA로 이동
-   - 90일 후 삭제
-   - 절감: ~$0.20/월
+    - 배포 패키지 30일 후 IA로 이동
+    - 90일 후 삭제
+    - 절감: ~$0.20/월
 
 **중기 (검토 후 적용):**
 
 1. **Reserved Instances (1년 약정)**
-   - EC2 t3.small × 2대
-   - 절감: ~30% ($18/월)
+    - EC2 t3.small × 2대
+    - 절감: ~30% ($18/월)
 
 2. **Savings Plans (1년 약정)**
-   - RDS + ElastiCache 포함
-   - 절감: ~20% ($7.4/월)
+    - RDS + ElastiCache 포함
+    - 절감: ~20% ($7.4/월)
 
 3. **CloudWatch Logs Insights 대신 Athena 사용 (대량 분석 시)**
-   - 비용: 스캔 데이터 기준 ($5/TB)
-   - 절감: 빈번한 분석 시 유리
+    - 비용: 스캔 데이터 기준 ($5/TB)
+    - 절감: 빈번한 분석 시 유리
 
 **장기 (스케일링 대비):**
 
 1. **AWS Graviton2 인스턴스 고려**
-   - t4g.small (ARM 기반)
-   - 절감: ~20% ($12/월)
-   - 주의: Docker 이미지 multi-arch 빌드 필요
+    - t4g.small (ARM 기반)
+    - 절감: ~20% ($12/월)
+    - 주의: Docker 이미지 multi-arch 빌드 필요
 
 2. **Auto Scaling 정책 최적화**
-   - 야간 시간대 (02:00-06:00) 최소 1대로 축소
-   - 절감: ~$15/월 (인스턴스 시간 절반)
+    - 야간 시간대 (02:00-06:00) 최소 1대로 축소
+    - 절감: ~$15/월 (인스턴스 시간 절반)
 
 ---
 
@@ -2058,6 +2080,7 @@ Low Risk (GitHub Actions 장애):
 ### 12.1 공식 문서
 
 **AWS**:
+
 - [AWS CodeDeploy User Guide](https://docs.aws.amazon.com/codedeploy/latest/userguide/)
 - [EC2 Auto Scaling User Guide](https://docs.aws.amazon.com/autoscaling/ec2/userguide/)
 - [Application Load Balancer Guide](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/)
@@ -2066,15 +2089,18 @@ Low Risk (GitHub Actions 장애):
 - [CloudWatch User Guide](https://docs.aws.amazon.com/cloudwatch/)
 
 **GitHub**:
+
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Workflow Syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
 - [OIDC with AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services)
 
 **Spring Boot**:
+
 - [Spring Boot Actuator](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html)
 - [Spring Boot with Docker](https://spring.io/guides/gs/spring-boot-docker/)
 
 **Docker**:
+
 - [Multi-stage builds](https://docs.docker.com/build/building/multi-stage/)
 - [Best practices for writing Dockerfiles](https://docs.docker.com/develop/dev-best-practices/)
 
@@ -2105,16 +2131,19 @@ CLI 도구:
 ### 12.3 학습 자료
 
 **블로그 & 아티클**:
+
 - [AWS DevOps Blog](https://aws.amazon.com/blogs/devops/)
 - [GitHub Actions Examples](https://github.com/actions/starter-workflows)
 - [Spring Boot Deployment Best Practices](https://spring.io/guides/topicals/spring-boot-docker/)
 
 **책 (추천)**:
+
 - "Continuous Delivery" by Jez Humble
 - "The DevOps Handbook" by Gene Kim
 - "Site Reliability Engineering" by Google
 
 **커뮤니티**:
+
 - AWS re:Post
 - GitHub Community Forum
 - Stack Overflow (aws, github-actions, spring-boot 태그)
@@ -2329,7 +2358,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       skip_tests:
@@ -2606,6 +2635,7 @@ jobs:
 이 설계서는 TPT-API의 무중단 CI/CD 파이프라인 구축을 위한 **완전한 청사진**을 제공합니다.
 
 **핵심 특징:**
+
 - ✅ **비용 효율적**: 월 ~$7.55 추가 비용으로 구축 가능
 - ✅ **무중단 배포**: Rolling 배포로 서비스 가용성 100% 유지
 - ✅ **자동 롤백**: CloudWatch Alarms 기반 자동 복구
@@ -2614,17 +2644,20 @@ jobs:
 - ✅ **모니터링 완비**: CloudWatch + 슬랙 알림으로 실시간 가시성
 
 **구현 시작 준비 완료:**
+
 - 6주 구현 로드맵
 - 실행 가능한 스크립트 제공
 - 트러블슈팅 가이드 포함
 - 운영 문서 작성 가이드
 
 **다음 단계:**
+
 1. Phase 1 시작 (Week 1-2): GitHub Actions 워크플로우 작성 및 개발 환경 검증
 2. Phase 2 진행 (Week 3-4): 프로덕션 배포 및 롤백 메커니즘 구현
 3. Phase 3 완료 (Week 5-6): 최적화, 문서화, 팀 교육
 
 **질문 및 피드백:**
+
 - 이 설계서에 대한 질문이나 추가 요구사항이 있다면 언제든지 문의해주세요.
 - 구현 과정에서 발생하는 이슈는 트러블슈팅 가이드를 참고하거나 팀과 공유해주세요.
 

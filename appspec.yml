@@ -3,10 +3,10 @@ os: linux
 
 files:
   - source: /
-    destination: /home/ubuntu/tpt-server-dev
+    destination: /home/ubuntu/tpt-server
 
 permissions:
-  - object: /home/ubuntu/tpt-server-dev
+  - object: /home/ubuntu/tpt-server
     owner: ubuntu
     group: ubuntu
 
