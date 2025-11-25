@@ -1,26 +1,25 @@
-// src/main/java/.../auth/repository/HttpCookieOAuth2AuthorizationRequestRepository.java
 package com.tradingpt.tpt_api.domain.auth.repository;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tradingpt.tpt_api.global.web.cookie.CookieProps;
 import com.tradingpt.tpt_api.global.web.cookie.CookieUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.time.Duration;
+import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-import org.springframework.security.web.savedrequest.SavedRequest;
 import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 /**
  * OAuth2AuthorizationRequest를 세션 대신 쿠키에 싣는 저장소
+ * - Java Serialization + Base64 인코딩 사용 (Spring Security 클래스는 Jackson 직렬화 미지원)
  * - 장점: Redis 세션에 복잡한 객체가 안 들어감
  * - 주의: 쿠키 사이즈 제한(보통 4KB) 내에서 동작
  */
@@ -32,12 +31,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
     public static final String OAUTH2_AUTH_REQUEST_COOKIE_NAME = "OAUTH2_AUTH_REQ";
     private static final int EXPIRE_SECONDS = (int) Duration.ofMinutes(5).toSeconds();
 
-    private final ObjectMapper objectMapper;
-
-    public HttpCookieOAuth2AuthorizationRequestRepository(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
         Cookie cookie = getCookie(request, OAUTH2_AUTH_REQUEST_COOKIE_NAME);
@@ -48,8 +41,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
             return null;
         }
         try {
-            String json = URLDecoder.decode(cookie.getValue(), StandardCharsets.UTF_8);
-            OAuth2AuthorizationRequest authRequest = objectMapper.readValue(json, OAuth2AuthorizationRequest.class);
+            OAuth2AuthorizationRequest authRequest = deserialize(cookie.getValue());
             log.info("[OAuth2 Cookie] 쿠키에서 AuthorizationRequest 로드 성공 - state: {}", authRequest.getState());
             return authRequest;
         } catch (Exception e) {
@@ -67,17 +59,16 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
             return;
         }
         try {
-            String json = objectMapper.writeValueAsString(authorizationRequest);
-            String enc = URLEncoder.encode(json, StandardCharsets.UTF_8);
+            String serialized = serialize(authorizationRequest);
 
             // HTTPS 환경 감지 (X-Forwarded-Proto 헤더 또는 request.isSecure())
             boolean isSecure = request.isSecure()
                     || "https".equalsIgnoreCase(request.getHeader("X-Forwarded-Proto"));
 
-            log.info("[OAuth2 Cookie] saveAuthorizationRequest - state: {}, isSecure: {}",
-                    authorizationRequest.getState(), isSecure);
+            log.info("[OAuth2 Cookie] saveAuthorizationRequest - state: {}, isSecure: {}, cookieSize: {}",
+                    authorizationRequest.getState(), isSecure, serialized.length());
 
-            Cookie cookie = new Cookie(OAUTH2_AUTH_REQUEST_COOKIE_NAME, enc);
+            Cookie cookie = new Cookie(OAUTH2_AUTH_REQUEST_COOKIE_NAME, serialized);
             cookie.setPath("/");
             cookie.setHttpOnly(true);
             cookie.setMaxAge(EXPIRE_SECONDS);
@@ -85,6 +76,34 @@ public class HttpCookieOAuth2AuthorizationRequestRepository
             response.addCookie(cookie);
         } catch (Exception e) {
             log.error("[OAuth2 Cookie] 쿠키 저장 실패: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * OAuth2AuthorizationRequest를 Base64 문자열로 직렬화
+     */
+    private String serialize(OAuth2AuthorizationRequest authorizationRequest) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(authorizationRequest);
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            throw new IllegalArgumentException("OAuth2AuthorizationRequest 직렬화 실패", e);
+        }
+    }
+
+    /**
+     * Base64 문자열에서 OAuth2AuthorizationRequest로 역직렬화
+     */
+    private OAuth2AuthorizationRequest deserialize(String serialized) {
+        try {
+            byte[] bytes = Base64.getUrlDecoder().decode(serialized);
+            try (ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+                 ObjectInputStream ois = new ObjectInputStream(bais)) {
+                return (OAuth2AuthorizationRequest) ois.readObject();
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("OAuth2AuthorizationRequest 역직렬화 실패", e);
         }
     }
 
