@@ -25,6 +25,8 @@ import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.session.FindByIndexNameSessionRepository;
 import org.springframework.session.Session;
@@ -266,7 +268,12 @@ public class SecurityConfig {
 		var requestHandler = new CsrfTokenRequestAttributeHandler();
 		requestHandler.setCsrfRequestAttributeName("_csrf");
 
-		var userApiMatcher = new RegexRequestMatcher("^/api/(?!v1/admin(?:/|$)).*$", null);
+		// OAuth2 경로 포함을 위해 OrRequestMatcher 사용
+		var userApiMatcher = new OrRequestMatcher(
+			new RegexRequestMatcher("^/api/(?!v1/admin(?:/|$)).*$", null),
+			new AntPathRequestMatcher("/oauth2/**"),
+			new AntPathRequestMatcher("/login/oauth2/**")
+		);
 
 		http.securityMatcher(userApiMatcher)
 				.cors(Customizer.withDefaults())
