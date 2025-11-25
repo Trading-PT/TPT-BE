@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.service;
 
+import com.tradingpt.tpt_api.domain.auth.dto.response.AdminMeResponse;
 import com.tradingpt.tpt_api.domain.user.dto.request.ChangePasswordRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FindIdResponseDTO;
 import com.tradingpt.tpt_api.domain.auth.dto.response.MeResponse;
@@ -14,4 +15,5 @@ public interface UserService {
     void deleteAccount(Long userId);
     ProfileImageResponseDTO updateProfileImage(Long userId, MultipartFile file);
     Long changeNickname(Long userId, String nickname);
+    AdminMeResponse getAdminMe(Long userId);
 }
