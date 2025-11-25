@@ -23,6 +23,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -82,7 +83,8 @@ public abstract class User extends BaseEntity {
 	 */
 	@Version
 	@Column(name = "version")
-	private Long version;
+	@Builder.Default
+	private Long version = 0L;
 
 	public void changeNickname(String nickname) {
 		this.nickname = nickname;
