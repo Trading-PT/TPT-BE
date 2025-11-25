@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.global.web.logout;
 
-import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.tradingpt.tpt_api.global.web.cookie.CookieProps;
 import com.tradingpt.tpt_api.global.web.cookie.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +27,6 @@ public class LogoutHelper {
 
     private final FindByIndexNameSessionRepository<? extends Session> sessionRepository;
     private final ObjectProvider<PersistentTokenRepository> persistentTokenRepositoryProvider;
-    private final HttpCookieOAuth2AuthorizationRequestRepository oauth2CookieRepo;
     private final StringRedisTemplate redisTemplate;
 
     /**
@@ -62,8 +60,7 @@ public class LogoutHelper {
         // 브라우저 쿠키 제거 (SESSION, REMEMBER_ME 등)
         CookieUtils.expireAuthCookies(res, cookieProps);
 
-        //  OAuth2 인가 요청 쿠키 제거
-        oauth2CookieRepo.removeAuthorizationRequestCookies(req, res);
+        // OAuth2 인가 요청은 이제 세션에 저장되므로 세션 무효화 시 자동 제거됨
 
         log.info("[LogoutHelper] Current device logged out and session invalidated.");
     }

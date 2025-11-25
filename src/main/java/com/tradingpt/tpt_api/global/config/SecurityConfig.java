@@ -18,8 +18,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -39,7 +37,6 @@ import com.tradingpt.tpt_api.domain.auth.filter.JsonUsernamePasswordAuthFilter;
 import com.tradingpt.tpt_api.domain.auth.handler.AdminSuccessHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomFailureHandler;
 import com.tradingpt.tpt_api.domain.auth.handler.CustomSuccessHandler;
-import com.tradingpt.tpt_api.domain.auth.repository.HttpCookieOAuth2AuthorizationRequestRepository;
 import com.tradingpt.tpt_api.domain.auth.security.CustomOAuth2UserService;
 import com.tradingpt.tpt_api.global.security.csrf.HeaderAndCookieCsrfTokenRepository;
 import com.tradingpt.tpt_api.global.security.handler.JsonAccessDeniedHandler;
@@ -261,7 +258,6 @@ public class SecurityConfig {
 			SessionRegistry sessionRegistry,
 			JsonUsernamePasswordAuthFilter jsonLoginFilter,
 			CustomOAuth2UserService customOAuth2UserService,
-			AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthRequestRepository,
 			HeaderAndCookieCsrfTokenRepository csrfTokenRepository
 	) throws Exception {
 
@@ -305,7 +301,6 @@ public class SecurityConfig {
 				.formLogin(AbstractHttpConfigurer::disable)
 				.httpBasic(AbstractHttpConfigurer::disable)
 				.oauth2Login(o -> o
-						.authorizationEndpoint(ae -> ae.authorizationRequestRepository(cookieAuthRequestRepository))
 						.userInfoEndpoint(ui -> ui.userService(customOAuth2UserService))
 						.successHandler(customSuccessHandler)
 						.failureHandler(customFailureHandler)
