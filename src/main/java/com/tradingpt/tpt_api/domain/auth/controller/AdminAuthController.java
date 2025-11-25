@@ -1,6 +1,8 @@
 // src/main/java/com/tradingpt/tpt_api/domain/auth/controller/AdminAuthController.java
 package com.tradingpt.tpt_api.domain.auth.controller;
 
+import com.tradingpt.tpt_api.domain.auth.dto.response.AdminMeResponse;
+import com.tradingpt.tpt_api.domain.user.service.UserService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
 import com.tradingpt.tpt_api.global.web.cookie.CookieProps;
 import com.tradingpt.tpt_api.global.web.logout.LogoutHelper;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminAuthController {
 
     private final LogoutHelper logoutHelper;
+    private final UserService userService;
 
     @Operation(summary = "어드민 로그아웃",
             description = "현재 디바이스의 ADMIN 세션/리멤버미/레디스 세션을 삭제합니다.")
@@ -33,4 +37,15 @@ public class AdminAuthController {
         logoutHelper.logoutCurrentRequest(req, res, auth, CookieProps.defaults());
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccessCreate(null));
     }
+
+    @Operation(summary = "어드민 내 정보 조회",
+            description = "세션 쿠키로 인증된 현재 어드민 정보를 반환합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<BaseResponse<AdminMeResponse>> me(
+            @AuthenticationPrincipal(expression = "id") Long adminId
+    ) {
+        AdminMeResponse response = userService.getAdminMe(adminId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(response));
+    }
+
 }
