@@ -139,8 +139,8 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardNo()
 		);
 
-		// 빌링 요청의 상태를 '완료'로 변경
-		billingRequest.complete();
+		// 빌링 요청의 상태를 '완료'로 변경하고 결과 코드 저장
+		billingRequest.completeWithResult(nicePayResponse.getResultCode(), nicePayResponse.getResultMsg());
 
 		PaymentMethod paymentMethod = PaymentMethod.of(customer, billingRequest, request.getMoid(),
 			nicePayResponse.getBID(),
@@ -251,7 +251,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		);
 
 		BillingRequest billingRequest = BillingRequest.of(customer, moid);
-		billingRequest.setStatus(Status.COMPLETED);
+		billingRequest.completeWithResult(nicePayResponse.getResultCode(), nicePayResponse.getResultMsg());
 
 		billingRequestRepository.save(billingRequest);
 

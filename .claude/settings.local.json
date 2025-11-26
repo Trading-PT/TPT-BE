@@ -70,7 +70,10 @@
       "Bash(aws logs get-query-results:*)",
       "Bash(jq:*)",
       "mcp__mysql-dev__describe_table",
-      "mcp__mysql-dev__list_tables"
+      "mcp__mysql-dev__list_tables",
+      "Bash(aws logs filter-log-events:*)",
+      "Bash(aws logs:*)",
+      "Bash(./gradlew compileJava:*)"
     ],
     "deny": [],
     "ask": []

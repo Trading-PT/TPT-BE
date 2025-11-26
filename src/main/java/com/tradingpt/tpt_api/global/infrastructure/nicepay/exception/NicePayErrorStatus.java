@@ -25,6 +25,7 @@ public enum NicePayErrorStatus implements BaseCodeInterface {
 	SIGNATURE_VERIFICATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "NICEPAY_500_4", "서명 검증에 실패했습니다."),
 	ENCODING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "NICEPAY_500_5", "인코딩 처리 중 오류가 발생했습니다."),
 	UNKNOWN_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "NICEPAY_500_6", "알 수 없는 오류가 발생했습니다."),
+	TEMPORARY_ERROR(HttpStatus.SERVICE_UNAVAILABLE, "NICEPAY_503_0", "일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
 
 	// 404 Not Found
 	BILLING_KEY_NOT_FOUND(HttpStatus.NOT_FOUND, "NICEPAY_404_0", "존재하지 않는 빌키입니다."),
@@ -97,6 +98,11 @@ public enum NicePayErrorStatus implements BaseCodeInterface {
 		// 빌키 삭제 관련 에러 (F3xx)
 		if (resultCode.startsWith("F3")) {
 			return BILLING_KEY_DELETION_FAILED;
+		}
+
+		// 미지정 오류 (일시적 오류 - 재시도 권장)
+		if ("9999".equals(resultCode)) {
+			return TEMPORARY_ERROR;
 		}
 
 		return UNKNOWN_ERROR;

@@ -20,8 +20,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SubscriptionErrorStatus implements BaseCodeInterface {
 
+    // 503 Service Unavailable (Temporary Error - Retryable)
+    FIRST_PAYMENT_TEMPORARY_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "SUBSCRIPT_503_0", "결제가 일시적으로 실패했습니다. 잠시 후 다시 시도해주세요."),
+
     // 500 Internal Server Error
     SUBSCRIPTION_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SUBSCRIPT_500_0", "구독 정보 업데이트에 실패했습니다."),
+    FIRST_PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SUBSCRIPT_500_1", "첫 번째 결제에 실패했습니다. 카드 정보를 확인하고 다시 시도해주세요."),
 
     // 409 Conflict
     SUBSCRIPTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "SUBSCRIPT_409_0", "이미 활성화된 구독이 존재합니다."),

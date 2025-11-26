@@ -43,9 +43,11 @@ public class BillingRequestCommandServiceImpl implements BillingRequestCommandSe
 		BillingRequest billingRequest = billingRequestRepository.findById(billingRequestId)
 			.orElseThrow(() -> new PaymentMethodException(PaymentMethodErrorStatus.BILLING_KEY_REGISTRATION_FAILED));
 
-		billingRequest.setStatus(status);
-		billingRequest.setResultCode(resultCode);
-		billingRequest.setResultMsg(resultMsg);
-
+		// DDD 원칙에 따라 Entity의 비즈니스 메서드 사용
+		if (status == Status.COMPLETED) {
+			billingRequest.completeWithResult(resultCode, resultMsg);
+		} else if (status == Status.FAILED) {
+			billingRequest.failWithResult(resultCode, resultMsg);
+		}
 	}
 }

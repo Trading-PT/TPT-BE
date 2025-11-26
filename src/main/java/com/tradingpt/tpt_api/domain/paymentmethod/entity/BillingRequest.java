@@ -90,21 +90,60 @@ public class BillingRequest extends BaseEntity {
 	}
 
 	/**
-	 * 편의 메서드
+	 * 빌링키 발급 성공 처리
+	 * DDD 원칙에 따라 상태 변경과 결과 코드 저장을 함께 처리
+	 *
+	 * @param resultCode NicePay 응답 결과 코드
+	 * @param resultMsg NicePay 응답 결과 메시지
 	 */
+	public void completeWithResult(String resultCode, String resultMsg) {
+		this.status = Status.COMPLETED;
+		this.completedAt = LocalDateTime.now();
+		this.resultCode = resultCode;
+		this.resultMsg = resultMsg;
+	}
+
+	/**
+	 * 빌링키 발급 실패 처리
+	 *
+	 * @param resultCode 에러 코드
+	 * @param resultMsg 에러 메시지
+	 */
+	public void failWithResult(String resultCode, String resultMsg) {
+		this.status = Status.FAILED;
+		this.resultCode = resultCode;
+		this.resultMsg = resultMsg;
+	}
+
+	/**
+	 * @deprecated DDD 원칙에 따라 completeWithResult() 사용 권장
+	 */
+	@Deprecated
 	public void complete() {
 		this.status = Status.COMPLETED;
 		this.completedAt = LocalDateTime.now();
 	}
 
+	/**
+	 * @deprecated DDD 원칙에 따라 failWithResult() 또는 completeWithResult() 사용 권장
+	 */
+	@Deprecated
 	public void setStatus(Status status) {
 		this.status = status;
 	}
 
+	/**
+	 * @deprecated DDD 원칙에 따라 failWithResult() 또는 completeWithResult() 사용 권장
+	 */
+	@Deprecated
 	public void setResultCode(String resultCode) {
 		this.resultCode = resultCode;
 	}
 
+	/**
+	 * @deprecated DDD 원칙에 따라 failWithResult() 또는 completeWithResult() 사용 권장
+	 */
+	@Deprecated
 	public void setResultMsg(String resultMsg) {
 		this.resultMsg = resultMsg;
 	}

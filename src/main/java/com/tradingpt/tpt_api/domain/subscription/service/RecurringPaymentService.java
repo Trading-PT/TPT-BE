@@ -171,10 +171,10 @@ public class RecurringPaymentService {
 		// 주문번호 생성
 		String orderId = NicePayCryptoUtil.generateRecurringMoid(subscription.getId());
 
-		// 주문명 생성
-		String orderName = String.format("%s %d월 구독료",
-			activePlan.getName(),
-			billingPeriodStart.getMonthValue());
+		// 주문명 생성 (NicePay는 EUC-KR 인코딩을 사용하므로 영문으로 생성)
+		String orderName = String.format("Subscription %d/%d",
+			billingPeriodStart.getMonthValue(),
+			billingPeriodStart.getYear());
 
 		// 프로모션 여부 확인
 		boolean isPromotional = paymentAmount.compareTo(BigDecimal.ZERO) == 0 ||
