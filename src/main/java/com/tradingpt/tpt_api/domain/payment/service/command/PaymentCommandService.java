@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.tradingpt.tpt_api.domain.payment.entity.Payment;
+import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
+import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.RecurringPaymentResponseDTO;
 
 /**
@@ -14,10 +17,11 @@ public interface PaymentCommandService {
 
     /**
      * 정기 결제 생성 (PENDING 상태)
+     * Entity를 직접 전달받아 REPEATABLE_READ 트랜잭션 격리 수준 문제를 방지
      *
-     * @param subscriptionId 구독 ID
-     * @param customerId 고객 ID
-     * @param paymentMethodId 결제 수단 ID
+     * @param subscription 구독 엔티티 (REQUIRES_NEW 트랜잭션에서 저장된 경우 ID 조회 불가)
+     * @param customer 고객 엔티티
+     * @param paymentMethod 결제 수단 엔티티
      * @param amount 결제 금액
      * @param orderName 주문명 - 한글 (이력 조회용, 예: 기본 구독 플랜 2025년 11월 구독료)
      * @param pgGoodsName PG 상품명 - 영문 (NicePay 전송용, 예: Subscription 11/2025)
@@ -29,9 +33,9 @@ public interface PaymentCommandService {
      * @return 생성된 Payment 엔티티
      */
     Payment createRecurringPayment(
-        Long subscriptionId,
-        Long customerId,
-        Long paymentMethodId,
+        Subscription subscription,
+        Customer customer,
+        PaymentMethod paymentMethod,
         BigDecimal amount,
         String orderName,
         String pgGoodsName,

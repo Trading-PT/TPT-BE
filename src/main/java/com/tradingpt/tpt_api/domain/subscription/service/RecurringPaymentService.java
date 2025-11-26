@@ -200,10 +200,11 @@ public class RecurringPaymentService {
 		}
 
 		// Payment 엔티티 생성
+		// Entity를 직접 전달하여 REPEATABLE_READ 트랜잭션 격리 수준 문제 방지
 		Payment payment = paymentCommandService.createRecurringPayment(
-			subscription.getId(),
-			subscription.getCustomer().getId(),
-			subscription.getPaymentMethod().getId(),
+			subscription,
+			subscription.getCustomer(),
+			paymentMethod,  // 위에서 검증된 paymentMethod 사용
 			paymentAmount,
 			orderName,
 			pgGoodsName,
