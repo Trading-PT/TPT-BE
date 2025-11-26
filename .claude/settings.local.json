@@ -80,5 +80,9 @@
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "mysql"
+  ],
+  "enableAllProjectMcpServers": true
 }

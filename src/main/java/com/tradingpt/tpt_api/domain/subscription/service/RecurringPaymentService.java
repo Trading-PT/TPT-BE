@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.subscription.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -285,9 +286,13 @@ public class RecurringPaymentService {
 
 		try {
 			// 나이스페이 결제 실행 (pgGoodsName 사용 - 영문, EUC-KR 인코딩 문제 회피)
+			// NicePay API는 금액을 정수 문자열로 요구함 (예: "3500", "50000")
+			// BigDecimal.toString()은 "3500.00" 형식이므로 정수로 변환 필요
+			String amountString = payment.getAmount().setScale(0, RoundingMode.DOWN).toPlainString();
+
 			RecurringPaymentResponseDTO response = nicePayService.executeRecurringPayment(
 				paymentMethod.getBillingKey(),
-				payment.getAmount().toString(),
+				amountString,
 				payment.getPgGoodsName(),
 				payment.getOrderId()
 			);
@@ -388,7 +393,8 @@ public class RecurringPaymentService {
 		response.setResultMsg("프로모션 기간 무료 결제");
 		response.setTID("PROMO-" + payment.getOrderId());
 		response.setMoid(payment.getOrderId());
-		response.setAmt(payment.getAmount().toString());
+		// NicePay 응답 형식에 맞춰 정수 문자열로 설정
+		response.setAmt(payment.getAmount().setScale(0, RoundingMode.DOWN).toPlainString());
 		response.setAuthCode("000000");
 		response.setAuthDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
 		return response;
