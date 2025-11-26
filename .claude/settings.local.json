@@ -66,7 +66,11 @@
       "Bash(xxd:*)",
       "Bash(cat:*)",
       "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline develop...HEAD)",
-      "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline -5)"
+      "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline -5)",
+      "Bash(aws logs get-query-results:*)",
+      "Bash(jq:*)",
+      "mcp__mysql-dev__describe_table",
+      "mcp__mysql-dev__list_tables"
     ],
     "deny": [],
     "ask": []
