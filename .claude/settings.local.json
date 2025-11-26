@@ -73,7 +73,8 @@
       "mcp__mysql-dev__list_tables",
       "Bash(aws logs filter-log-events:*)",
       "Bash(aws logs:*)",
-      "Bash(./gradlew compileJava:*)"
+      "Bash(./gradlew compileJava:*)",
+      "mcp__mysql-dev__read_query"
     ],
     "deny": [],
     "ask": []

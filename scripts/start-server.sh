@@ -78,9 +78,28 @@ else
     exit 1
 fi
 
-# 최신 Docker 이미지 Pull
+# 최신 Docker 이미지 Pull (재시도 로직 포함)
 echo "최신 Docker 이미지 가져오는 중..."
-docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+MAX_RETRIES=3
+RETRY_COUNT=0
+
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    echo "📦 Docker Pull 시도 $((RETRY_COUNT + 1))/$MAX_RETRIES..."
+
+    if docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG; then
+        echo "✅ Docker 이미지 Pull 성공!"
+        break
+    else
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+            echo "⚠️ Docker Pull 실패. 30초 후 재시도..."
+            sleep 30
+        else
+            echo "❌ Docker Pull 최대 재시도 횟수 초과!"
+            exit 1
+        fi
+    fi
+done
 
 # Spring Boot 애플리케이션 실행
 echo "Spring Boot 애플리케이션 시작 중..."

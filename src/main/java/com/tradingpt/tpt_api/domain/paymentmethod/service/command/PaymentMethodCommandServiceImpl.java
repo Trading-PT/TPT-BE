@@ -139,8 +139,13 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardNo()
 		);
 
-		// 빌링 요청의 상태를 '완료'로 변경하고 결과 코드 저장
-		billingRequest.completeWithResult(nicePayResponse.getResultCode(), nicePayResponse.getResultMsg());
+		// 빌링 요청의 상태를 '완료'로 변경하고 결과 코드 저장 (별도 트랜잭션)
+		// 첫 결제 실패 시에도 빌링키 발급 성공 정보가 롤백되지 않도록 REQUIRES_NEW 사용
+		billingRequestCommandService.completeBillingRequestInNewTransaction(
+			billingRequest.getId(),
+			nicePayResponse.getResultCode(),
+			nicePayResponse.getResultMsg()
+		);
 
 		PaymentMethod paymentMethod = PaymentMethod.of(customer, billingRequest, request.getMoid(),
 			nicePayResponse.getBID(),
@@ -182,6 +187,8 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			} catch (Exception e) {
 				log.error("신규 구독 생성 또는 첫 결제 실패: customerId={}, paymentMethodId={}",
 					customerId, paymentMethod.getId(), e);
+				// 빌링키 발급은 성공했으므로 billing_request는 COMPLETED 유지
+				// 첫 결제 실패는 payment 테이블에서 관리
 				throw e;  // 트랜잭션 롤백을 위해 예외를 재던짐
 			}
 		}
