@@ -43,9 +43,9 @@ import lombok.extern.slf4j.Slf4j;
  * PaymentMethod Command Service 구현체
  */
 @Service
-@RequiredArgsConstructor
 @Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandService {
 
 	private final CustomerRepository customerRepository;
@@ -57,6 +57,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 	private final SubscriptionRepository subscriptionRepository;
 	private final SubscriptionPlanRepository subscriptionPlanRepository;
 	private final SubscriptionCommandService subscriptionCommandService;
+	private final PaymentMethodTransactionService paymentMethodTransactionService;
 
 	@Override
 	public BillingKeyInitResponseDTO initBillingKeyRegistration(Long customerId) {
@@ -74,7 +75,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		String mid = nicePayConfig.getMid();
 		String merchantKey = nicePayConfig.getMerchantKey();
 		String amt = nicePayConfig.getAmt();
-		
+
 		String signData = NicePayCryptoUtil.generateSignData(ediDate, mid, amt, merchantKey);
 
 		// 빌링 요청 등록
@@ -154,7 +155,8 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			nicePayResponse.getCardNo(), displayName, nicePayResponse.getResultCode(), nicePayResponse.getResultMsg()
 		);
 
-		paymentMethodRepository.save(paymentMethod);
+		// 결제수단 저장 (별도 트랜잭션) - 첫 결제 실패 시에도 롤백되지 않음
+		paymentMethod = paymentMethodTransactionService.savePaymentMethod(paymentMethod);
 
 		log.info("빌링키 등록 완료: customerId={}, paymentMethodId={}", customerId, paymentMethod.getId());
 
@@ -187,9 +189,13 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			} catch (Exception e) {
 				log.error("신규 구독 생성 또는 첫 결제 실패: customerId={}, paymentMethodId={}",
 					customerId, paymentMethod.getId(), e);
-				// 빌링키 발급은 성공했으므로 billing_request는 COMPLETED 유지
-				// 첫 결제 실패는 payment 테이블에서 관리
-				throw e;  // 트랜잭션 롤백을 위해 예외를 재던짐
+				// 빌링키 발급은 성공했으므로:
+				// - billing_request: COMPLETED 유지 (별도 트랜잭션으로 이미 저장됨)
+				// - payment_method: 유지 (별도 트랜잭션으로 이미 저장됨)
+				// - 첫 결제 실패는 payment 테이블에서 관리
+				// 예외를 다시 던지지 않고, 결제수단 등록은 성공으로 처리
+				log.warn("첫 결제 실패했지만 결제수단 등록은 성공: customerId={}, paymentMethodId={}",
+					customerId, paymentMethod.getId());
 			}
 		}
 
