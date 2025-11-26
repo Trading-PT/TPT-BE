@@ -1,6 +1,11 @@
 package com.tradingpt.tpt_api.domain.subscriptionplan.controller;
 
+import com.tradingpt.tpt_api.domain.subscriptionplan.dto.response.SubscriptionPlanPriceResponseDTO;
+import com.tradingpt.tpt_api.domain.subscriptionplan.dto.response.SubscriptionPlanResponseDTO;
+import com.tradingpt.tpt_api.domain.subscriptionplan.service.query.SubscriptionPlanQueryService;
+import java.util.List;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class AdminSubscriptionPlanV1Controller {
 
 	private final SubscriptionPlanCommandService subscriptionPlanCommandService;
+	private final SubscriptionPlanQueryService subscriptionPlanQueryService;
 
 	@Operation(
 		summary = "구독 플랜 등록",
@@ -40,6 +46,13 @@ public class AdminSubscriptionPlanV1Controller {
 		@Valid @RequestBody SubscriptionPlanCreateRequestDTO request
 	) {
 		return BaseResponse.onSuccessCreate(subscriptionPlanCommandService.createSubscriptionPlan(request));
+	}
+
+	@GetMapping("/active")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	public BaseResponse<List<SubscriptionPlanPriceResponseDTO>> getActiveSubscriptionPlans() {
+		return BaseResponse.onSuccess(subscriptionPlanQueryService.getActivePlans()
+		);
 	}
 
 }

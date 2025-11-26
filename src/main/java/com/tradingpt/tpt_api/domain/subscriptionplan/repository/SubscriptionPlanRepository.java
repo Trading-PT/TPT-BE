@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.subscriptionplan.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,5 @@ public interface SubscriptionPlanRepository extends JpaRepository<SubscriptionPl
 	 */
 	Optional<SubscriptionPlan> findByIsActiveTrue();
 
+	List<SubscriptionPlan> findAllByIsActiveTrue();
 }
