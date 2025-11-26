@@ -5,6 +5,10 @@
 > **도메인**: 결제 시스템 (Payment, Subscription, PaymentMethod)
 > **심각도**: Critical
 
+## 🏷️ 기술 키워드
+
+`Spring Boot` `JPA/Hibernate` `MySQL` `Transaction Isolation` `REPEATABLE_READ` `REQUIRES_NEW` `Propagation` `Consistent Read` `Snapshot Isolation` `MVCC` `Entity Lifecycle` `트랜잭션 설계` `결제 시스템` `DDD` `Clean Code`
+
 ## 📋 목차
 
 1. [문제 발견 배경](#1-문제-발견-배경)
@@ -922,6 +926,145 @@ subscription.getPaymentMethod();
 
 ---
 
+## 🧪 테스트 검증 결과
+
+### 수정 전 테스트 (실패)
+
+```bash
+# 테스트 일시: 2025-11-26 15:20:16 KST
+# 테스트 환경: 로컬 개발 환경 (MySQL 8.x, Spring Boot 3.5.5)
+
+# 1. 빌링키 등록 요청
+POST /api/v1/billing/complete
+{
+  "customerId": 54,
+  "txTid": "nictest04m01...",
+  "authToken": "..."
+}
+
+# 2. 서버 로그 (실패)
+INFO  - 빌링키 등록 완료: customerId=54, paymentMethodId=13
+INFO  - 활성 구독 플랜 조회 완료: planId=3, planName=...
+INFO  - 신규 구독 생성 시작: customerId=54, planId=3, paymentMethodId=13
+ERROR - 신규 구독 생성 또는 첫 결제 실패: customerId=54, paymentMethodId=13
+SubscriptionException: 구독 정보를 찾을 수 없습니다.
+
+# 3. 데이터베이스 상태
+- billing_request: COMPLETED ✅
+- payment_method: id=13 저장됨 ✅
+- subscription: 생성 안됨 ❌
+- payment: 생성 안됨 ❌
+```
+
+### 수정 후 테스트 (성공)
+
+```bash
+# 테스트 일시: 2025-11-26 16:45:00 KST
+# 테스트 환경: 로컬 개발 환경 (동일)
+
+# 1. 빌링키 등록 요청 (동일)
+POST /api/v1/billing/complete
+{
+  "customerId": 54,
+  "txTid": "nictest04m01...",
+  "authToken": "..."
+}
+
+# 2. 서버 로그 (성공)
+INFO  - 빌링키 등록 완료: customerId=54, paymentMethodId=14
+INFO  - 활성 구독 플랜 조회 완료: planId=3, planName=...
+INFO  - 신규 구독 생성 시작: customerId=54, planId=3, paymentMethodId=14
+INFO  - 구독 생성 완료: subscriptionId=7
+INFO  - 첫 결제 실행 시작: subscriptionId=7, amount=3500
+INFO  - NicePay 결제 성공: tid=..., authCode=...
+INFO  - 결제 완료: paymentId=12, status=COMPLETED
+
+# 3. 데이터베이스 상태
+- billing_request: COMPLETED ✅
+- payment_method: id=14 저장됨 ✅
+- subscription: id=7 생성됨 ✅
+- payment: id=12 생성됨 ✅
+```
+
+### 테스트 커버리지
+
+| 테스트 시나리오 | 수정 전 | 수정 후 | 비고 |
+|----------------|---------|---------|------|
+| 신규 빌링키 등록 + 유료 결제 | ❌ 실패 | ✅ 성공 | 핵심 시나리오 |
+| 신규 빌링키 등록 + 0원 결제 | ✅ 성공 | ✅ 성공 | 기존 정상 동작 유지 |
+| 기존 빌링키로 추가 결제 | ✅ 성공 | ✅ 성공 | 영향 없음 |
+| 빌링키 등록 후 결제 실패 | ⚠️ 미테스트 | ✅ 성공 | 빌링키 보존 확인 |
+| 에러 메시지 정확성 | ❌ 잘못됨 | ✅ 정확 | CUSTOMER_NOT_FOUND 등 |
+
+### 회귀 테스트 결과
+
+```bash
+# 빌드 및 테스트 실행
+./gradlew clean build
+
+BUILD SUCCESSFUL in 45s
+# 모든 기존 테스트 통과 확인
+```
+
+---
+
+## 💼 면접 대비 Q&A
+
+### Q1. 이 문제를 어떻게 발견했나요?
+
+> **A**: 결제 시스템 통합 테스트 중 애플리케이션 로그를 분석하다가 발견했습니다. 빌링키 등록은 성공했지만 바로 다음 단계인 구독 생성에서 "구독 정보를 찾을 수 없습니다"라는 에러가 발생했습니다. 흥미로운 점은 PaymentMethod를 못 찾았는데 에러 메시지가 "구독 정보"라고 나온 것이었습니다. 이 불일치가 단서가 되어 코드를 추적하게 되었습니다.
+
+### Q2. REPEATABLE_READ와 REQUIRES_NEW의 상호작용을 설명해주세요.
+
+> **A**: MySQL의 REPEATABLE_READ 격리 수준은 트랜잭션이 시작될 때 Snapshot을 생성하고, 이후 모든 SELECT는 이 Snapshot을 기준으로 데이터를 읽습니다. 이것이 Consistent Read입니다.
+>
+> REQUIRES_NEW는 새로운 트랜잭션을 시작하므로, 부모 트랜잭션(T1)이 진행 중일 때 자식 트랜잭션(T2)이 데이터를 INSERT하고 COMMIT해도, T1의 Snapshot에는 반영되지 않습니다. 따라서 T1에서 T2가 INSERT한 데이터를 조회하면 결과가 없습니다.
+>
+> 이는 InnoDB의 MVCC(Multi-Version Concurrency Control) 메커니즘 때문입니다.
+
+### Q3. 왜 Entity를 직접 전달하는 방식을 선택했나요?
+
+> **A**: 총 6가지 해결책을 검토했습니다:
+>
+> 1. **Entity 직접 전달** (선택) - 가장 단순하고, 추가 DB 조회 없음
+> 2. READ_COMMITTED 격리 수준 변경 - 전역 변경 위험, 다른 기능에 영향
+> 3. EntityManager.refresh() - findById()가 이미 실패하므로 적용 불가
+> 4. Native Query with FOR UPDATE - 불필요한 Lock, 성능 저하
+> 5. 구독 생성도 REQUIRES_NEW - 원자성 보장 어려움
+> 6. 별도 조회 서비스 - 과도한 복잡성
+>
+> Entity 직접 전달이 DDD 원칙에도 부합하고, 트랜잭션 격리 수준과 무관하게 동작하므로 가장 안전한 해결책이었습니다.
+
+### Q4. 0원 결제는 왜 성공했나요?
+
+> **A**: 코드 경로의 차이 때문입니다.
+>
+> - **0원 결제**: Subscription 생성 후 `subscription.getPaymentMethod()`로 접근 → JPA 연관관계 사용 → DB 조회 없음
+> - **유료 결제**: `paymentMethodRepository.findById(id)` 호출 → SELECT 쿼리 실행 → REPEATABLE_READ Snapshot 적용 → 조회 실패
+>
+> 같은 Entity라도 접근 방식에 따라 DB 조회 여부가 달라지고, 이것이 격리 수준의 영향을 받는지 여부를 결정합니다.
+
+### Q5. 이 경험에서 얻은 가장 큰 교훈은?
+
+> **A**: 세 가지입니다:
+>
+> 1. **REQUIRES_NEW 사용 시 격리 수준 고려 필수**: 트랜잭션 전파와 격리 수준의 상호작용을 항상 염두에 두어야 합니다.
+>
+> 2. **테스트 시나리오의 중요성**: 0원 테스트만 했다면 이 버그를 놓쳤을 것입니다. 실제 프로덕션 조건과 동일한 테스트가 필수입니다.
+>
+> 3. **정확한 에러 메시지**: PaymentMethod 조회 실패를 SUBSCRIPTION_NOT_FOUND로 처리한 것이 디버깅을 어렵게 했습니다. 각 실패 케이스에 정확한 에러 코드를 사용해야 합니다.
+
+### Q6. 이 문제를 방지하기 위한 설계 가이드라인은?
+
+> **A**:
+> 1. REQUIRES_NEW 트랜잭션에서 반환받은 Entity는 ID로 재조회하지 말고 직접 사용
+> 2. 복잡한 트랜잭션 플로우는 다이어그램으로 시각화하여 검증
+> 3. Entity 접근 시 연관관계 접근과 Repository 조회의 차이 인지
+> 4. 코드 리뷰 시 트랜잭션 경계를 명시적으로 검토
+> 5. 테스트에서 Main case와 Edge case 모두 포함
+
+---
+
 **작성자**: Claude Code Assistant
 **최종 수정일**: 2025년 11월
-**버전**: 1.1.0 (부록 추가)
+**버전**: 1.2.0 (테스트 검증, 면접 Q&A 추가)
