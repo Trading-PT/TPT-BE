@@ -69,7 +69,9 @@ public class Payment extends BaseEntity {
 	@Column(unique = true)
 	private String orderId; // 주문번호 (merchant_uid)
 
-	private String orderName; // 주문명 (예: 2025년 1월 구독료)
+	private String orderName; // 주문명 - 한글 (예: 기본 구독 플랜 2025년 11월 구독료) - 이력 조회용
+
+	private String pgGoodsName; // PG 상품명 - 영문 (예: Subscription 11/2025) - NicePay 전송용
 
 	private BigDecimal amount; // 결제 금액
 

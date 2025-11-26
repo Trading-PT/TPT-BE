@@ -171,8 +171,16 @@ public class RecurringPaymentService {
 		// 주문번호 생성
 		String orderId = NicePayCryptoUtil.generateRecurringMoid(subscription.getId());
 
-		// 주문명 생성 (NicePay는 EUC-KR 인코딩을 사용하므로 영문으로 생성)
-		String orderName = String.format("Subscription %d/%d",
+		// 주문명 생성 - 한글 (DB 저장용, 이력 조회 시 표시)
+		// 예: "기본 구독 플랜 2025년 11월 구독료"
+		String orderName = String.format("%s %d년 %d월 구독료",
+			activePlan.getName(),
+			billingPeriodStart.getYear(),
+			billingPeriodStart.getMonthValue());
+
+		// PG 상품명 생성 - 영문 (NicePay 전송용, EUC-KR 인코딩 및 특수문자 문제 회피)
+		// 예: "Subscription 11 2025"
+		String pgGoodsName = String.format("Subscription %d %d",
 			billingPeriodStart.getMonthValue(),
 			billingPeriodStart.getYear());
 
@@ -198,6 +206,7 @@ public class RecurringPaymentService {
 			subscription.getPaymentMethod().getId(),
 			paymentAmount,
 			orderName,
+			pgGoodsName,
 			orderId,
 			billingPeriodStart,
 			billingPeriodEnd,
@@ -274,11 +283,11 @@ public class RecurringPaymentService {
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
 
 		try {
-			// 나이스페이 결제 실행
+			// 나이스페이 결제 실행 (pgGoodsName 사용 - 영문, EUC-KR 인코딩 문제 회피)
 			RecurringPaymentResponseDTO response = nicePayService.executeRecurringPayment(
 				paymentMethod.getBillingKey(),
 				payment.getAmount().toString(),
-				payment.getOrderName(),
+				payment.getPgGoodsName(),
 				payment.getOrderId()
 			);
 

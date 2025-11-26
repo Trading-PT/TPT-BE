@@ -19,7 +19,8 @@ public interface PaymentCommandService {
      * @param customerId 고객 ID
      * @param paymentMethodId 결제 수단 ID
      * @param amount 결제 금액
-     * @param orderName 주문명
+     * @param orderName 주문명 - 한글 (이력 조회용, 예: 기본 구독 플랜 2025년 11월 구독료)
+     * @param pgGoodsName PG 상품명 - 영문 (NicePay 전송용, 예: Subscription 11/2025)
      * @param orderId 주문번호
      * @param billingPeriodStart 청구 기간 시작일
      * @param billingPeriodEnd 청구 기간 종료일
@@ -33,6 +34,7 @@ public interface PaymentCommandService {
         Long paymentMethodId,
         BigDecimal amount,
         String orderName,
+        String pgGoodsName,
         String orderId,
         LocalDate billingPeriodStart,
         LocalDate billingPeriodEnd,

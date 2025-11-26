@@ -173,8 +173,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 				Subscription subscription = subscriptionCommandService.createSubscriptionWithFirstPayment(
 					customerId,
 					activePlan.getId(),
-					paymentMethod.getId(),
-					0  // baseOpenedLectureCount 기본값
+					paymentMethod.getId()
 				);
 
 				log.info("신규 구독 생성 및 첫 결제 완료: customerId={}, subscriptionId={}, status={}",

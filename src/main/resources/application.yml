@@ -182,7 +182,7 @@ nicepay:
     merchant-key: ${NICEPAY_MERCHANT_KEY}
   defaults:
     goods-name: "구독 결제 수단 등록"
-    amt: "1004"
+    amt: "0"
   feign:
     connect-timeout: 10
     read-timeout: 15

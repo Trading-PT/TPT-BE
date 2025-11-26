@@ -17,14 +17,12 @@ public interface SubscriptionCommandService {
      * @param customerId 고객 ID
      * @param subscriptionPlanId 구독 플랜 ID
      * @param paymentMethodId 결제 수단 ID
-     * @param baseOpenedLectureCount 기준 열린 강의 개수
      * @return 생성된 Subscription 엔티티 (첫 결제 완료 후)
      */
     Subscription createSubscriptionWithFirstPayment(
         Long customerId,
         Long subscriptionPlanId,
-        Long paymentMethodId,
-        int baseOpenedLectureCount
+        Long paymentMethodId
     );
 
     /**

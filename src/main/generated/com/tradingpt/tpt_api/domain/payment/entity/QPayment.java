@@ -67,6 +67,8 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final StringPath pgAuthCode = createString("pgAuthCode");
 
+    public final StringPath pgGoodsName = createString("pgGoodsName");
+
     public final StringPath pgMetadata = createString("pgMetadata");
 
     public final StringPath pgRefundTid = createString("pgRefundTid");

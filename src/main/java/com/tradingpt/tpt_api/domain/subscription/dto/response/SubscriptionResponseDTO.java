@@ -71,9 +71,6 @@ public class SubscriptionResponseDTO {
     @Schema(description = "프로모션 메모")
     private String promotionNote;
 
-    @Schema(description = "기준 열린 강의 개수")
-    private Integer baseOpenedLectureCount;
-
     @Schema(description = "생성일시")
     private LocalDateTime createdAt;
 
@@ -99,7 +96,6 @@ public class SubscriptionResponseDTO {
             .lastPaymentFailedAt(subscription.getLastPaymentFailedAt())
             .subscriptionType(subscription.getSubscriptionType())
             .promotionNote(subscription.getPromotionNote())
-            .baseOpenedLectureCount(subscription.getBaseOpenedLectureCount())
             .createdAt(subscription.getCreatedAt())
             .build();
     }

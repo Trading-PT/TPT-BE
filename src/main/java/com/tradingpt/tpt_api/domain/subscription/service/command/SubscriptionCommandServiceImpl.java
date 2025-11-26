@@ -60,8 +60,7 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     public Subscription createSubscriptionWithFirstPayment(
         Long customerId,
         Long subscriptionPlanId,
-        Long paymentMethodId,
-        int baseOpenedLectureCount
+        Long paymentMethodId
     ) {
         log.info("신규 구독 생성 시작: customerId={}, planId={}, paymentMethodId={}",
             customerId, subscriptionPlanId, paymentMethodId);
@@ -120,7 +119,6 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
             .paymentFailedCount(0)
             .subscriptionType(subscriptionType)
             .promotionNote(promotionNote)
-            .baseOpenedLectureCount(baseOpenedLectureCount)
             .build();
 
         // DB 저장

@@ -45,13 +45,15 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
         Long paymentMethodId,
         BigDecimal amount,
         String orderName,
+        String pgGoodsName,
         String orderId,
         LocalDate billingPeriodStart,
         LocalDate billingPeriodEnd,
         Boolean isPromotional,
         String promotionDetail
     ) {
-        log.info("정기 결제 생성: subscriptionId={}, amount={}, orderId={}", subscriptionId, amount, orderId);
+        log.info("정기 결제 생성: subscriptionId={}, amount={}, orderId={}, pgGoodsName={}",
+            subscriptionId, amount, orderId, pgGoodsName);
 
         // 엔티티 조회
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
@@ -70,6 +72,7 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
             .paymentMethod(paymentMethod)
             .orderId(orderId)
             .orderName(orderName)
+            .pgGoodsName(pgGoodsName)
             .amount(amount)
             .vat(amount.multiply(BigDecimal.valueOf(0.1)))  // 부가세 10%
             .discountAmount(BigDecimal.ZERO)
