@@ -177,10 +177,12 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 			log.info("활성 구독 플랜 조회 완료: planId={}, planName={}", activePlan.getId(), activePlan.getName());
 
 			try {
+				// PaymentMethod 엔티티를 직접 전달 (REPEATABLE_READ 트랜잭션 격리 수준 문제 방지)
+				// paymentMethodId로 조회 시 REQUIRES_NEW 트랜잭션에서 저장된 데이터가 보이지 않음
 				Subscription subscription = subscriptionCommandService.createSubscriptionWithFirstPayment(
 					customerId,
 					activePlan.getId(),
-					paymentMethod.getId()
+					paymentMethod
 				);
 
 				log.info("신규 구독 생성 및 첫 결제 완료: customerId={}, subscriptionId={}, status={}",

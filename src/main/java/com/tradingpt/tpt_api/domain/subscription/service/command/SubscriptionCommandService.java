@@ -2,6 +2,7 @@ package com.tradingpt.tpt_api.domain.subscription.service.command;
 
 import java.time.LocalDate;
 
+import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 
@@ -13,16 +14,17 @@ public interface SubscriptionCommandService {
 
     /**
      * 신규 구독 생성 + 즉시 첫 결제 실행
+     * PaymentMethod 엔티티를 직접 전달받아 REPEATABLE_READ 트랜잭션 격리 수준 문제를 방지
      *
      * @param customerId 고객 ID
      * @param subscriptionPlanId 구독 플랜 ID
-     * @param paymentMethodId 결제 수단 ID
+     * @param paymentMethod 결제 수단 엔티티 (REQUIRES_NEW 트랜잭션에서 저장된 경우 ID 조회 불가)
      * @return 생성된 Subscription 엔티티 (첫 결제 완료 후)
      */
     Subscription createSubscriptionWithFirstPayment(
         Long customerId,
         Long subscriptionPlanId,
-        Long paymentMethodId
+        PaymentMethod paymentMethod
     );
 
     /**

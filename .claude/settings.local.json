@@ -74,7 +74,9 @@
       "Bash(aws logs filter-log-events:*)",
       "Bash(aws logs:*)",
       "Bash(./gradlew compileJava:*)",
-      "mcp__mysql-dev__read_query"
+      "mcp__mysql-dev__read_query",
+      "WebFetch(domain:developers.nicepay.co.kr)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": [],
     "ask": []

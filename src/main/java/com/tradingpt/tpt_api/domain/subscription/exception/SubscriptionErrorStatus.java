@@ -34,6 +34,7 @@ public enum SubscriptionErrorStatus implements BaseCodeInterface {
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_0", "구독 정보를 찾을 수 없습니다."),
     SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_1", "구독 플랜을 찾을 수 없습니다."),
     ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_2", "활성화된 구독 플랜을 찾을 수 없습니다."),
+    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_3", "고객 정보를 찾을 수 없습니다."),
 
     // 400 Bad Request
     SUBSCRIPTION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "SUBSCRIPT_400_0", "이미 해지된 구독입니다."),

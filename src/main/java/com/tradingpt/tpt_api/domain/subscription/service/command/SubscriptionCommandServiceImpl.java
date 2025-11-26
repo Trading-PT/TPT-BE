@@ -1,15 +1,14 @@
 package com.tradingpt.tpt_api.domain.subscription.service.command;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
-import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodRepository;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodErrorStatus;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodException;
 import com.tradingpt.tpt_api.domain.subscription.config.PromotionConfig;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
@@ -38,7 +37,6 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     private final SubscriptionRepository subscriptionRepository;
     private final CustomerRepository customerRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
     private final RecurringPaymentService recurringPaymentService;
 
     // 순환 참조 방지를 위한 @Lazy 사용
@@ -46,13 +44,11 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         SubscriptionRepository subscriptionRepository,
         CustomerRepository customerRepository,
         SubscriptionPlanRepository subscriptionPlanRepository,
-        PaymentMethodRepository paymentMethodRepository,
         @Lazy RecurringPaymentService recurringPaymentService
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.customerRepository = customerRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
-        this.paymentMethodRepository = paymentMethodRepository;
         this.recurringPaymentService = recurringPaymentService;
     }
 
@@ -60,20 +56,22 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     public Subscription createSubscriptionWithFirstPayment(
         Long customerId,
         Long subscriptionPlanId,
-        Long paymentMethodId
+        PaymentMethod paymentMethod
     ) {
         log.info("신규 구독 생성 시작: customerId={}, planId={}, paymentMethodId={}",
-            customerId, subscriptionPlanId, paymentMethodId);
+            customerId, subscriptionPlanId, paymentMethod.getId());
+
+        // PaymentMethod null 체크 (REQUIRES_NEW 트랜잭션에서 저장된 엔티티를 직접 전달받음)
+        if (paymentMethod == null) {
+            throw new PaymentMethodException(PaymentMethodErrorStatus.PAYMENT_METHOD_NOT_FOUND);
+        }
 
         // 엔티티 조회
         Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
+            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.CUSTOMER_NOT_FOUND));
 
         SubscriptionPlan plan = subscriptionPlanRepository.findById(subscriptionPlanId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_PLAN_NOT_FOUND));
-
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
         // 기존 활성 구독 확인
         subscriptionRepository.findByCustomer_IdAndStatus(customerId, Status.ACTIVE)
