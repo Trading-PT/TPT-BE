@@ -294,7 +294,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		for (MultipartFile screenshotFile : screenshotFiles) {
 			if (screenshotFile != null && !screenshotFile.isEmpty()) {
 				S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url());
+				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url(), uploadResult.key());
 			}
 		}
 	}
