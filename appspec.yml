@@ -11,22 +11,38 @@ permissions:
     group: ubuntu
 
 hooks:
-  BeforeInstall:
-    - location: scripts/before-install.sh
-      timeout: 300
-      runas: ubuntu
-
-  ApplicationStart:
-    - location: scripts/start-server.sh
-      timeout: 600
-      runas: ubuntu
-
+  # 1. 애플리케이션 중지 (기존 컨테이너 정리)
   ApplicationStop:
     - location: scripts/stop-server.sh
       timeout: 120
       runas: ubuntu
 
+  # 2. 설치 전 준비 (디렉토리 정리 등)
+  BeforeInstall:
+    - location: scripts/before-install.sh
+      timeout: 300
+      runas: ubuntu
+
+  # 3. 애플리케이션 시작 (Docker 컨테이너 실행)
+  ApplicationStart:
+    - location: scripts/start-server.sh
+      timeout: 600
+      runas: ubuntu
+
+  # 4. 서비스 검증 (Health Check)
   ValidateService:
     - location: scripts/validate-service.sh
       timeout: 300
+      runas: ubuntu
+
+  # 5. [Blue/Green 전용] 트래픽 허용 전 최종 검증
+  BeforeAllowTraffic:
+    - location: scripts/before-allow-traffic.sh
+      timeout: 300
+      runas: ubuntu
+
+  # 6. [Blue/Green 전용] 트래픽 허용 후 모니터링
+  AfterAllowTraffic:
+    - location: scripts/after-allow-traffic.sh
+      timeout: 120
       runas: ubuntu
