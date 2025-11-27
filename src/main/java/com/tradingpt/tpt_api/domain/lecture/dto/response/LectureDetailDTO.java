@@ -29,9 +29,6 @@ public class LectureDetailDTO {
     @Schema(description = "강의 내용/설명", example = "이번 강의에서는...")
     private String content;
 
-    @Schema(description = "강의 비디오 URL", example = "https://bucket.s3.../lecture.mp4")
-    private String videoUrl;
-
     @Schema(description = "비디오 전체 길이(초)", example = "1320")
     private Integer durationSeconds;
 
@@ -74,7 +71,6 @@ public class LectureDetailDTO {
                 .chapterId(lecture.getChapter().getId())
                 .title(lecture.getTitle())
                 .content(lecture.getContent())
-                .videoUrl(lecture.getVideoUrl())
                 .durationSeconds(lecture.getDurationSeconds())
                 .lectureOrder(lecture.getLectureOrder())
                 .requiredTokens(lecture.getRequiredTokens())
@@ -96,16 +92,12 @@ public class LectureDetailDTO {
         @Schema(description = "첨부파일 ID", example = "101")
         private Long id;
 
-        @Schema(description = "첨부파일 URL", example = "https://bucket.s3.../file.pdf")
-        private String fileUrl;
-
-        @Schema(description = "S3 파일 삭제용 key", example = "lectures/101/file.pdf")
+        @Schema(description = "S3 파일 key", example = "lectures/101/file.pdf")
         private String fileKey;
 
         public static AttachmentInfo from(LectureAttachment attachment) {
             return AttachmentInfo.builder()
                     .id(attachment.getId())
-                    .fileUrl(attachment.getFileUrl())
                     .fileKey(attachment.getFileKey())
                     .build();
         }

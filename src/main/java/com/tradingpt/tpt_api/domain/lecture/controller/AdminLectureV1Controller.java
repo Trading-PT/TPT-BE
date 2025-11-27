@@ -75,7 +75,7 @@ public class AdminLectureV1Controller {
     }
 
     @Operation(summary = "강의 생성(어드민)",
-            description = "지정한 챕터에 강의를 등록합니다. videoUrl은 presigned 업로드 후 받은 URL을 넣어주세요.")
+            description = "지정한 챕터에 강의를 등록합니다.")
     @PostMapping
     public ResponseEntity<BaseResponse<Long>> createLecture(
             @AuthenticationPrincipal(expression = "id") Long trainerId,

@@ -25,9 +25,11 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
@@ -175,6 +177,33 @@ public class S3FileServiceImpl implements S3FileService {
 		} catch (AwsServiceException | SdkClientException sdkException) {
 			throw new S3Exception(S3ErrorStatus.DELETE_FAILED);
 		}
+	}
+
+	@Override
+	public String createPresignedGetUrl(String key, Duration duration) {
+		if (!StringUtils.hasText(key)) {
+			throw new S3Exception(S3ErrorStatus.INVALID_OBJECT_KEY);
+		}
+
+		// duration null 들어오면 기본값 3시간 같은 걸로 세팅해도 됨
+		Duration effectiveDuration = (duration != null) ? duration : Duration.ofHours(3);
+
+		// 1. GET 요청 정보
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+				.bucket(bucketName)
+				.key(key)
+				.build();
+
+		// 2. 사전 서명 설정
+		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+				.signatureDuration(effectiveDuration)
+				.getObjectRequest(getObjectRequest)
+				.build();
+
+		// 3. URL 생성 후 문자열로 반환
+		return s3Presigner.presignGetObject(presignRequest)
+				.url()
+				.toString();
 	}
 
 

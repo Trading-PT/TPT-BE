@@ -57,7 +57,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 .trainer(trainer)
                 .title(req.getTitle())
                 .content(req.getContent())
-                .videoUrl(req.getVideoUrl())
                 .videoKey(req.getVideoKey())
                 .durationSeconds(req.getDurationSeconds() != null ? req.getDurationSeconds() : 0)
                 .lectureOrder(req.getLectureOrder())
@@ -72,7 +71,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
             req.getAttachments().forEach(attReq -> {
                 LectureAttachment att = LectureAttachment.builder()
                         .lecture(lecture)
-                        .fileUrl(attReq.getFileUrl())
                         .fileKey(attReq.getFileKey())
                         .attachmentType(attReq.getAttachmentType())
                         .build();
@@ -183,7 +181,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 newAttachments.forEach(attReq -> {
                     LectureAttachment att = LectureAttachment.builder()
                             .lecture(lecture)
-                            .fileUrl(attReq.getFileUrl())
                             .fileKey(attReq.getFileKey())
                             .attachmentType(attReq.getAttachmentType())
                             .build();
@@ -198,7 +195,6 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                 trainer,
                 req.getTitle(),
                 req.getContent(),
-                req.getVideoUrl(),
                 req.getVideoKey(),
                 req.getDurationSeconds(),
                 req.getLectureOrder(),

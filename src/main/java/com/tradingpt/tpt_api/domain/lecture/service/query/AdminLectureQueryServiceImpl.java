@@ -105,7 +105,6 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
             int order = i + 1; // 1-based 표시
 
             String status;
-            String submittedFileUrl = null;
             String submittedFileName = null;
 
             if (i >= totalOpenedCount) {
@@ -128,8 +127,8 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
                             .orElse(null);
 
                     if (attachment != null) {
-                        submittedFileUrl = attachment.getFileUrl();
-                        submittedFileName = extractFileName(submittedFileUrl);
+                        // ✅ S3 private + key-only 구조에 맞게 key 기반으로 파일명 추출
+                        submittedFileName = extractFileNameFromKey(attachment.getFileKey());
                     }
                 } else {
                     status = "미제출";
@@ -143,7 +142,6 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
                     .lectureTitle(lecture.getTitle())
                     .status(status)
                     .submittedFileName(submittedFileName)
-                    .submittedFileUrl(submittedFileUrl)
                     .build());
         }
 
@@ -172,9 +170,13 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
         }
     }
 
-    private String extractFileName(String url) {
-        if (url == null) return null;
-        int idx = url.lastIndexOf('/');
-        return (idx == -1) ? url : url.substring(idx + 1);
+    /**
+     * S3 object key 기준으로 파일명만 추출
+     * 예: "assignments/2025-11-27/uuid1234.pdf" -> "uuid1234.pdf"
+     */
+    private String extractFileNameFromKey(String key) {
+        if (key == null) return null;
+        int idx = key.lastIndexOf('/');
+        return (idx == -1) ? key : key.substring(idx + 1);
     }
 }
