@@ -91,7 +91,13 @@
       "mcp__github__get_pull_request",
       "mcp__github__get_pull_request_files",
       "mcp__github__list_pull_requests",
-      "mcp__github__get_file_contents"
+      "mcp__github__get_file_contents",
+      "Bash(aws s3api get-bucket-location:*)",
+      "Bash(aws elasticache describe-replication-groups:*)",
+      "Bash(aws codedeploy get-deployment-group:*)",
+      "Bash(aws pricing:*)",
+      "Bash(aws codedeploy:*)",
+      "Bash(aws codedeploy list-deployment-groups:*)"
     ],
     "deny": [],
     "ask": []
