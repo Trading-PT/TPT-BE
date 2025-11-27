@@ -2,36 +2,26 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
 import java.util.List;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 
 public interface FeedbackRequestCommandService {
 
 	/**
-	 * 데이 트레이딩 피드백 요청 생성
+	 * 피드백 요청 생성 (DAY/SWING 통합)
+	 *
+	 * @param request 피드백 요청 생성 DTO
+	 * @param customerId 고객 ID
+	 * @return 생성된 피드백 요청 상세 응답 DTO
 	 */
-	DayFeedbackRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request, Long customerId);
-
-	/**
-	 * 스켈핑 피드백 요청 생성
-	 */
-	ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
-		Long customerId);
-
-	/**
-	 * 스윙 피드백 요청 생성
-	 */
-	SwingFeedbackRequestDetailResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request,
-		Long customerId);
+	FeedbackRequestDetailResponseDTO createFeedbackRequest(CreateFeedbackRequestDTO request, Long customerId);
 
 	/**
 	 * 피드백 요청 삭제
 	 *
-	 * @return
+	 * @param feedbackRequestId 피드백 요청 ID
+	 * @param customerId 고객 ID
+	 * @return null
 	 */
 	Void deleteFeedbackRequest(Long feedbackRequestId, Long customerId);
 

@@ -37,7 +37,7 @@ public class InvestmentTypeHistoryV1Controller {
 			**특징:**
 			- 시작일(startDate) 기준 오름차순으로 정렬됩니다.
 			- endDate가 null이면 현재 진행 중인 투자유형입니다.
-			- 투자유형: SWING(스윙), DAY(데이), SCALPING(스켈핑)
+			- 투자유형: SWING(스윙), DAY(데이)
 			"""
 	)
 	@GetMapping

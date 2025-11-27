@@ -33,7 +33,7 @@ public enum WeeklyTradingSummaryErrorStatus implements BaseCodeInterface {
 	MEMO_NOT_ALLOWED_FOR_TRAINER_AFTER_COMPLETION(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_3",
 		"완강 후에는 트레이너가 memo를 작성할 수 없습니다."),
 	TRAINER_CANNOT_CREATE_FOR_NON_DAY_AFTER_COMPLETION(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_4",
-		"완강 후 SCALPING/SWING 유형에서는 주간 요약을 작성할 수 없습니다."),
+		"완강 후 SWING 유형에서는 주간 요약을 작성할 수 없습니다."),
 	CUSTOMER_CANNOT_CREATE_FOR_AFTER_COMPLETION(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_5",
 		"완강 후에는 고객이 주간 요약을 작성할 수 없습니다."),
 	MEMO_REQUIRED_FOR_CUSTOMER_BEFORE_COMPLETION(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_6",

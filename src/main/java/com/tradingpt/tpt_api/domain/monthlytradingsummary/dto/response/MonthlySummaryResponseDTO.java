@@ -23,8 +23,7 @@ import lombok.experimental.SuperBuilder;
 )
 @JsonSubTypes({
 	@JsonSubTypes.Type(value = BeforeCompletedCourseMonthlySummaryDTO.class, name = "BEFORE_COMPLETION"),
-	@JsonSubTypes.Type(value = AfterCompletedGeneralMonthlySummaryDTO.class, name = "AFTER_COMPLETION_GENERAL"),
-	@JsonSubTypes.Type(value = AfterCompletedScalpingMonthlySummaryDTO.class, name = "AFTER_COMPLETION_SCALPING")
+	@JsonSubTypes.Type(value = AfterCompletedCourseMonthlySummaryDTO.class, name = "AFTER_COMPLETION")
 })
 @Schema(description = "월별 트레이딩 피드백 기본 DTO")
 public abstract class MonthlySummaryResponseDTO {

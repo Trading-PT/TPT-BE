@@ -184,7 +184,7 @@ public class AdminUserV1Controller {
 
 			조회 정보:
 			- 고객 ID, 이름, 전화번호
-			- 현재 투자 유형 (SCALPING, DAY, SWING)
+			- 현재 투자 유형 (DAY, SWING)
 			- 보유 토큰 수
 			- 가입일시
 

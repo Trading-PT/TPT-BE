@@ -8,7 +8,7 @@ public interface WeeklyTradingSummaryCommandService {
 	 * 주간 매매 일지 통계 생성 (Admin/Trainer)
 	 * - 완강 전: 생성 불가 (customer가 작성)
 	 * - 완강 후 + DAY: 상세 평가 3개 작성
-	 * - 완강 후 + SCALPING/SWING: 생성 불가
+	 * - 완강 후 + SWING: 생성 불가
 	 */
 	Void createWeeklyTradingSummaryByTrainer(
 		Integer year,

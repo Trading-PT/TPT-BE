@@ -46,4 +46,23 @@ public class FeedbackResponseDTO {
 
 	}
 
+	/**
+	 * FeedbackResponse 엔티티를 FeedbackResponseDTO로 변환
+	 * FeedbackResponse에 포함된 Trainer 정보를 사용
+	 *
+	 * @param feedbackResponse 피드백 응답 엔티티
+	 * @return FeedbackResponseDTO
+	 */
+	public static FeedbackResponseDTO from(FeedbackResponse feedbackResponse) {
+		return FeedbackResponseDTO.builder()
+			.id(feedbackResponse.getId())
+			.title(feedbackResponse.getTitle())
+			.submittedAt(feedbackResponse.getSubmittedAt())
+			.trainer(feedbackResponse.getTrainer() != null
+				? TrainerDTO.from(feedbackResponse.getTrainer())
+				: null)
+			.content(feedbackResponse.getContent())
+			.build();
+	}
+
 }
