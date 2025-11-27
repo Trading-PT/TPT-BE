@@ -97,7 +97,9 @@
       "Bash(aws codedeploy get-deployment-group:*)",
       "Bash(aws pricing:*)",
       "Bash(aws codedeploy:*)",
-      "Bash(aws codedeploy list-deployment-groups:*)"
+      "Bash(aws codedeploy list-deployment-groups:*)",
+      "mcp__mysql__list_tables",
+      "mcp__mysql__fetch_data"
     ],
     "deny": [],
     "ask": []

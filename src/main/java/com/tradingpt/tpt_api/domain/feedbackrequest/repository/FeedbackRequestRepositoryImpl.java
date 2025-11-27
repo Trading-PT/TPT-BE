@@ -1455,7 +1455,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	) {
 		List<FeedbackRequest> allResults = new ArrayList<>();
 
-		// Day 피드백 조회 (이익: pnl > 0)
+		// Day 피드백 조회 (이익: pnl > 0, 모든 courseStatus)
 		List<FeedbackRequest> dayRequests = queryFactory
 			.selectFrom(dayRequestDetail)
 			.where(
@@ -1463,7 +1463,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				dayRequestDetail.feedbackYear.eq(year),
 				dayRequestDetail.feedbackMonth.eq(month),
 				dayRequestDetail.feedbackWeek.eq(week),
-				dayRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
 				dayRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
 			)
 			.orderBy(dayRequestDetail.feedbackRequestDate.desc())
@@ -1473,7 +1472,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.toList();
 		allResults.addAll(dayRequests);
 
-		// Scalping 피드백 조회 (이익: pnl > 0)
+		// Scalping 피드백 조회 (이익: pnl > 0, 모든 courseStatus)
 		List<FeedbackRequest> scalpingRequests = queryFactory
 			.selectFrom(scalpingRequestDetail)
 			.where(
@@ -1481,7 +1480,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				scalpingRequestDetail.feedbackYear.eq(year),
 				scalpingRequestDetail.feedbackMonth.eq(month),
 				scalpingRequestDetail.feedbackWeek.eq(week),
-				scalpingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
 				scalpingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
 			)
 			.orderBy(scalpingRequestDetail.feedbackRequestDate.desc())
@@ -1491,7 +1489,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.toList();
 		allResults.addAll(scalpingRequests);
 
-		// Swing 피드백 조회 (이익: pnl > 0)
+		// Swing 피드백 조회 (이익: pnl > 0, 모든 courseStatus)
 		List<FeedbackRequest> swingRequests = queryFactory
 			.selectFrom(swingRequestDetail)
 			.where(
@@ -1499,7 +1497,6 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				swingRequestDetail.feedbackYear.eq(year),
 				swingRequestDetail.feedbackMonth.eq(month),
 				swingRequestDetail.feedbackWeek.eq(week),
-				swingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
 				swingRequestDetail.pnl.gt(BigDecimal.ZERO)  // 이익: pnl > 0
 			)
 			.orderBy(swingRequestDetail.feedbackRequestDate.desc())
@@ -1524,7 +1521,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	) {
 		List<FeedbackRequest> allResults = new ArrayList<>();
 
-		// Day 피드백 조회 (손실: pnl < 0)
+		// Day 피드백 조회 (손실: pnl < 0, 모든 courseStatus)
 		List<FeedbackRequest> dayRequests = queryFactory
 			.selectFrom(dayRequestDetail)
 			.where(
@@ -1532,8 +1529,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				dayRequestDetail.feedbackYear.eq(year),
 				dayRequestDetail.feedbackMonth.eq(month),
 				dayRequestDetail.feedbackWeek.eq(week),
-				dayRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
-				dayRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+				dayRequestDetail.totalAssetPnl.loe(BigDecimal.ZERO)  // 손실: pnl < 0
 			)
 			.orderBy(dayRequestDetail.feedbackRequestDate.desc())
 			.fetch()
@@ -1542,7 +1538,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.toList();
 		allResults.addAll(dayRequests);
 
-		// Scalping 피드백 조회 (손실: pnl < 0)
+		// Scalping 피드백 조회 (손실: pnl < 0, 모든 courseStatus)
 		List<FeedbackRequest> scalpingRequests = queryFactory
 			.selectFrom(scalpingRequestDetail)
 			.where(
@@ -1550,8 +1546,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				scalpingRequestDetail.feedbackYear.eq(year),
 				scalpingRequestDetail.feedbackMonth.eq(month),
 				scalpingRequestDetail.feedbackWeek.eq(week),
-				scalpingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
-				scalpingRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+				scalpingRequestDetail.totalAssetPnl.loe(BigDecimal.ZERO)  // 손실: pnl < 0
 			)
 			.orderBy(scalpingRequestDetail.feedbackRequestDate.desc())
 			.fetch()
@@ -1560,7 +1555,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.toList();
 		allResults.addAll(scalpingRequests);
 
-		// Swing 피드백 조회 (손실: pnl < 0)
+		// Swing 피드백 조회 (손실: pnl < 0, 모든 courseStatus)
 		List<FeedbackRequest> swingRequests = queryFactory
 			.selectFrom(swingRequestDetail)
 			.where(
@@ -1568,8 +1563,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				swingRequestDetail.feedbackYear.eq(year),
 				swingRequestDetail.feedbackMonth.eq(month),
 				swingRequestDetail.feedbackWeek.eq(week),
-				swingRequestDetail.courseStatus.eq(CourseStatus.BEFORE_COMPLETION),
-				swingRequestDetail.pnl.lt(BigDecimal.ZERO)  // 손실: pnl < 0
+				swingRequestDetail.totalAssetPnl.loe(BigDecimal.ZERO)  // 손실: pnl < 0
 			)
 			.orderBy(swingRequestDetail.feedbackRequestDate.desc())
 			.fetch()
