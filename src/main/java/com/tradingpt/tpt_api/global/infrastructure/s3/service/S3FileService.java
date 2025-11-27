@@ -4,6 +4,7 @@ import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUpload
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.io.InputStream;
 
+import java.time.Duration;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -48,5 +49,14 @@ public interface S3FileService {
 	 * @return 프리사인드 URL, 실제 object key, public url 등
 	 */
 	S3PresignedUploadResult createPresignedUploadUrl(String originalFilename, String directory);
+
+	/**
+	 * S3 private 객체를 읽기 위한 GET Presigned URL 발급.
+	 *
+	 * @param key      S3 객체 키
+	 * @param duration URL 유효 시간
+	 * @return 사전 서명된 GET URL
+	 */
+	String createPresignedGetUrl(String key, Duration duration);
 }
 
