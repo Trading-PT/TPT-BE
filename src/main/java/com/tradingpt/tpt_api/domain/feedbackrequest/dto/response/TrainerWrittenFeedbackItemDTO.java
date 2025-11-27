@@ -40,8 +40,8 @@ public class TrainerWrittenFeedbackItemDTO {
 	@Schema(description = "트레이너 이름")
 	private String trainerName;
 
-	@Schema(description = "P&L")
-	private BigDecimal pnl;
+	@Schema(description = "전체 자산 대비 P&L")
+	private BigDecimal totalAssetPnl;
 
 	@Schema(description = "첨부 이미지 URL 목록")
 	private List<String> imageUrls;
@@ -59,7 +59,7 @@ public class TrainerWrittenFeedbackItemDTO {
 			.title(request.getTitle())
 			.tradingReview(request.getTradingReview())
 			.trainerName(request.getCustomer().getUsername())
-			.pnl(request.getPnl())
+			.totalAssetPnl(request.getTotalAssetPnl())
 			.imageUrls(
 				request.getFeedbackRequestAttachments().stream()
 					.map(FeedbackRequestAttachment::getFileUrl)

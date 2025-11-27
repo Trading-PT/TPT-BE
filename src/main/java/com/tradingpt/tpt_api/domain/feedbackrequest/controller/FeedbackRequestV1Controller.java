@@ -97,15 +97,18 @@ public class FeedbackRequestV1Controller {
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackListSlice(pageable));
 	}
 
-	@Operation(summary = "피드백 요청 상세 조회", description = """
-		특정 피드백 요청의 상세 정보를 조회합니다.
-		
-		접근 권한:
-		- 자신이 작성한 피드백
-		- 구독 중인 사용자는 모든 피드백 조회 가능
-		
-		미구독 사용자는 자신의 피드백만 조회 가능합니다.
-		""")
+	@Operation(
+		summary = "피드백 요청 상세 조회",
+		description = """
+			특정 피드백 요청의 상세 정보를 조회합니다.
+			
+			접근 권한:
+			- 자신이 작성한 피드백
+			- 구독 중인 사용자는 모든 피드백 조회 가능
+			
+			미구독 사용자는 자신의 피드백만 조회 가능합니다.
+			"""
+	)
 	@GetMapping("/{feedbackRequestId}")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
@@ -200,19 +203,19 @@ public class FeedbackRequestV1Controller {
 		summary = "트레이너 작성 매매일지 조회 (무한 스크롤)",
 		description = """
 			트레이너가 직접 작성한 매매일지 목록을 조회합니다.
-
+			
 			특징:
 			- isTrainerWritten = true인 피드백만 조회
 			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
 			- 첨부 이미지, 제목, 매매 복기 포함
 			- 최신순 정렬 (createdAt DESC)
 			- 무한 스크롤 지원 (Slice 기반)
-
+			
 			사용 시나리오:
 			- 트레이너의 실제 매매 일지 학습 자료로 활용
 			- 썸네일 이미지와 함께 리스트 표시
 			- 클릭 시 상세 조회 API로 이동
-
+			
 			예시:
 			- GET /api/v1/feedback-requests/trainer-written?page=0&size=12
 			"""
