@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "완강 후 고객 월별 요약 - 스윙/데이 트레이딩")
-public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryResponseDTO {
+public class AfterCompletedCourseMonthlySummaryDTO extends MonthlySummaryResponseDTO {
 
 	@Schema(description = "월별 통계 DTO")
 	private MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO;
@@ -34,7 +34,7 @@ public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryRespon
 	@Schema(description = "월별 성과 비교")
 	private PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison;
 
-	public static AfterCompletedGeneralMonthlySummaryDTO of(
+	public static AfterCompletedCourseMonthlySummaryDTO of(
 		CourseStatus courseStatus,
 		InvestmentType investmentType, Integer year, Integer month,
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedbackSummaryResponseDTO,
@@ -42,7 +42,7 @@ public class AfterCompletedGeneralMonthlySummaryDTO extends MonthlySummaryRespon
 		EntryPointStatisticsResponseDTO entryPointStatisticsResponseDTO,
 		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison
 	) {
-		return AfterCompletedGeneralMonthlySummaryDTO.builder()
+		return AfterCompletedCourseMonthlySummaryDTO.builder()
 			.courseStatus(courseStatus)
 			.investmentType(investmentType)
 			.year(year)

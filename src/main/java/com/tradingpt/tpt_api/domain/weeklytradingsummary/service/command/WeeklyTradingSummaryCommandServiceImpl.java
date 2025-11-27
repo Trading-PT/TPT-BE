@@ -82,7 +82,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_BEFORE_COMPLETION);
 		}
 
-		// 7. ✅ 완강 후 + SCALPING/SWING인 경우 생성 불가
+		// 7. ✅ 완강 후 + SWING인 경우 생성 불가
 		if (courseStatus == CourseStatus.AFTER_COMPLETION && investmentType != InvestmentType.DAY) {
 			log.warn("Trainer cannot create summary for AFTER_COMPLETION + non-DAY: investmentType={}",
 				investmentType);

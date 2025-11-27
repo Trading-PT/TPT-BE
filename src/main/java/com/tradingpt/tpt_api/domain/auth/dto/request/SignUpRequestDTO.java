@@ -56,7 +56,7 @@ public class SignUpRequestDTO {
 
 	@Schema(
 		description = "나의 투자 유형",
-		allowableValues = {"SWING", "DAY", "SCALPING"},
+		allowableValues = {"SWING", "DAY"},
 		example = "DAY"
 	)
 	@NotNull

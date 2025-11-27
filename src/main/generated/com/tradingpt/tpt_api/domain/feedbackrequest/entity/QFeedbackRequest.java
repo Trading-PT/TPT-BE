@@ -24,6 +24,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final NumberPath<Integer> additionalBuyCount = createNumber("additionalBuyCount", Integer.class);
+
     public final StringPath category = createString("category");
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
@@ -32,6 +34,12 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
+
+    public final StringPath directionFrame = createString("directionFrame");
+
+    public final BooleanPath directionFrameExists = createBoolean("directionFrameExists");
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint> entryPoint = createEnum("entryPoint", com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint.class);
 
     public final NumberPath<java.math.BigDecimal> entryPrice = createNumber("entryPrice", java.math.BigDecimal.class);
 
@@ -49,7 +57,11 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final NumberPath<Integer> feedbackYear = createNumber("feedbackYear", Integer.class);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade> grade = createEnum("grade", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
 
     public final BooleanPath isBestFeedback = createBoolean("isBestFeedback");
 
@@ -63,6 +75,8 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final NumberPath<java.math.BigDecimal> leverage = createNumber("leverage", java.math.BigDecimal.class);
 
+    public final StringPath mainFrame = createString("mainFrame");
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);
 
     public final NumberPath<Integer> operatingFundsRatio = createNumber("operatingFundsRatio", Integer.class);
@@ -71,9 +85,13 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position> position = createEnum("position", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position.class);
 
+    public final DatePath<java.time.LocalDate> positionEndDate = createDate("positionEndDate", java.time.LocalDate.class);
+
     public final StringPath positionEndReason = createString("positionEndReason");
 
     public final StringPath positionHoldingTime = createString("positionHoldingTime");
+
+    public final DatePath<java.time.LocalDate> positionStartDate = createDate("positionStartDate", java.time.LocalDate.class);
 
     public final StringPath positionStartReason = createString("positionStartReason");
 
@@ -85,7 +103,11 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final NumberPath<java.math.BigDecimal> settingTakeProfit = createNumber("settingTakeProfit", java.math.BigDecimal.class);
 
+    public final NumberPath<Integer> splitSellCount = createNumber("splitSellCount", Integer.class);
+
     public final EnumPath<com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status.class);
+
+    public final StringPath subFrame = createString("subFrame");
 
     public final StringPath title = createString("title");
 
@@ -94,6 +116,10 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
     public final NumberPath<java.math.BigDecimal> totalAssetPnl = createNumber("totalAssetPnl", java.math.BigDecimal.class);
 
     public final StringPath tradingReview = createString("tradingReview");
+
+    public final StringPath trainerFeedbackRequestContent = createString("trainerFeedbackRequestContent");
+
+    public final StringPath trendAnalysis = createString("trendAnalysis");
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;

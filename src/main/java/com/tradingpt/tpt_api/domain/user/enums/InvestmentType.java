@@ -8,7 +8,6 @@ import lombok.Getter;
 public enum InvestmentType {
 	SWING("스윙"),
 	DAY("데이"),
-	SCALPING("스켈핑"),
 	;
 
 	private final String description;

@@ -47,7 +47,7 @@ public class AdminWeeklyTradingSummaryV1Controller {
 			   ✅ weeklyProfitableTradingAnalysis: 필수
 			   ✅ weeklyLossTradingAnalysis: 필수
 			
-			3. 완강 후 (AFTER_COMPLETION) + SCALPING/SWING 유형:
+			3. 완강 후 (AFTER_COMPLETION) + SWING 유형:
 			   🚫 작성 불가
 			
 			제약 조건:
@@ -83,8 +83,8 @@ public class AdminWeeklyTradingSummaryV1Controller {
 			- 내 담당 고객의 데이터만 조회 가능
 			- 피드백 요청이 있는 날짜만 반환
 			- 오름차순 정렬
-			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
-			
+			- 모든 투자 유형(DAY, SWING) 포함
+
 			사용 시나리오:
 			- 화면에서 "셋째 주"를 선택했을 때
 			- 해당 주에 피드백이 있는 날짜들을 표시 (17일, 19일, 21일, 22일)
@@ -123,7 +123,7 @@ public class AdminWeeklyTradingSummaryV1Controller {
 			- 내 담당 고객의 데이터만 조회 가능
 			- 해당 날짜의 모든 피드백 반환
 			- 최신순 정렬
-			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 모든 투자 유형(DAY, SWING) 포함
 			- 피드백 응답 여부 포함
 			
 			사용 시나리오:
