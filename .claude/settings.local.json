@@ -76,13 +76,22 @@
       "Bash(./gradlew compileJava:*)",
       "mcp__mysql-dev__read_query",
       "WebFetch(domain:developers.nicepay.co.kr)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(for instance_id in i-05a5350778e5e7920 i-0815e14e83187599f i-0e27f88681fcecb65)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(aws elbv2 describe-listeners:*)",
+      "Bash(chmod:*)",
+      "Bash(aws sns list-topics:*)",
+      "Bash(aws cloudwatch:*)",
+      "Bash(aws autoscaling describe-scaling-activities:*)"
     ],
     "deny": [],
     "ask": []
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "mysql"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

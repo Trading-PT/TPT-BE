@@ -16,7 +16,7 @@ env:
   ECR_REPOSITORY: tpt-server-prod
   S3_BUCKET: tpt-prod-deployments
   CODEDEPLOY_APP: tpt-server-prod
-  DEPLOYMENT_GROUP: Production
+  DEPLOYMENT_GROUP: Production-BlueGreen  # Blue/Green 배포 그룹으로 변경
 
 jobs:
   deploy:
@@ -97,20 +97,55 @@ jobs:
           aws s3 cp --region ${{ env.AWS_REGION }} ./$GITHUB_SHA.tar.gz s3://${{ env.S3_BUCKET }}/$GITHUB_SHA.tar.gz
           echo "✅ 배포 패키지 업로드 완료: s3://${{ env.S3_BUCKET }}/$GITHUB_SHA.tar.gz"
 
-      - name: CodeDeploy를 통한 무중단 배포 실행
+      - name: CodeDeploy Blue/Green 배포 실행
         run: |
+          echo "🔵🟢 Blue/Green 배포 시작..."
+
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name ${{ env.CODEDEPLOY_APP }} \
-            --deployment-config-name CodeDeployDefault.OneAtATime \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
             --deployment-group-name ${{ env.DEPLOYMENT_GROUP }} \
             --s3-location bucket=${{ env.S3_BUCKET }},bundleType=tgz,key=$GITHUB_SHA.tar.gz \
-            --auto-rollback-configuration enabled=true,events=DEPLOYMENT_FAILURE \
+            --auto-rollback-configuration enabled=true,events=DEPLOYMENT_FAILURE,DEPLOYMENT_STOP_ON_REQUEST \
+            --description "Blue/Green deployment for ${{ github.ref_name }} - ${{ github.sha }}" \
             --query 'deploymentId' \
             --output text)
 
-          echo "🚀 무중단 배포 시작: $DEPLOYMENT_ID"
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          echo "🚀 Blue/Green 배포 시작: $DEPLOYMENT_ID"
           echo "📌 배포 버전: ${{ github.ref_name }}"
+          echo "📦 커밋: ${{ github.sha }}"
 
-          # 배포 완료 대기 (OneAtATime으로 점진적 배포, 최대 30분)
-          AWS_MAX_ATTEMPTS=60 aws deploy wait deployment-successful --deployment-id $DEPLOYMENT_ID
-          echo "✅ 운영 환경 배포 완료: ${{ github.ref_name }}"
+      - name: 배포 완료 대기
+        run: |
+          echo "⏳ Blue/Green 배포 완료 대기 중..."
+          echo "   - Green 환경 생성 및 애플리케이션 배포"
+          echo "   - Health Check 통과 대기"
+          echo "   - 트래픽 전환"
+
+          # Blue/Green 배포는 시간이 더 걸릴 수 있으므로 대기 시간 증가 (최대 40분)
+          AWS_MAX_ATTEMPTS=80 aws deploy wait deployment-successful \
+            --deployment-id ${{ env.DEPLOYMENT_ID }} \
+            --region ${{ env.AWS_REGION }}
+
+          echo "✅ Blue/Green 배포 완료!"
+          echo "📊 배포 상태 확인: https://ap-northeast-2.console.aws.amazon.com/codesuite/codedeploy/deployments/${{ env.DEPLOYMENT_ID }}"
+
+      - name: 배포 결과 요약
+        if: always()
+        run: |
+          echo "========================================="
+          echo "📋 배포 결과 요약"
+          echo "========================================="
+          echo "애플리케이션: ${{ env.CODEDEPLOY_APP }}"
+          echo "배포 그룹: ${{ env.DEPLOYMENT_GROUP }}"
+          echo "배포 ID: ${{ env.DEPLOYMENT_ID }}"
+          echo "이미지 태그: ${{ env.IMAGE_TAG }}"
+          echo "========================================="
+
+          # 배포 상태 확인
+          aws deploy get-deployment \
+            --deployment-id ${{ env.DEPLOYMENT_ID }} \
+            --region ${{ env.AWS_REGION }} \
+            --query 'deploymentInfo.[status, deploymentOverview]' \
+            --output table || true
