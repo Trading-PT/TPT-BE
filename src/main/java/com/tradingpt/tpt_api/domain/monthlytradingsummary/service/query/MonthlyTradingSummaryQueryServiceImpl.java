@@ -204,7 +204,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	/**
-	 * 완강 후 일반 월별 요약 생성 (스윙/데이)
+	 * 완강 후 월별 요약 생성 (스윙/데이)
 	 */
 	private AfterCompletedCourseMonthlySummaryDTO buildAfterCompletionSummary(
 		Long customerId,
