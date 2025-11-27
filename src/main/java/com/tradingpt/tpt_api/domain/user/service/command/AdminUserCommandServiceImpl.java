@@ -44,7 +44,10 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 		Customer customer = customerRepository.findById(userId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		customer.updateToken(request.getTokenCount());
+		// ✅ 기존 토큰에 누적하여 부여 (교체가 아닌 추가)
+		customer.addToken(request.getTokenCount());
+		log.info("Tokens granted: userId={}, amount={}, totalTokens={}",
+			userId, request.getTokenCount(), customer.getToken());
 	}
 
 	@Override
