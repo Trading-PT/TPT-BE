@@ -25,7 +25,7 @@ public class LectureAttachment extends BaseEntity {
     private Long id;
 
     /** 첨부파일 URL (S3 접근용) */
-    @Column(name = "file_url", nullable = false)
+    @Column(name = "file_url", nullable = true)
     private String fileUrl;
 
     /** S3 객체 삭제용 key */

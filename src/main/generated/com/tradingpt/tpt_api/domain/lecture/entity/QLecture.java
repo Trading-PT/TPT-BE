@@ -43,6 +43,8 @@ public class QLecture extends EntityPathBase<Lecture> {
 
     public final NumberPath<Integer> requiredTokens = createNumber("requiredTokens", Integer.class);
 
+    public final StringPath thumbnailKey = createString("thumbnailKey");
+
     public final StringPath thumbnailUrl = createString("thumbnailUrl");
 
     public final StringPath title = createString("title");

@@ -24,9 +24,6 @@ public class LectureRequestDTO {
     @Schema(description = "강의 본문/설명", example = "이번 강의에서는 ...")
     private String content;
 
-    @Schema(description = "S3에 업로드된 동영상 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/uploads/2025-11-07/lecture.mp4")
-    private String videoUrl;
-
     @Schema(description = "S3에 업로드된 동영상 Key", example = "uploads/2025-11-07/lecture.mp4") // ✅ 추가됨
     private String videoKey;
 
@@ -56,9 +53,6 @@ public class LectureRequestDTO {
     public static class LectureAttachmentDTO {
 
         @NotBlank
-        @Schema(description = "첨부파일 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/uploads/2025-11-07/file.pdf")
-        private String fileUrl;
-
         @Schema(description = "첨부파일 Key", example = "uploads/2025-11-07/file.pdf")
         private String fileKey;
 
