@@ -29,6 +29,8 @@ public class QFeedbackRequestAttachment extends EntityPathBase<FeedbackRequestAt
 
     public final QFeedbackRequest feedbackRequest;
 
+    public final StringPath fileKey = createString("fileKey");
+
     public final StringPath fileUrl = createString("fileUrl");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.global.infrastructure.s3.service;
 
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedDownloadResult;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUploadResult;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.io.InputStream;
@@ -48,5 +49,25 @@ public interface S3FileService {
 	 * @return 프리사인드 URL, 실제 object key, public url 등
 	 */
 	S3PresignedUploadResult createPresignedUploadUrl(String originalFilename, String directory);
+
+	/**
+	 * S3에 저장된 파일에 대한 임시 다운로드 URL을 발급한다.
+	 * Private 버킷의 파일에 대해 일정 시간 동안만 접근 가능한 URL을 생성한다.
+	 *
+	 * @param objectKey S3 객체 키 (파일 경로)
+	 * @param expirationMinutes URL 만료 시간 (분)
+	 * @return 프리사인드 다운로드 URL 및 메타데이터
+	 */
+	S3PresignedDownloadResult createPresignedDownloadUrl(String objectKey, int expirationMinutes);
+
+	/**
+	 * S3에 저장된 파일에 대한 임시 다운로드 URL을 발급한다. (기본 만료 시간: 60분)
+	 *
+	 * @param objectKey S3 객체 키 (파일 경로)
+	 * @return 프리사인드 다운로드 URL 및 메타데이터
+	 */
+	default S3PresignedDownloadResult createPresignedDownloadUrl(String objectKey) {
+		return createPresignedDownloadUrl(objectKey, 60);
+	}
 }
 

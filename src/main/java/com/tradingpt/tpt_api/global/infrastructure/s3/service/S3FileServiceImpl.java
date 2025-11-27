@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.global.infrastructure.s3.service;
 
+import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedDownloadResult;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3PresignedUploadResult;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
 import java.io.IOException;
@@ -27,7 +28,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 /**
@@ -174,6 +177,55 @@ public class S3FileServiceImpl implements S3FileService {
 			s3Client.deleteObject(request);
 		} catch (AwsServiceException | SdkClientException sdkException) {
 			throw new S3Exception(S3ErrorStatus.DELETE_FAILED);
+		}
+	}
+
+	/**
+	 * S3에 저장된 파일에 대한 임시 다운로드 URL을 발급한다.
+	 * Private 버킷의 파일에 대해 일정 시간 동안만 접근 가능한 URL을 생성한다.
+	 *
+	 * <p>사용 예시:
+	 * <ul>
+	 *   <li>강의 영상 조회: 2-4시간 (스트리밍 시간 고려)</li>
+	 *   <li>피드백 첨부파일: 30분-1시간</li>
+	 *   <li>결제 영수증: 5-15분 (민감 정보)</li>
+	 * </ul>
+	 *
+	 * @param objectKey S3 객체 키 (파일 경로)
+	 * @param expirationMinutes URL 만료 시간 (분, 최소 1분, 최대 7일)
+	 * @return 프리사인드 다운로드 URL 및 메타데이터
+	 */
+	@Override
+	public S3PresignedDownloadResult createPresignedDownloadUrl(String objectKey, int expirationMinutes) {
+		if (!StringUtils.hasText(objectKey)) {
+			throw new S3Exception(S3ErrorStatus.INVALID_OBJECT_KEY);
+		}
+
+		// 만료 시간 범위 검증 (최소 1분, 최대 7일 = 10080분)
+		int validExpiration = Math.max(1, Math.min(expirationMinutes, 10080));
+		Duration expiration = Duration.ofMinutes(validExpiration);
+
+		// GetObject 요청 생성
+		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+			.bucket(bucketName)
+			.key(objectKey)
+			.build();
+
+		// Presigned URL 생성
+		GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+			.signatureDuration(expiration)
+			.getObjectRequest(getObjectRequest)
+			.build();
+
+		try {
+			var presigned = s3Presigner.presignGetObject(presignRequest);
+			return S3PresignedDownloadResult.of(
+				presigned.url().toString(),
+				objectKey,
+				expiration
+			);
+		} catch (AwsServiceException | SdkClientException sdkException) {
+			throw new S3Exception(S3ErrorStatus.PRESIGN_FAILED);
 		}
 	}
 

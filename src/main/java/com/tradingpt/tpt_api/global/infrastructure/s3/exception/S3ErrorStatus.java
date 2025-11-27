@@ -22,6 +22,7 @@ public enum S3ErrorStatus implements BaseCodeInterface {
 	// 500 Internal Server Error
 	UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_500_0", "파일 업로드에 실패했습니다."),
 	DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_500_1", "파일 삭제에 실패했습니다."),
+	PRESIGN_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "S3_500_2", "사전 서명 URL 생성에 실패했습니다."),
 
 	// 400 Bad Request
 	EMPTY_FILE(HttpStatus.BAD_REQUEST, "S3_400_0", "업로드할 파일이 존재하지 않습니다."),

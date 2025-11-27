@@ -37,17 +37,30 @@ public class FeedbackRequestAttachment extends BaseEntity {
 	@JoinColumn(name = "feedback_reuqest_id")
 	private FeedbackRequest feedbackRequest;
 
-	private String fileUrl; // 이미지 파일 url
+	/** S3 파일 접근용 URL */
+	private String fileUrl;
 
-	public static FeedbackRequestAttachment createFrom(FeedbackRequest feedbackRequest, String fileUrl) {
+	/** S3 파일 삭제용 key */
+	private String fileKey;
+
+	public static FeedbackRequestAttachment createFrom(FeedbackRequest feedbackRequest, String fileUrl, String fileKey) {
 		FeedbackRequestAttachment newScreenshot = FeedbackRequestAttachment.builder()
 			.feedbackRequest(feedbackRequest)
 			.fileUrl(fileUrl)
+			.fileKey(fileKey)
 			.build();
 
 		feedbackRequest.getFeedbackRequestAttachments().add(newScreenshot);
 
 		return newScreenshot;
+	}
+
+	/**
+	 * 파일 정보 변경 (URL, Key 동시 변경)
+	 */
+	public void changeFile(String fileUrl, String fileKey) {
+		this.fileUrl = fileUrl;
+		this.fileKey = fileKey;
 	}
 
 }

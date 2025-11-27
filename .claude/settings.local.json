@@ -85,7 +85,13 @@
       "Bash(chmod:*)",
       "Bash(aws sns list-topics:*)",
       "Bash(aws cloudwatch:*)",
-      "Bash(aws autoscaling describe-scaling-activities:*)"
+      "Bash(aws autoscaling describe-scaling-activities:*)",
+      "Bash(aws autoscaling describe-lifecycle-hooks:*)",
+      "Bash(aws autoscaling complete-lifecycle-action:*)",
+      "mcp__github__get_pull_request",
+      "mcp__github__get_pull_request_files",
+      "mcp__github__list_pull_requests",
+      "mcp__github__get_file_contents"
     ],
     "deny": [],
     "ask": []
