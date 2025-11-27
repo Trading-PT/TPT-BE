@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.subscription.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -171,10 +172,18 @@ public class RecurringPaymentService {
 		// 주문번호 생성
 		String orderId = NicePayCryptoUtil.generateRecurringMoid(subscription.getId());
 
-		// 주문명 생성
-		String orderName = String.format("%s %d월 구독료",
+		// 주문명 생성 - 한글 (DB 저장용, 이력 조회 시 표시)
+		// 예: "기본 구독 플랜 2025년 11월 구독료"
+		String orderName = String.format("%s %d년 %d월 구독료",
 			activePlan.getName(),
+			billingPeriodStart.getYear(),
 			billingPeriodStart.getMonthValue());
+
+		// PG 상품명 생성 - 영문 (NicePay 전송용, EUC-KR 인코딩 및 특수문자 문제 회피)
+		// 예: "Subscription 11 2025"
+		String pgGoodsName = String.format("Subscription %d %d",
+			billingPeriodStart.getMonthValue(),
+			billingPeriodStart.getYear());
 
 		// 프로모션 여부 확인
 		boolean isPromotional = paymentAmount.compareTo(BigDecimal.ZERO) == 0 ||
@@ -192,12 +201,14 @@ public class RecurringPaymentService {
 		}
 
 		// Payment 엔티티 생성
+		// Entity를 직접 전달하여 REPEATABLE_READ 트랜잭션 격리 수준 문제 방지
 		Payment payment = paymentCommandService.createRecurringPayment(
-			subscription.getId(),
-			subscription.getCustomer().getId(),
-			subscription.getPaymentMethod().getId(),
+			subscription,
+			subscription.getCustomer(),
+			paymentMethod,  // 위에서 검증된 paymentMethod 사용
 			paymentAmount,
 			orderName,
+			pgGoodsName,
 			orderId,
 			billingPeriodStart,
 			billingPeriodEnd,
@@ -274,11 +285,15 @@ public class RecurringPaymentService {
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
 
 		try {
-			// 나이스페이 결제 실행
+			// 나이스페이 결제 실행 (pgGoodsName 사용 - 영문, EUC-KR 인코딩 문제 회피)
+			// NicePay API는 금액을 정수 문자열로 요구함 (예: "3500", "50000")
+			// BigDecimal.toString()은 "3500.00" 형식이므로 정수로 변환 필요
+			String amountString = payment.getAmount().setScale(0, RoundingMode.DOWN).toPlainString();
+
 			RecurringPaymentResponseDTO response = nicePayService.executeRecurringPayment(
 				paymentMethod.getBillingKey(),
-				payment.getAmount().toString(),
-				payment.getOrderName(),
+				amountString,
+				payment.getPgGoodsName(),
 				payment.getOrderId()
 			);
 
@@ -378,7 +393,8 @@ public class RecurringPaymentService {
 		response.setResultMsg("프로모션 기간 무료 결제");
 		response.setTID("PROMO-" + payment.getOrderId());
 		response.setMoid(payment.getOrderId());
-		response.setAmt(payment.getAmount().toString());
+		// NicePay 응답 형식에 맞춰 정수 문자열로 설정
+		response.setAmt(payment.getAmount().setScale(0, RoundingMode.DOWN).toPlainString());
 		response.setAuthCode("000000");
 		response.setAuthDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss")));
 		return response;

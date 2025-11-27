@@ -73,6 +73,9 @@ public class PaymentMethodV1Controller {
 		return BaseResponse.onSuccess(paymentMethodCommandService.completeBillingKeyRegistration(customerId, request));
 	}
 
+	/**
+	 * 절대 사용되어선 안됨!! 테스트 용도임
+	 */
 	@Operation(
 		summary = "빌키 등록 (비인증 방식)",
 		description = """
@@ -84,6 +87,7 @@ public class PaymentMethodV1Controller {
 			- 기존 활성 결제수단이 있으면 에러 반환
 			"""
 	)
+	@Deprecated
 	@PostMapping("/billing-key/direct")
 	public BaseResponse<BillingKeyRegisterResponseDTO> registerBillingKeyDirect(
 		@Parameter(hidden = true)
@@ -91,7 +95,8 @@ public class PaymentMethodV1Controller {
 		@Valid @RequestBody CardInfoRequestDTO cardInfoRequest
 	) {
 
-		return BaseResponse.onSuccess(paymentMethodCommandService.registerBillingKeyDirect(customerId, cardInfoRequest));
+		return BaseResponse.onSuccess(
+			paymentMethodCommandService.registerBillingKeyDirect(customerId, cardInfoRequest));
 	}
 
 	@Operation(

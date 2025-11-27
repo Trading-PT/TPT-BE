@@ -14,11 +14,14 @@ import com.tradingpt.tpt_api.domain.payment.exception.PaymentErrorStatus;
 import com.tradingpt.tpt_api.domain.payment.exception.PaymentException;
 import com.tradingpt.tpt_api.domain.payment.repository.PaymentRepository;
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
-import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodRepository;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodErrorStatus;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodException;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
-import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
+import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionErrorStatus;
+import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionException;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
+import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.global.infrastructure.nicepay.dto.response.RecurringPaymentResponseDTO;
 
 import lombok.RequiredArgsConstructor;
@@ -34,34 +37,34 @@ import lombok.extern.slf4j.Slf4j;
 public class PaymentCommandServiceImpl implements PaymentCommandService {
 
     private final PaymentRepository paymentRepository;
-    private final SubscriptionRepository subscriptionRepository;
-    private final CustomerRepository customerRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
 
     @Override
     public Payment createRecurringPayment(
-        Long subscriptionId,
-        Long customerId,
-        Long paymentMethodId,
+        Subscription subscription,
+        Customer customer,
+        PaymentMethod paymentMethod,
         BigDecimal amount,
         String orderName,
+        String pgGoodsName,
         String orderId,
         LocalDate billingPeriodStart,
         LocalDate billingPeriodEnd,
         Boolean isPromotional,
         String promotionDetail
     ) {
-        log.info("정기 결제 생성: subscriptionId={}, amount={}, orderId={}", subscriptionId, amount, orderId);
+        log.info("정기 결제 생성: subscriptionId={}, amount={}, orderId={}, pgGoodsName={}",
+            subscription.getId(), amount, orderId, pgGoodsName);
 
-        // 엔티티 조회
-        Subscription subscription = subscriptionRepository.findById(subscriptionId)
-            .orElseThrow(() -> new PaymentException(PaymentErrorStatus.PAYMENT_NOT_FOUND));
-
-        Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new PaymentException(PaymentErrorStatus.PAYMENT_NOT_FOUND));
-
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-            .orElseThrow(() -> new PaymentException(PaymentErrorStatus.PAYMENT_METHOD_NOT_FOUND));
+        // Entity null 체크 (REQUIRES_NEW 트랜잭션에서 저장된 엔티티를 직접 전달받음)
+        if (subscription == null) {
+            throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND);
+        }
+        if (customer == null) {
+            throw new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND);
+        }
+        if (paymentMethod == null) {
+            throw new PaymentMethodException(PaymentMethodErrorStatus.PAYMENT_METHOD_NOT_FOUND);
+        }
 
         // Payment 엔티티 생성
         Payment payment = Payment.builder()
@@ -70,6 +73,7 @@ public class PaymentCommandServiceImpl implements PaymentCommandService {
             .paymentMethod(paymentMethod)
             .orderId(orderId)
             .orderName(orderName)
+            .pgGoodsName(pgGoodsName)
             .amount(amount)
             .vat(amount.multiply(BigDecimal.valueOf(0.1)))  // 부가세 10%
             .discountAmount(BigDecimal.ZERO)

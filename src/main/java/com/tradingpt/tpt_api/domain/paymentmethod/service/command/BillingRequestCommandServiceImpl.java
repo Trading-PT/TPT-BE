@@ -43,9 +43,37 @@ public class BillingRequestCommandServiceImpl implements BillingRequestCommandSe
 		BillingRequest billingRequest = billingRequestRepository.findById(billingRequestId)
 			.orElseThrow(() -> new PaymentMethodException(PaymentMethodErrorStatus.BILLING_KEY_REGISTRATION_FAILED));
 
-		billingRequest.setStatus(status);
-		billingRequest.setResultCode(resultCode);
-		billingRequest.setResultMsg(resultMsg);
+		// DDD 원칙에 따라 Entity의 비즈니스 메서드 사용
+		if (status == Status.COMPLETED) {
+			billingRequest.completeWithResult(resultCode, resultMsg);
+		} else if (status == Status.FAILED) {
+			billingRequest.failWithResult(resultCode, resultMsg);
+		}
+	}
 
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void completeBillingRequestInNewTransaction(Long billingRequestId, String resultCode, String resultMsg) {
+		log.info("빌링 요청 완료 처리 (별도 트랜잭션): billingRequestId={}, resultCode={}", billingRequestId, resultCode);
+
+		BillingRequest billingRequest = billingRequestRepository.findById(billingRequestId)
+			.orElseThrow(() -> new PaymentMethodException(PaymentMethodErrorStatus.BILLING_REQUEST_NOT_FOUND));
+
+		billingRequest.completeWithResult(resultCode, resultMsg);
+
+		log.info("빌링 요청 완료 처리 성공: billingRequestId={}", billingRequestId);
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void failBillingRequestInNewTransaction(Long billingRequestId, String resultCode, String resultMsg) {
+		log.info("빌링 요청 실패 처리 (별도 트랜잭션): billingRequestId={}, resultCode={}", billingRequestId, resultCode);
+
+		BillingRequest billingRequest = billingRequestRepository.findById(billingRequestId)
+			.orElseThrow(() -> new PaymentMethodException(PaymentMethodErrorStatus.BILLING_REQUEST_NOT_FOUND));
+
+		billingRequest.failWithResult(resultCode, resultMsg);
+
+		log.info("빌링 요청 실패 처리 완료: billingRequestId={}", billingRequestId);
 	}
 }

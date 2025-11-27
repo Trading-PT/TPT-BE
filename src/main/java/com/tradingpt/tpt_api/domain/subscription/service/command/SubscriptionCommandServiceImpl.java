@@ -1,21 +1,22 @@
 package com.tradingpt.tpt_api.domain.subscription.service.command;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
-import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodRepository;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodErrorStatus;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodException;
 import com.tradingpt.tpt_api.domain.subscription.config.PromotionConfig;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType;
 import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionErrorStatus;
 import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionException;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayErrorStatus;
+import com.tradingpt.tpt_api.global.infrastructure.nicepay.exception.NicePayException;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.subscription.service.RecurringPaymentService;
 import com.tradingpt.tpt_api.domain.subscriptionplan.entity.SubscriptionPlan;
@@ -36,7 +37,6 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     private final SubscriptionRepository subscriptionRepository;
     private final CustomerRepository customerRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
-    private final PaymentMethodRepository paymentMethodRepository;
     private final RecurringPaymentService recurringPaymentService;
 
     // 순환 참조 방지를 위한 @Lazy 사용
@@ -44,13 +44,11 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         SubscriptionRepository subscriptionRepository,
         CustomerRepository customerRepository,
         SubscriptionPlanRepository subscriptionPlanRepository,
-        PaymentMethodRepository paymentMethodRepository,
         @Lazy RecurringPaymentService recurringPaymentService
     ) {
         this.subscriptionRepository = subscriptionRepository;
         this.customerRepository = customerRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
-        this.paymentMethodRepository = paymentMethodRepository;
         this.recurringPaymentService = recurringPaymentService;
     }
 
@@ -58,21 +56,22 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     public Subscription createSubscriptionWithFirstPayment(
         Long customerId,
         Long subscriptionPlanId,
-        Long paymentMethodId,
-        int baseOpenedLectureCount
+        PaymentMethod paymentMethod
     ) {
         log.info("신규 구독 생성 시작: customerId={}, planId={}, paymentMethodId={}",
-            customerId, subscriptionPlanId, paymentMethodId);
+            customerId, subscriptionPlanId, paymentMethod.getId());
+
+        // PaymentMethod null 체크 (REQUIRES_NEW 트랜잭션에서 저장된 엔티티를 직접 전달받음)
+        if (paymentMethod == null) {
+            throw new PaymentMethodException(PaymentMethodErrorStatus.PAYMENT_METHOD_NOT_FOUND);
+        }
 
         // 엔티티 조회
         Customer customer = customerRepository.findById(customerId)
-            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
+            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.CUSTOMER_NOT_FOUND));
 
         SubscriptionPlan plan = subscriptionPlanRepository.findById(subscriptionPlanId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_PLAN_NOT_FOUND));
-
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
-            .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
         // 기존 활성 구독 확인
         subscriptionRepository.findByCustomer_IdAndStatus(customerId, Status.ACTIVE)
@@ -118,7 +117,6 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
             .paymentFailedCount(0)
             .subscriptionType(subscriptionType)
             .promotionNote(promotionNote)
-            .baseOpenedLectureCount(baseOpenedLectureCount)
             .build();
 
         // DB 저장
@@ -129,11 +127,27 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         try {
             recurringPaymentService.executePaymentForSubscription(subscription);
             log.info("신규 구독 첫 결제 성공: subscriptionId={}", subscription.getId());
-        } catch (Exception e) {
-            log.error("신규 구독 첫 결제 실패: subscriptionId={}", subscription.getId(), e);
+        } catch (NicePayException e) {
+            log.error("신규 구독 첫 결제 실패 (NicePay 오류): subscriptionId={}, errorCode={}",
+                subscription.getId(), e.getErrorStatus().getCode(), e);
             // 첫 결제 실패 시 구독 상태를 PAYMENT_FAILED로 변경
             updateSubscriptionStatus(subscription.getId(), Status.PAYMENT_FAILED);
-            throw new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_UPDATE_FAILED);
+
+            // 일시적 오류인 경우 재시도 안내 (HTTP 503)
+            if (e.getErrorStatus() == NicePayErrorStatus.TEMPORARY_ERROR) {
+                throw new SubscriptionException(SubscriptionErrorStatus.FIRST_PAYMENT_TEMPORARY_FAILED);
+            }
+            // 영구적 오류인 경우 일반 결제 실패 안내 (HTTP 500)
+            throw new SubscriptionException(SubscriptionErrorStatus.FIRST_PAYMENT_FAILED);
+        } catch (SubscriptionException e) {
+            log.error("신규 구독 첫 결제 실패 (구독 오류): subscriptionId={}", subscription.getId(), e);
+            // 구독 예외는 이미 상태가 변경되었으므로 그대로 전파
+            throw e;
+        } catch (Exception e) {
+            log.error("신규 구독 첫 결제 실패 (기타 오류): subscriptionId={}", subscription.getId(), e);
+            // 첫 결제 실패 시 구독 상태를 PAYMENT_FAILED로 변경
+            updateSubscriptionStatus(subscription.getId(), Status.PAYMENT_FAILED);
+            throw new SubscriptionException(SubscriptionErrorStatus.FIRST_PAYMENT_FAILED);
         }
 
         return subscriptionRepository.findById(subscription.getId())

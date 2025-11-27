@@ -72,7 +72,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
 			dayRequest.useToken(tokenAmount);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
 				customerId, tokenAmount);
@@ -127,7 +127,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
 			scalpingRequest.useToken(tokenAmount);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
 				customerId, tokenAmount);
@@ -180,7 +180,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : 1;
+			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
 			swingRequest.useToken(tokenAmount);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
 				customerId, tokenAmount);
@@ -326,8 +326,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		if (membershipLevel == MembershipLevel.BASIC) {
 			// 토큰 사용을 선택한 경우
 			if (Boolean.TRUE.equals(useToken)) {
-				// 토큰 개수 기본값 설정
-				int requiredTokens = tokenAmount != null ? tokenAmount : 1;
+				// 토큰 개수 기본값 설정 (기본 3개 소모)
+				int requiredTokens = tokenAmount != null ? tokenAmount : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
 
 				// 토큰 부족 체크
 				if (customer.getToken() < requiredTokens) {

@@ -1,5 +1,9 @@
 package com.tradingpt.tpt_api.domain.lecture.repository;
 
+import static com.tradingpt.tpt_api.domain.lecture.entity.QChapter.chapter;
+import static com.tradingpt.tpt_api.domain.lecture.entity.QLecture.lecture;
+import static com.tradingpt.tpt_api.domain.lecture.entity.QLectureProgress.lectureProgress;
+
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
@@ -12,9 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.tradingpt.tpt_api.domain.lecture.entity.QChapter.chapter;
-import static com.tradingpt.tpt_api.domain.lecture.entity.QLecture.lecture;
-import static com.tradingpt.tpt_api.domain.lecture.entity.QLectureProgress.lectureProgress;
+
 
 @Repository
 @RequiredArgsConstructor

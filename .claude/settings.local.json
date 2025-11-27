@@ -86,8 +86,32 @@
       "Bash(aws elasticache describe-cache-subnet-groups:*)",
       "Bash(aws ssm put-parameter:*)",
       "Bash(aws elasticache describe-replication-groups:*)"
+      "Bash(git -C /Users/parkdongkyu/my_project/tpt-api log --oneline -5)",
+      "Bash(aws logs get-query-results:*)",
+      "Bash(jq:*)",
+      "mcp__mysql-dev__describe_table",
+      "mcp__mysql-dev__list_tables",
+      "Bash(aws logs filter-log-events:*)",
+      "Bash(aws logs:*)",
+      "Bash(./gradlew compileJava:*)",
+      "mcp__mysql-dev__read_query",
+      "WebFetch(domain:developers.nicepay.co.kr)",
+      "WebFetch(domain:github.com)",
+      "Bash(for instance_id in i-05a5350778e5e7920 i-0815e14e83187599f i-0e27f88681fcecb65)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(aws elbv2 describe-listeners:*)",
+      "Bash(chmod:*)",
+      "Bash(aws sns list-topics:*)",
+      "Bash(aws cloudwatch:*)",
+      "Bash(aws autoscaling describe-scaling-activities:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "mysql"
+  ]
 }

@@ -20,8 +20,12 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SubscriptionErrorStatus implements BaseCodeInterface {
 
+    // 503 Service Unavailable (Temporary Error - Retryable)
+    FIRST_PAYMENT_TEMPORARY_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "SUBSCRIPT_503_0", "결제가 일시적으로 실패했습니다. 잠시 후 다시 시도해주세요."),
+
     // 500 Internal Server Error
     SUBSCRIPTION_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SUBSCRIPT_500_0", "구독 정보 업데이트에 실패했습니다."),
+    FIRST_PAYMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "SUBSCRIPT_500_1", "첫 번째 결제에 실패했습니다. 카드 정보를 확인하고 다시 시도해주세요."),
 
     // 409 Conflict
     SUBSCRIPTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "SUBSCRIPT_409_0", "이미 활성화된 구독이 존재합니다."),
@@ -30,6 +34,7 @@ public enum SubscriptionErrorStatus implements BaseCodeInterface {
     SUBSCRIPTION_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_0", "구독 정보를 찾을 수 없습니다."),
     SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_1", "구독 플랜을 찾을 수 없습니다."),
     ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_2", "활성화된 구독 플랜을 찾을 수 없습니다."),
+    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "SUBSCRIPT_404_3", "고객 정보를 찾을 수 없습니다."),
 
     // 400 Bad Request
     SUBSCRIPTION_ALREADY_CANCELLED(HttpStatus.BAD_REQUEST, "SUBSCRIPT_400_0", "이미 해지된 구독입니다."),
