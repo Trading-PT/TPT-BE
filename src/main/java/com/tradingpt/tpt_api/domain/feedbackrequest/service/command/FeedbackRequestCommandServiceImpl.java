@@ -1,7 +1,5 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -15,10 +13,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttach
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
-import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
@@ -43,74 +38,26 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	public FeedbackRequestDetailResponseDTO createFeedbackRequest(CreateFeedbackRequestDTO request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
-		// 사용자의 트레이딩 타입 체크 (throw exception)
+		// ✅ 사용자의 트레이딩 타입 체크 (DDD: Entity에서 검증)
 		customer.checkTradingType(request.getInvestmentType());
 
-		// ✅ courseStatus 검증: 요청한 완강 상태가 현재 사용자의 완강 상태와 일치하는지 확인
-		validateCourseStatus(customer, request.getCourseStatus());
+		// ✅ courseStatus 검증 (DDD: Entity에서 검증)
+		customer.validateCourseStatusCompatibility(request.getCourseStatus());
 
-		// ✅ 토큰 검증 및 차감 (선택적)
-		validateAndConsumeTokenIfNeeded(customer, request.getUseToken());
+		// ✅ 토큰 검증 및 차감 (DDD: Entity에서 검증 및 상태 변경)
+		boolean tokenConsumed = customer.validateAndConsumeTokenForFeedback(
+			request.getUseToken(),
+			RewardConstants.DEFAULT_TOKEN_CONSUMPTION
+		);
 
-		// 피드백 기간 정보 계산
-		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
-
-		// 거래 날짜를 기반으로 제목을 자동 생성함.
-		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			request.getCategory(), request.getTotalAssetPnl());
-
-		// FeedbackRequest 생성 (Single Table 전략 - investmentType으로 구분)
-		FeedbackRequest feedbackRequest = FeedbackRequest.builder()
-			// 기본 정보
-			.investmentType(request.getInvestmentType())
-			.customer(customer)
-			.title(title)
-			.courseStatus(request.getCourseStatus())
-			.membershipLevel(customer.getMembershipLevel())  // ✅ 서버에서 조회한 멤버십 레벨 사용
-			// 날짜 정보
-			.feedbackYear(period.year())
-			.feedbackMonth(period.month())
-			.feedbackWeek(period.week())
-			.feedbackRequestDate(request.getFeedbackRequestDate())
-			// 매매 기본 정보
-			.category(request.getCategory())
-			.positionHoldingTime(request.getPositionHoldingTime())
-			.riskTaking(request.getRiskTaking())
-			.leverage(request.getLeverage())
-			.position(request.getPosition())
-			.pnl(request.getPnl())
-			.totalAssetPnl(request.getTotalAssetPnl())
-			.rnr(request.getRnr())
-			// 매매 상세 정보
-			.operatingFundsRatio(request.getOperatingFundsRatio())
-			.entryPrice(request.getEntryPrice())
-			.exitPrice(request.getExitPrice())
-			.settingStopLoss(request.getSettingStopLoss())
-			.settingTakeProfit(request.getSettingTakeProfit())
-			.positionStartReason(request.getPositionStartReason())
-			.positionEndReason(request.getPositionEndReason())
-			.tradingReview(request.getTradingReview())
-			// 완강 후 필드 (DAY/SWING 공통)
-			.directionFrameExists(request.getDirectionFrameExists())
-			.directionFrame(request.getDirectionFrame())
-			.mainFrame(request.getMainFrame())
-			.subFrame(request.getSubFrame())
-			.trendAnalysis(request.getTrendAnalysis())
-			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
-			.entryPoint(request.getEntryPoint())
-			.grade(request.getGrade())
-			.additionalBuyCount(request.getAdditionalBuyCount())
-			.splitSellCount(request.getSplitSellCount())
-			// SWING 전용 필드 (DAY에서는 null)
-			.positionStartDate(request.getPositionStartDate())
-			.positionEndDate(request.getPositionEndDate())
-			.build();
+		// ✅ FeedbackRequest 생성 (DDD: Entity Factory Method 활용)
+		FeedbackRequest feedbackRequest = FeedbackRequest.createFrom(request, customer);
 
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
 		uploadScreenshots(request.getScreenshotFiles(), feedbackRequest);
 
 		// ✅ 토큰 사용 여부 설정
-		if (Boolean.TRUE.equals(request.getUseToken())) {
+		if (tokenConsumed) {
 			feedbackRequest.useToken(RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
 				customerId, RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
@@ -229,58 +176,6 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		}
 	}
 
-	/**
-	 * ✅ 토큰 검증 및 차감 (선택적)
-	 *
-	 * 변경된 로직:
-	 * - BASIC 멤버십: 토큰 사용 선택 가능
-	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
-	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
-	 * - PREMIUM 멤버십: 토큰 사용 불가 (기존 유지)
-	 *
-	 * ⚠️ 토큰 차감 개수는 서버에서 RewardConstants.DEFAULT_TOKEN_CONSUMPTION으로 고정
-	 *    (프론트에서 임의 변경 불가)
-	 */
-	private void validateAndConsumeTokenIfNeeded(Customer customer, Boolean useToken) {
-		MembershipLevel membershipLevel = customer.getMembershipLevel();
-
-		// PREMIUM 멤버십인 경우
-		if (membershipLevel == MembershipLevel.PREMIUM) {
-			// 토큰 사용 불가
-			if (Boolean.TRUE.equals(useToken)) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
-			}
-			// PREMIUM은 토큰 없이 자유롭게 생성 가능
-			return;
-		}
-
-		// BASIC 멤버십인 경우
-		if (membershipLevel == MembershipLevel.BASIC) {
-			// 토큰 사용을 선택한 경우
-			if (Boolean.TRUE.equals(useToken)) {
-				// 서버에서 고정된 토큰 차감 개수 사용
-				int requiredTokens = RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-
-				// 토큰 부족 체크
-				if (customer.getToken() < requiredTokens) {
-					log.warn("Insufficient tokens: customerId={}, required={}, available={}",
-						customer.getId(), requiredTokens, customer.getToken());
-					throw new FeedbackRequestException(
-						FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
-				}
-
-				// 토큰 차감
-				customer.updateToken(customer.getToken() - requiredTokens);
-				log.info("Token consumed: customerId={}, amount={}, remaining={}",
-					customer.getId(), requiredTokens, customer.getToken());
-			} else {
-				// 토큰 사용 안 함 → 기록용으로만 생성
-				log.info("BASIC member creating record-only feedback: customerId={}",
-					customer.getId());
-			}
-		}
-	}
 
 	/**
 	 * Customer ID로 Customer 엔티티를 조회한다.
@@ -294,75 +189,5 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 	}
 
-	/**
-	 * ✅ courseStatus 검증
-	 *
-	 * 요청한 완강 상태가 현재 사용자의 완강 상태와 일치하는지 확인한다.
-	 * - PENDING_COMPLETION은 BEFORE_COMPLETION과 동일하게 취급 (완강 전 필드 검증 필요)
-	 * - 불일치 시 예외 발생
-	 *
-	 * @param customer 고객 엔티티
-	 * @param requestCourseStatus 요청한 완강 상태
-	 * @throws FeedbackRequestException courseStatus가 일치하지 않는 경우
-	 */
-	private void validateCourseStatus(Customer customer, CourseStatus requestCourseStatus) {
-		CourseStatus customerCourseStatus = customer.getCourseStatus();
-
-		// PENDING_COMPLETION과 BEFORE_COMPLETION은 동일하게 취급
-		// (월 중간에 완강해도 다음 달까지는 BEFORE_COMPLETION으로 간주)
-		boolean customerIsBeforeCompletion =
-			customerCourseStatus == CourseStatus.BEFORE_COMPLETION ||
-			customerCourseStatus == CourseStatus.PENDING_COMPLETION;
-
-		boolean requestIsBeforeCompletion =
-			requestCourseStatus == CourseStatus.BEFORE_COMPLETION ||
-			requestCourseStatus == CourseStatus.PENDING_COMPLETION;
-
-		// 둘 다 "완강 전" 그룹이거나 둘 다 AFTER_COMPLETION인 경우 일치
-		boolean isMatch = (customerIsBeforeCompletion && requestIsBeforeCompletion) ||
-			(customerCourseStatus == CourseStatus.AFTER_COMPLETION &&
-			 requestCourseStatus == CourseStatus.AFTER_COMPLETION);
-
-		if (!isMatch) {
-			log.warn("CourseStatus mismatch: customerId={}, customerStatus={}, requestStatus={}",
-				customer.getId(), customerCourseStatus, requestCourseStatus);
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.COURSE_STATUS_MISMATCH);
-		}
-	}
-
-	/**
-	 * 피드백 요청의 제목을 생성한다.
-	 * 형식: "월/일 종목 ±전체자산대비PnL%"
-	 * 예시: "11/17 주식 +5%", "11/18 코인 -3.5%"
-	 *
-	 * @param requestDate 요청 날짜
-	 * @param category 종목
-	 * @param totalAssetPnl 전체 자산 대비 P&L
-	 * @return 생성된 제목
-	 */
-	private String buildFeedbackTitle(LocalDate requestDate, String category, BigDecimal totalAssetPnl) {
-		int month = requestDate.getMonthValue();
-		int day = requestDate.getDayOfMonth();
-
-		// totalAssetPnl을 퍼센트 문자열로 변환
-		String pnlString;
-		if (totalAssetPnl == null) {
-			pnlString = "0%";
-		} else {
-			// 불필요한 trailing zeros 제거
-			BigDecimal strippedPnl = totalAssetPnl.stripTrailingZeros();
-
-			// 양수면 + 기호 추가, 음수는 자동으로 - 기호 포함
-			if (totalAssetPnl.compareTo(BigDecimal.ZERO) > 0) {
-				pnlString = "+" + strippedPnl.toPlainString() + "%";
-			} else if (totalAssetPnl.compareTo(BigDecimal.ZERO) < 0) {
-				pnlString = strippedPnl.toPlainString() + "%";
-			} else {
-				pnlString = "0%";
-			}
-		}
-
-		return String.format("%d/%d %s %s", month, day, category, pnlString);
-	}
 
 }
