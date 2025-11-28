@@ -15,16 +15,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.command.FeedbackRequestCommandService;
 import com.tradingpt.tpt_api.domain.feedbackrequest.service.query.FeedbackRequestQueryService;
@@ -45,37 +40,27 @@ public class FeedbackRequestV1Controller {
 	private final FeedbackRequestCommandService feedbackRequestCommandService;
 	private final FeedbackRequestQueryService feedbackRequestQueryService;
 
-	@Operation(summary = "데이 트레이딩 피드백 요청 생성", description = "데이 트레이딩 피드백 요청을 생성합니다.")
-	@PostMapping(value = "/day", consumes = "multipart/form-data")
+	@Operation(
+		summary = "피드백 요청 생성 (DAY/SWING 통합)",
+		description = """
+			피드백 요청을 생성합니다.
+
+			투자 유형:
+			- DAY: 데이 트레이딩
+			- SWING: 스윙 트레이딩
+
+			investmentType 필드로 유형을 구분하며, SWING 유형의 경우
+			positionStartDate, positionEndDate 필드가 추가로 필요합니다.
+			"""
+	)
+	@PostMapping(consumes = "multipart/form-data")
 	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<DayFeedbackRequestDetailResponseDTO> createDayRequest(
-		@Valid @ModelAttribute CreateDayRequestDetailRequestDTO request,
+	public BaseResponse<FeedbackRequestDetailResponseDTO> createFeedbackRequest(
+		@Valid @ModelAttribute CreateFeedbackRequestDTO request,
 		@AuthenticationPrincipal(expression = "id") Long customerId) {
 
 		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createDayRequest(request, customerId));
-	}
-
-	@Operation(summary = "스켈핑 피드백 요청 생성", description = "스켈핑 피드백 요청을 생성합니다.")
-	@PostMapping(value = "/scalping", consumes = "multipart/form-data")
-	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<ScalpingFeedbackRequestDetailResponseDTO> createScalpingRequest(
-		@Valid @ModelAttribute CreateScalpingRequestDetailRequestDTO request,
-		@AuthenticationPrincipal(expression = "id") Long customerId) {
-
-		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createScalpingRequest(request, customerId));
-	}
-
-	@Operation(summary = "스윙 피드백 요청 생성", description = "스윙 피드백 요청을 생성합니다.")
-	@PostMapping(value = "/swing", consumes = "multipart/form-data")
-	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
-	public BaseResponse<SwingFeedbackRequestDetailResponseDTO> createSwingRequest(
-		@Valid @ModelAttribute CreateSwingRequestDetailRequestDTO request,
-		@AuthenticationPrincipal(expression = "id") Long customerId) {
-
-		return BaseResponse.onSuccessCreate(
-			feedbackRequestCommandService.createSwingRequest(request, customerId));
+			feedbackRequestCommandService.createFeedbackRequest(request, customerId));
 	}
 
 	@Operation(
@@ -97,15 +82,18 @@ public class FeedbackRequestV1Controller {
 		return BaseResponse.onSuccess(feedbackRequestQueryService.getFeedbackListSlice(pageable));
 	}
 
-	@Operation(summary = "피드백 요청 상세 조회", description = """
-		특정 피드백 요청의 상세 정보를 조회합니다.
-		
-		접근 권한:
-		- 자신이 작성한 피드백
-		- 구독 중인 사용자는 모든 피드백 조회 가능
-		
-		미구독 사용자는 자신의 피드백만 조회 가능합니다.
-		""")
+	@Operation(
+		summary = "피드백 요청 상세 조회",
+		description = """
+			특정 피드백 요청의 상세 정보를 조회합니다.
+
+			접근 권한:
+			- 자신이 작성한 피드백
+			- 구독 중인 사용자는 모든 피드백 조회 가능
+
+			미구독 사용자는 자신의 피드백만 조회 가능합니다.
+			"""
+	)
 	@GetMapping("/{feedbackRequestId}")
 	public BaseResponse<FeedbackRequestDetailResponseDTO> getFeedbackRequest(
 		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
@@ -130,16 +118,16 @@ public class FeedbackRequestV1Controller {
 		summary = "특정 날짜의 피드백 요청 목록 조회",
 		description = """
 			특정 날짜에 작성된 고객의 모든 피드백 요청을 시간순으로 조회합니다.
-			
+
 			특징:
 			- 완강 여부, 트레이딩 유형에 상관없이 모든 피드백 표시
 			- 작성 시간 오름차순 정렬 (오래된 것부터)
 			- 목록에서 각 항목을 클릭하면 상세 조회 API 호출
-			
+
 			사용 시나리오:
 			- 주간 요약에서 특정 날짜 클릭 시 호출
 			- 해당 날짜의 모든 피드백 요청을 시간순으로 확인
-			
+
 			날짜 검증:
 			- 연도: 2020~2100
 			- 월: 1~12
@@ -167,18 +155,18 @@ public class FeedbackRequestV1Controller {
 		summary = "월별 PnL 달력 조회",
 		description = """
 			특정 연/월의 모든 피드백 요청에 대한 PnL을 달력 형태로 조회합니다.
-			
+
 			특징:
 			- 일별로 그룹핑하여 PnL 합계와 평균 퍼센테이지 제공
-			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 모든 투자 유형(DAY, SWING) 포함
 			- 하루에 여러 피드백이 있으면 합산하여 표시
 			- 월 전체 통계(총 PnL, 평균 퍼센테이지) 제공
-			
+
 			사용 시나리오:
 			- 달력 UI에서 각 날짜별 수익률 표시
 			- 초록색(수익), 빨간색(손실)로 시각화
 			- 날짜 클릭 시 해당 일의 상세 피드백 목록 조회
-			
+
 			예시:
 			- GET /api/v1/feedback-requests/customers/me/years/2025/months/9/pnl-calendar
 			"""
@@ -203,7 +191,7 @@ public class FeedbackRequestV1Controller {
 
 			특징:
 			- isTrainerWritten = true인 피드백만 조회
-			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 모든 투자 유형(DAY, SWING) 포함
 			- 첨부 이미지, 제목, 매매 복기 포함
 			- 최신순 정렬 (createdAt DESC)
 			- 무한 스크롤 지원 (Slice 기반)

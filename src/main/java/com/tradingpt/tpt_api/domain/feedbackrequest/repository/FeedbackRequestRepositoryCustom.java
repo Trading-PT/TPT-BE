@@ -9,7 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
@@ -317,40 +316,62 @@ public interface FeedbackRequestRepositoryCustom {
 	Slice<FeedbackRequest> findTrainerWrittenFeedbacks(Pageable pageable);
 
 	/**
-	 * ✅ 주간 매매일지의 수익 매매 R&R 계산용 데이터 조회
-	 * - pnl > 0인 수익 매매만 조회
-	 * - 개별 매매의 pnl과 riskTaking 반환
+	 * ✅ 주간 매매일지의 수익 매매 평균 R&R 조회
+	 * - 특정 주차의 pnl > 0인 수익 매매만 조회
+	 * - DB의 rnr 컬럼 합계 / 수익 매매 개수로 계산
 	 *
 	 * @param customerId 고객 ID
 	 * @param year 연도
 	 * @param month 월
+	 * @param week 주차
 	 * @param courseStatus 완강 여부
 	 * @param investmentType 투자 타입
-	 * @return 수익 매매의 R&R 계산용 데이터 리스트
+	 * @return 수익 매매의 평균 R&R (소수점 2자리)
 	 */
-	List<TradeRnRData> findWinningTradesForWeeklySummary(
+	Double findAverageRnRForWeeklySummary(
 		Long customerId,
 		Integer year,
 		Integer month,
+		Integer week,
 		CourseStatus courseStatus,
 		InvestmentType investmentType
 	);
 
 	/**
-	 * ✅ 월간 매매일지의 수익 매매 R&R 계산용 데이터 조회
+	 * ✅ 월간 매매일지의 수익 매매 평균 R&R 조회
 	 * - pnl > 0인 수익 매매만 조회
-	 * - 개별 매매의 pnl과 riskTaking 반환
+	 * - DB의 rnr 컬럼 합계 / 수익 매매 개수로 계산
 	 *
 	 * @param customerId 고객 ID
 	 * @param year 연도
 	 * @param month 월
 	 * @param investmentType 투자 타입
-	 * @return 수익 매매의 R&R 계산용 데이터 리스트
+	 * @return 수익 매매의 평균 R&R (소수점 2자리)
 	 */
-	List<TradeRnRData> findWinningTradesForMonthlySummary(
+	Double findAverageRnRForMonthlySummary(
 		Long customerId,
 		Integer year,
 		Integer month,
+		InvestmentType investmentType
+	);
+
+	/**
+	 * ✅ 주간 성과 비교용 수익 매매 평균 R&R 조회
+	 * - 특정 주차의 pnl > 0인 수익 매매만 조회
+	 * - DB의 rnr 컬럼 합계 / 수익 매매 개수로 계산
+	 *
+	 * @param customerId 고객 ID
+	 * @param year 연도
+	 * @param month 월
+	 * @param week 주차
+	 * @param investmentType 투자 타입
+	 * @return 수익 매매의 평균 R&R (소수점 2자리)
+	 */
+	Double findAverageRnRForWeeklyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
 		InvestmentType investmentType
 	);
 

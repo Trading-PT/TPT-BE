@@ -16,7 +16,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProje
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DailyPnlDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackCardResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
@@ -24,28 +23,20 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequest
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MonthlyPnlCalendarResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListItemDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SelectedBestFeedbackListResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListItemDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TotalFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackItemDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TrainerWrittenFeedbackListResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
-import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
-import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -267,34 +258,8 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			.orElseThrow(() -> new FeedbackRequestException(
 				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
 
-		// 2. 피드백 답변 조회
-		FeedbackResponse feedbackResponse = feedbackRequest.getFeedbackResponse();
-
-		// 3. 응답 DTO 생성
-		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
-			FeedbackRequestDetailResponseDTO.builder()
-				.id(feedbackRequest.getId())
-				.investmentType(feedbackRequest.getInvestmentType())
-				.membershipLevel(feedbackRequest.getMembershipLevel())
-				.status(feedbackRequest.getStatus());
-
-		// 4. 타입별 상세 정보 추가
-		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
-			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
-		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
-			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
-		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
-			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
-		}
-
-		// 5. 피드백 응답 정보 추가
-		if (feedbackResponse != null) {
-			Trainer trainer = feedbackResponse.getTrainer();
-			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
-		}
-
-		return builder.build();
-
+		// 2. 통합 DTO 사용하여 응답 생성 (Single Table 전략)
+		return FeedbackRequestDetailResponseDTO.from(feedbackRequest);
 	}
 
 	/**
@@ -346,30 +311,8 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			log.info("Feedback request marked as read: id={}", feedbackRequestId);
 		}
 
-		// 4. 응답 DTO 생성
-		FeedbackRequestDetailResponseDTO.FeedbackRequestDetailResponseDTOBuilder builder =
-			FeedbackRequestDetailResponseDTO.builder()
-				.id(feedbackRequest.getId())
-				.investmentType(feedbackRequest.getInvestmentType())
-				.membershipLevel(feedbackRequest.getMembershipLevel())
-				.status(feedbackRequest.getStatus());
-
-		// 5. 타입별 상세 정보 추가
-		if (feedbackRequest instanceof DayRequestDetail dayRequest) {
-			builder.dayDetail(DayFeedbackRequestDetailResponseDTO.of(dayRequest));
-		} else if (feedbackRequest instanceof ScalpingRequestDetail scalpingRequest) {
-			builder.scalpingDetail(ScalpingFeedbackRequestDetailResponseDTO.of(scalpingRequest));
-		} else if (feedbackRequest instanceof SwingRequestDetail swingRequest) {
-			builder.swingDetail(SwingFeedbackRequestDetailResponseDTO.of(swingRequest));
-		}
-
-		// 6. 피드백 응답 정보 추가
-		if (feedbackResponse != null) {
-			Trainer trainer = feedbackResponse.getTrainer();
-			builder.feedbackResponse(FeedbackResponseDTO.of(feedbackResponse, trainer));
-		}
-
-		return builder.build();
+		// 4. 통합 DTO 사용하여 응답 생성 (Single Table 전략)
+		return FeedbackRequestDetailResponseDTO.from(feedbackRequest);
 	}
 
 	/**

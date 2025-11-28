@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -27,8 +26,7 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPo
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyFeedbackSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.MonthlyPerformanceSnapshot;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedGeneralMonthlySummaryDTO;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedScalpingMonthlySummaryDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.AfterCompletedCourseMonthlySummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.BeforeCompletedCourseMonthlySummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.EntryPointStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyFeedbackSummaryResponseDTO;
@@ -36,7 +34,6 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlySu
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackSummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
-import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.WeeklyFeedbackSummaryDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -104,12 +101,8 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		if (courseStatus == CourseStatus.BEFORE_COMPLETION || courseStatus == CourseStatus.PENDING_COMPLETION) {
 			return buildBeforeCompletionSummary(customerId, year, month, courseStatus, investmentType);
 		} else {
-			// 완강 후
-			if (investmentType == InvestmentType.SCALPING) {
-				return buildAfterCompletionScalpingSummary(customerId, year, month, courseStatus, investmentType);
-			} else {
-				return buildAfterCompletionGeneralSummary(customerId, year, month, courseStatus, investmentType);
-			}
+			// 완강 후 (DAY/SWING)
+			return buildAfterCompletionSummary(customerId, year, month, courseStatus, investmentType);
 		}
 	}
 
@@ -180,13 +173,12 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			.map(WeeklyRawData::getWeeklyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForMonthlySummary(
+		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
+
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double monthlyAverageRnr = feedbackRequestRepository.findAverageRnRForMonthlySummary(
 			customerId, year, month, investmentType
 		);
-
-		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
-		Double monthlyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedback = MonthlyFeedbackSummaryResponseDTO.of(
 			weekDTOs,
@@ -210,9 +202,9 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	/**
-	 * 완강 후 일반 월별 요약 생성 (스윙/데이)
+	 * 완강 후 월별 요약 생성 (스윙/데이)
 	 */
-	private AfterCompletedGeneralMonthlySummaryDTO buildAfterCompletionGeneralSummary(
+	private AfterCompletedCourseMonthlySummaryDTO buildAfterCompletionSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -242,13 +234,12 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			.map(WeeklyRawData::getWeeklyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForMonthlySummary(
+		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
+
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double monthlyAverageRnr = feedbackRequestRepository.findAverageRnRForMonthlySummary(
 			customerId, year, month, investmentType
 		);
-
-		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
-		Double monthlyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedback = MonthlyFeedbackSummaryResponseDTO.of(
 			weekDTOs,
@@ -290,7 +281,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		PerformanceComparison<PerformanceComparison.MonthSnapshot> performanceComparison =
 			buildMonthlyPerformanceComparison(customerId, year, month, investmentType);
 
-		return AfterCompletedGeneralMonthlySummaryDTO.of(
+		return AfterCompletedCourseMonthlySummaryDTO.of(
 			courseStatus,
 			investmentType,
 			year,
@@ -302,39 +293,6 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			entryPointDTO,
 			performanceComparison
 		);
-	}
-
-	/**
-	 * 완강 후 스캘핑 월별 요약 생성
-	 */
-	private AfterCompletedScalpingMonthlySummaryDTO buildAfterCompletionScalpingSummary(
-		Long customerId,
-		Integer year,
-		Integer month,
-		CourseStatus courseStatus,
-		InvestmentType investmentType
-	) {
-		// 1. 주차별 통계 조회 (Status 정보 포함)
-		List<WeeklyRawData> weeklyStats = feedbackRequestRepository.findWeeklyStatistics(
-			customerId, year, month, courseStatus, investmentType
-		);
-
-		// 2. 주차별 DTO 변환 (Status 우선순위 기반 결정)
-		List<WeeklyFeedbackSummaryDTO> weeklyFeedbacks = weeklyStats.stream()
-			.map(stat -> WeeklyFeedbackSummaryDTO.of(
-				stat.getWeek(),
-				stat.getTradingCount(),
-				FeedbackStatusUtil.determineReadStatus(stat.getFnCount())
-			))
-			.toList();
-
-		return AfterCompletedScalpingMonthlySummaryDTO.builder()
-			.courseStatus(courseStatus)
-			.investmentType(investmentType)
-			.year(year)
-			.month(month)
-			.weeklyFeedbackSummaryDTOS(weeklyFeedbacks)
-			.build();
 	}
 
 	/**

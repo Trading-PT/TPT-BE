@@ -38,5 +38,25 @@ public class FeedbackResponseAttachment extends BaseEntity {
 	@JoinColumn(name = "feedback_response_id")
 	private FeedbackResponse feedbackResponse;
 
-	private String fileUrl; // 파일 url
+	/** S3 파일 접근용 URL */
+	private String fileUrl;
+
+	/** S3 파일 삭제용 key */
+	private String fileKey;
+
+	public static FeedbackResponseAttachment createFrom(FeedbackResponse feedbackResponse, String fileUrl, String fileKey) {
+		return FeedbackResponseAttachment.builder()
+			.feedbackResponse(feedbackResponse)
+			.fileUrl(fileUrl)
+			.fileKey(fileKey)
+			.build();
+	}
+
+	/**
+	 * 파일 정보 변경 (URL, Key 동시 변경)
+	 */
+	public void changeFile(String fileUrl, String fileKey) {
+		this.fileUrl = fileUrl;
+		this.fileKey = fileKey;
+	}
 }

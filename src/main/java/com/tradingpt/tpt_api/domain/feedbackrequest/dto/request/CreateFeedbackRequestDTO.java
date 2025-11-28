@@ -13,7 +13,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
@@ -28,23 +28,33 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * 피드백 요청 생성 통합 DTO
+ * DAY, SWING 타입을 단일 DTO로 통합 관리
+ * - investmentType 필드로 타입 구분
+ * - 타입별 전용 필드는 검증 로직으로 관리
+ */
 @Getter
 @Setter
 @NoArgsConstructor
-@Schema(description = "스윙 피드백 요청 DTO")
-public class CreateSwingRequestDetailRequestDTO {
+@Schema(description = "피드백 요청 생성 DTO (DAY/SWING 통합)")
+public class CreateFeedbackRequestDTO {
 
 	// ========================================
-	// 공통 필드
+	// 타입 구분 필드
+	// ========================================
+
+	@NotNull(message = "투자 타입은 필수입니다.")
+	@Schema(description = "투자 타입 (DAY/SWING)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private InvestmentType investmentType;
+
+	// ========================================
+	// 공통 필드 (완강 전/후 모두 사용)
 	// ========================================
 
 	@NotNull(message = "완강 여부는 필수입니다.")
 	@Schema(description = "완강 여부", requiredMode = Schema.RequiredMode.REQUIRED)
 	private CourseStatus courseStatus;
-
-	@NotNull(message = "멤버십 레벨은 필수입니다.")
-	@Schema(description = "멤버십", requiredMode = Schema.RequiredMode.REQUIRED)
-	private MembershipLevel membershipLevel;
 
 	@NotNull(message = "피드백 요청 연도는 필수입니다.")
 	@Min(value = 2020, message = "연도는 2020년 이상이어야 합니다.")
@@ -78,11 +88,8 @@ public class CreateSwingRequestDetailRequestDTO {
 	private String positionHoldingTime;
 
 	@Schema(description = "스크린샷 이미지 파일")
+	@NotNull(message = "스크린샷 하나 이상은 필수입니다.")
 	private List<MultipartFile> screenshotFiles;
-
-	@NotNull(message = "포지션은 필수입니다.")
-	@Schema(description = "포지션 (LONG/SHORT)", requiredMode = Schema.RequiredMode.REQUIRED)
-	private Position position;
 
 	@NotNull(message = "리스크 테이킹은 필수입니다.")
 	@Schema(description = "리스크 테이킹", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -93,6 +100,10 @@ public class CreateSwingRequestDetailRequestDTO {
 	@DecimalMax(value = "125.0", message = "레버리지는 125.0 이하여야 합니다.")
 	@Schema(description = "레버리지 (1.0-125.0)", requiredMode = Schema.RequiredMode.REQUIRED)
 	private BigDecimal leverage;
+
+	@NotNull(message = "포지션은 필수입니다.")
+	@Schema(description = "포지션 (LONG/SHORT)", requiredMode = Schema.RequiredMode.REQUIRED)
+	private Position position;
 
 	@NotNull(message = "P&L은 필수입니다.")
 	@Schema(description = "P&L", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -111,9 +122,6 @@ public class CreateSwingRequestDetailRequestDTO {
 
 	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
 	private Boolean useToken;
-
-	@Schema(description = "사용할 토큰 개수 (기본값: 1)", example = "1")
-	private Integer tokenAmount;
 
 	// ========================================
 	// 공통 필드 (완강 전/후 모두 필수 또는 선택)
@@ -151,16 +159,8 @@ public class CreateSwingRequestDetailRequestDTO {
 	private String positionEndReason;
 
 	// ========================================
-	// 완강 후 전용 필드
+	// 완강 후 전용 필드 (DAY/SWING 공통)
 	// ========================================
-
-	@Schema(description = "포지션 시작 날짜 - 완강 후 필수")
-	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-	private LocalDate positionStartDate;
-
-	@Schema(description = "포지션 종료 날짜 - 완강 후 필수")
-	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-	private LocalDate positionEndDate;
 
 	@Schema(description = "디렉션 프레임 존재 여부 - 완강 후 필수")
 	private Boolean directionFrameExists;
@@ -193,6 +193,18 @@ public class CreateSwingRequestDetailRequestDTO {
 	private Integer splitSellCount;
 
 	// ========================================
+	// SWING 전용 필드 (DAY에서는 null)
+	// ========================================
+
+	@Schema(description = "포지션 시작 날짜 - SWING 완강 후 필수")
+	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+	private LocalDate positionStartDate;
+
+	@Schema(description = "포지션 종료 날짜 - SWING 완강 후 필수")
+	@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+	private LocalDate positionEndDate;
+
+	// ========================================
 	// Validation
 	// ========================================
 
@@ -205,14 +217,12 @@ public class CreateSwingRequestDetailRequestDTO {
 	public boolean isFeedbackPeriodValid() {
 		if (feedbackRequestDate == null || feedbackYear == null
 			|| feedbackMonth == null || feedbackWeek == null) {
-			return true; // @NotNull에서 검증되므로 여기서는 pass
+			return true;
 		}
 
-		// feedbackRequestDate로부터 실제 연/월/주차 계산
 		FeedbackPeriodUtil.FeedbackPeriod calculatedPeriod =
 			FeedbackPeriodUtil.resolveFrom(feedbackRequestDate);
 
-		// 입력값과 계산값 비교
 		return calculatedPeriod.year() == feedbackYear
 			&& calculatedPeriod.month() == feedbackMonth
 			&& calculatedPeriod.week() == feedbackWeek;
@@ -232,20 +242,25 @@ public class CreateSwingRequestDetailRequestDTO {
 	}
 
 	/**
-	 * 완강 후 필드 검증
+	 * 완강 후 필드 검증 (DAY/SWING 공통)
 	 */
 	@AssertTrue(message = "완강 후 요청은 완강 후 필드 입력이 필요합니다.")
 	@JsonIgnore
 	public boolean isAfterCompletionFieldsValid() {
 		if (courseStatus == CourseStatus.AFTER_COMPLETION) {
-			return positionStartDate != null
-				&& positionEndDate != null
-				&& directionFrameExists != null
+			boolean commonValid = directionFrameExists != null
 				&& directionFrame != null && !directionFrame.isBlank()
 				&& mainFrame != null && !mainFrame.isBlank()
 				&& subFrame != null && !subFrame.isBlank()
 				&& trendAnalysis != null && !trendAnalysis.isBlank()
 				&& entryPoint != null;
+
+			// SWING 타입은 추가로 포지션 날짜 필드가 필요
+			if (investmentType == InvestmentType.SWING) {
+				return commonValid && positionStartDate != null && positionEndDate != null;
+			}
+
+			return commonValid;
 		}
 		return true;
 	}
@@ -264,7 +279,6 @@ public class CreateSwingRequestDetailRequestDTO {
 	@AssertTrue(message = "진입/탈출 가격과 PNL/포지션의 논리적 일관성이 맞지 않습니다.")
 	@JsonIgnore
 	public boolean isEntryExitPriceConsistent() {
-		// 필수 필드가 null이면 다른 검증에서 처리되므로 여기서는 통과
 		if (position == null || entryPrice == null || exitPrice == null || pnl == null) {
 			return true;
 		}
@@ -273,23 +287,55 @@ public class CreateSwingRequestDetailRequestDTO {
 		int pnlComparison = pnl.compareTo(BigDecimal.ZERO);
 
 		if (position == Position.LONG) {
-			// 롱 포지션: PNL > 0이면 Exit > Entry, PNL < 0이면 Exit < Entry
 			if (pnlComparison > 0) {
-				return priceComparison > 0; // Exit Price > Entry Price
+				return priceComparison > 0;
 			} else if (pnlComparison < 0) {
-				return priceComparison < 0; // Exit Price < Entry Price
+				return priceComparison < 0;
 			}
 		} else if (position == Position.SHORT) {
-			// 숏 포지션: PNL > 0이면 Exit < Entry, PNL < 0이면 Exit > Entry
 			if (pnlComparison > 0) {
-				return priceComparison < 0; // Exit Price < Entry Price
+				return priceComparison < 0;
 			} else if (pnlComparison < 0) {
-				return priceComparison > 0; // Exit Price > Entry Price
+				return priceComparison > 0;
 			}
 		}
 
-		// PNL = 0인 경우 또는 예외 케이스는 통과
 		return true;
 	}
 
+	// ========================================
+	// Helper Methods
+	// ========================================
+
+	/**
+	 * DAY 타입 여부 확인
+	 */
+	@JsonIgnore
+	public boolean isDay() {
+		return this.investmentType == InvestmentType.DAY;
+	}
+
+	/**
+	 * SWING 타입 여부 확인
+	 */
+	@JsonIgnore
+	public boolean isSwing() {
+		return this.investmentType == InvestmentType.SWING;
+	}
+
+	/**
+	 * 완강 전 여부 확인
+	 */
+	@JsonIgnore
+	public boolean isBeforeCompletion() {
+		return this.courseStatus == CourseStatus.BEFORE_COMPLETION;
+	}
+
+	/**
+	 * 완강 후 여부 확인
+	 */
+	@JsonIgnore
+	public boolean isAfterCompletion() {
+		return this.courseStatus == CourseStatus.AFTER_COMPLETION;
+	}
 }

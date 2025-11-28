@@ -116,7 +116,7 @@ public class AdminFeedbackRequestV1Controller {
 			- 트레이너가 담당하는 고객들의 피드백만 조회
 			- status가 N (피드백 대기)인 것만 조회
 			- 최신순 정렬
-			- 모든 투자 유형(DAY, SCALPING, SWING) 포함
+			- 모든 투자 유형(DAY, SWING) 포함
 			- Slice 기반 무한 스크롤 지원
 			
 			사용 시나리오:
@@ -154,7 +154,7 @@ public class AdminFeedbackRequestV1Controller {
 			특정 피드백 요청의 상세 정보를 조회합니다.
 			
 			특징:
-			- 투자 유형별 상세 정보 포함 (DAY/SCALPING/SWING)
+			- 투자 유형별 상세 정보 포함 (DAY/SWING)
 			- 고객 정보 및 트레이너 응답 내용 포함
 			- 매매 내역, 손익 정보, 차트 이미지 등 모든 데이터 조회
 			

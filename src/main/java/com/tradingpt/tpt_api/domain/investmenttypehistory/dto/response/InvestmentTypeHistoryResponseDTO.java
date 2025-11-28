@@ -18,10 +18,10 @@ public class InvestmentTypeHistoryResponseDTO {
 	@Schema(description = "이력 ID", example = "1")
 	private Long id;
 
-	@Schema(description = "투자 유형", example = "SCALPING")
+	@Schema(description = "투자 유형", example = "DAY")
 	private InvestmentType investmentType;
 
-	@Schema(description = "투자 유형 설명", example = "스켈핑")
+	@Schema(description = "투자 유형 설명", example = "데이")
 	private String investmentTypeDescription;
 
 	@Schema(description = "시작일", example = "2025-01-01")

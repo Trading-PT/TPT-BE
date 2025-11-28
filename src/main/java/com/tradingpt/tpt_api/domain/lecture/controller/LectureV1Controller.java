@@ -4,6 +4,7 @@ import com.tradingpt.tpt_api.domain.lecture.dto.request.LectureProgressUpdateReq
 import com.tradingpt.tpt_api.domain.lecture.dto.response.AssignmentSubmissionDetailDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureDetailDTO;
+import com.tradingpt.tpt_api.domain.lecture.dto.response.LecturePlayResponseDTO;
 import com.tradingpt.tpt_api.domain.lecture.service.command.LectureCommandService;
 import com.tradingpt.tpt_api.domain.lecture.service.query.LectureQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -100,6 +101,23 @@ public class LectureV1Controller {
             @PathVariable Long lectureId
     ) {
         AssignmentSubmissionDetailDTO dto = lectureQueryService.getMyAssignmentDetail(userId, lectureId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(dto));
+    }
+
+    @Operation(
+            summary = "강의 재생 URL 발급",
+            description = """
+                강의 영상을 재생하기 위한 S3 GET Presigned URL을 발급합니다.
+                - 해당 유저에게 강의가 열려 있어야 합니다.
+                - 응답으로 주는 playUrl은 약 3시간 동안만 유효합니다.
+                """
+    )
+    @GetMapping("/{lectureId}/play")
+    public ResponseEntity<BaseResponse<LecturePlayResponseDTO>> getLecturePlayUrl(
+            @AuthenticationPrincipal(expression = "id") Long userId,
+            @PathVariable Long lectureId
+    ) {
+        LecturePlayResponseDTO dto = lectureQueryService.getLecturePlayUrl(userId, lectureId);
         return ResponseEntity.ok(BaseResponse.onSuccess(dto));
     }
 }

@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.service.command;
 
-import com.tradingpt.tpt_api.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +13,7 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradi
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryException;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
@@ -64,10 +63,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 				InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
 			.getInvestmentType();
 
-		// 3. ✅ 투자 타입 검증 (DAY 또는 SWING만 허용)
-		validateInvestmentType(investmentType);
-
-		// 4. 중복 체크
+		// 3. 중복 체크
 		boolean alreadyExists = monthlyTradingSummaryRepository
 			.existsByCustomerIdAndYearAndMonthAndInvestmentType(
 				customerId, year, month, investmentType);
@@ -110,23 +106,6 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 			customerId, year, month, investmentType);
 
 		return null;
-	}
-
-	/**
-	 * 투자 타입 검증
-	 * 월간 요약은 DAY 또는 SWING 타입에서만 작성 가능
-	 *
-	 * @param investmentType 투자 타입
-	 * @throws MonthlyTradingSummaryException SCALPING 타입인 경우
-	 */
-	private void validateInvestmentType(InvestmentType investmentType) {
-		if (investmentType == InvestmentType.SCALPING) {
-			log.warn("Attempted to create monthly summary for SCALPING type");
-			throw new MonthlyTradingSummaryException(
-				MonthlyTradingSummaryErrorStatus.INVALID_INVESTMENT_TYPE);
-		}
-
-		log.debug("Investment type validation passed: {}", investmentType);
 	}
 
 	/**

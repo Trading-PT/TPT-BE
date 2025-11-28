@@ -12,8 +12,8 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "완강 후 고객 주별 요약 - 스윙/스켈핑 트레이딩")
-public class AfterCompletedGeneralWeeklySummaryDTO extends WeeklySummaryResponseDTO {
+@Schema(description = "완강 후 고객 주별 요약 - 스윙 트레이딩")
+public class AfterCompletedSwingWeeklySummaryDTO extends WeeklySummaryResponseDTO {
 
 	@Schema(description = "일별 트레이딩 피드백")
 	private List<DailyFeedbackSummaryDTO> dailyFeedbackSummaryDTOS;

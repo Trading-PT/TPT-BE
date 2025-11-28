@@ -1,10 +1,11 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.dto.response;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
@@ -28,6 +29,12 @@ public class FeedbackCardResponseDTO {
 
 	@Schema(description = "제목", example = "8/24 (I) 작성 완료")
 	private String title;
+
+	@Schema(description = "첨부 이미지 URL 목록")
+	private List<String> imageUrls;
+
+	@Schema(description = "전체 자산 대비 PNL")
+	private BigDecimal totalAssetPnl; // 전체 자산 대비 PNL
 
 	@Schema(description = "내용 미리보기", example = "안녕하세요 트레이너님! 저번에 조언해주신 대로...")
 	private String contentPreview;
@@ -57,6 +64,12 @@ public class FeedbackCardResponseDTO {
 		return FeedbackCardResponseDTO.builder()
 			.feedbackRequestId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
+			.imageUrls(
+				feedbackRequest.getFeedbackRequestAttachments()
+					.stream().map(FeedbackRequestAttachment::getFileUrl)
+					.toList()
+			)
+			.totalAssetPnl(feedbackRequest.getTotalAssetPnl())
 			.contentPreview(generatePreview(feedbackRequest))
 			.createdAt(feedbackRequest.getCreatedAt())
 			.investmentType(feedbackRequest.getInvestmentType())
@@ -72,8 +85,7 @@ public class FeedbackCardResponseDTO {
 	 *
 	 * 규칙:
 	 * 1. BEFORE_COMPLETION: tradingReview
-	 * 2. AFTER_COMPLETION + SCALPING: tradingReview
-	 * 3. AFTER_COMPLETION + (DAY or SWING): trainerFeedbackRequestContent
+	 * 2. AFTER_COMPLETION + (DAY or SWING): trainerFeedbackRequestContent
 	 */
 	private static String generatePreview(FeedbackRequest feedbackRequest) {
 		String contentToPreview = null;
@@ -83,20 +95,9 @@ public class FeedbackCardResponseDTO {
 			|| feedbackRequest.getCourseStatus() == CourseStatus.PENDING_COMPLETION) {
 			contentToPreview = feedbackRequest.getTradingReview();
 		}
-		// AFTER_COMPLETION
+		// AFTER_COMPLETION: DAY or SWING이면 trainerFeedbackRequestContent
 		else if (feedbackRequest.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
-			// SCALPING이면 tradingReview
-			if (feedbackRequest.getInvestmentType() == InvestmentType.SCALPING) {
-				contentToPreview = feedbackRequest.getTradingReview();
-			}
-			// DAY or SWING이면 trainerFeedbackRequestContent
-			else if (feedbackRequest.getInvestmentType() == InvestmentType.DAY) {
-				DayRequestDetail dayRequest = (DayRequestDetail)feedbackRequest;
-				contentToPreview = dayRequest.getTrainerFeedbackRequestContent();
-			} else if (feedbackRequest.getInvestmentType() == InvestmentType.SWING) {
-				SwingRequestDetail swingRequest = (SwingRequestDetail)feedbackRequest;
-				contentToPreview = swingRequest.getTrainerFeedbackRequestContent();
-			}
+			contentToPreview = feedbackRequest.getTrainerFeedbackRequestContent();
 		}
 
 		// 내용이 없으면 기본 메시지

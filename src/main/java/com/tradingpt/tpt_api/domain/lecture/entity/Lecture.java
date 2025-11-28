@@ -58,6 +58,9 @@ public class Lecture extends BaseEntity {
     @Column(name = "thumbnail_url")
     private String thumbnailUrl;
 
+    @Column(name = "thumbnail_key")
+    private String thumbnailKey;
+
     /** S3 영상 접근용 URL */
     @Column(name = "video_url")
     private String videoUrl;
@@ -90,7 +93,6 @@ public class Lecture extends BaseEntity {
             User trainer,
             String title,
             String content,
-            String videoUrl,
             String videoKey,
             Integer durationSeconds,
             Integer lectureOrder,
@@ -102,7 +104,6 @@ public class Lecture extends BaseEntity {
         this.trainer = trainer;
         this.title = title;
         this.content = content;
-        this.videoUrl = videoUrl;
         this.videoKey = videoKey;
         this.durationSeconds = (durationSeconds != null) ? durationSeconds : 0;
         this.lectureOrder = lectureOrder;

@@ -1,37 +1,25 @@
 package com.tradingpt.tpt_api.domain.feedbackrequest.service.command;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateDayRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateScalpingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateSwingRequestDetailRequestDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.DayFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.ScalpingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.SwingFeedbackRequestDetailResponseDTO;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.DayRequestDetail;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.ScalpingRequestDetail;
-import com.tradingpt.tpt_api.domain.feedbackrequest.entity.SwingRequestDetail;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
-import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.common.RewardConstants;
-import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 import com.tradingpt.tpt_api.global.infrastructure.s3.response.S3UploadResult;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,41 +35,38 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private final S3FileService s3FileService;
 
 	@Override
-	public DayFeedbackRequestDetailResponseDTO createDayRequest(CreateDayRequestDetailRequestDTO request,
-		Long customerId) {
+	public FeedbackRequestDetailResponseDTO createFeedbackRequest(CreateFeedbackRequestDTO request, Long customerId) {
 		Customer customer = getCustomerById(customerId);
 
-		// 사용자의 트레이딩 타입 체크 ( throw exception )
-		customer.checkTradingType(InvestmentType.DAY);
+		// ✅ 사용자의 트레이딩 타입 체크 (DDD: Entity에서 검증)
+		customer.checkTradingType(request.getInvestmentType());
 
-		// ✅ 토큰 검증 및 차감 (선택적)
-		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
+		// ✅ courseStatus 검증 (DDD: Entity에서 검증)
+		customer.validateCourseStatusCompatibility(request.getCourseStatus());
 
-		// Day는 몇 주차 피드백인지 서버에서 자동으로 알아내야한다.
-		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
+		// ✅ 토큰 검증 및 차감 (DDD: Entity에서 검증 및 상태 변경)
+		boolean tokenConsumed = customer.validateAndConsumeTokenForFeedback(
+			request.getUseToken(),
+			RewardConstants.DEFAULT_TOKEN_CONSUMPTION
+		);
 
-		// 거래 날짜를 기반으로 제목을 자동 생성함.
-		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			request.getCategory(), request.getTotalAssetPnl());
-
-		// DayRequestDetail 생성
-		DayRequestDetail dayRequest = DayRequestDetail.createFrom(request, customer, period, title);
+		// ✅ FeedbackRequest 생성 (DDD: Entity Factory Method 활용)
+		FeedbackRequest feedbackRequest = FeedbackRequest.createFrom(request, customer);
 
 		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
-		uploadScreenshots(request.getScreenshotFiles(), dayRequest);
+		uploadScreenshots(request.getScreenshotFiles(), feedbackRequest);
 
 		// ✅ 토큰 사용 여부 설정
-		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-			dayRequest.useToken(tokenAmount);
+		if (tokenConsumed) {
+			feedbackRequest.useToken(RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
-				customerId, tokenAmount);
+				customerId, RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
 		} else {
 			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
 		}
 
 		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
-		DayRequestDetail saved = (DayRequestDetail)feedbackRequestRepository.save(dayRequest);
+		FeedbackRequest saved = feedbackRequestRepository.save(feedbackRequest);
 
 		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
 		customer.incrementFeedbackCount();
@@ -100,115 +85,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
 
-		return DayFeedbackRequestDetailResponseDTO.of(saved);
-	}
-
-	@Override
-	public ScalpingFeedbackRequestDetailResponseDTO createScalpingRequest(CreateScalpingRequestDetailRequestDTO request,
-		Long customerId) {
-		Customer customer = getCustomerById(customerId);
-
-		// 사용자의 트레이딩 타입 체크 ( throw exception )
-		customer.checkTradingType(InvestmentType.SCALPING);
-
-		// ✅ 토큰 검증 및 차감 (선택적)
-		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
-
-		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
-
-		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			request.getCategory(), request.getTotalAssetPnl());
-
-		// ScalpingRequestDetail 생성
-		ScalpingRequestDetail scalpingRequest = ScalpingRequestDetail.createFrom(request, customer, period, title);
-
-		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
-		uploadScreenshots(request.getScreenshotFiles(), scalpingRequest);
-
-		// ✅ 토큰 사용 여부 설정
-		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-			scalpingRequest.useToken(tokenAmount);
-			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
-				customerId, tokenAmount);
-		} else {
-			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
-		}
-
-		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
-		ScalpingRequestDetail saved = (ScalpingRequestDetail)feedbackRequestRepository.save(scalpingRequest);
-
-		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
-		customer.incrementFeedbackCount();
-		boolean rewarded = customer.rewardTokensIfEligible(
-			RewardConstants.FEEDBACK_THRESHOLD,
-			RewardConstants.TOKEN_REWARD_AMOUNT
-		);
-
-		if (rewarded) {
-			log.info("🎉 Token reward milestone reached! customerId={}, feedbackCount={}, tokensEarned={}, totalTokens={}",
-				customerId,
-				customer.getFeedbackRequestCount(),
-				RewardConstants.TOKEN_REWARD_AMOUNT,
-				customer.getToken());
-		}
-
-		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
-
-		return ScalpingFeedbackRequestDetailResponseDTO.of(saved);
-	}
-
-	@Override
-	public SwingFeedbackRequestDetailResponseDTO createSwingRequest(CreateSwingRequestDetailRequestDTO request,
-		Long customerId) {
-		Customer customer = getCustomerById(customerId);
-
-		// 사용자의 트레이딩 타입 체크 ( throw exception )
-		customer.checkTradingType(InvestmentType.SWING);
-
-		// ✅ 토큰 검증 및 차감 (선택적)
-		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
-
-		String title = buildFeedbackTitle(request.getFeedbackRequestDate(),
-			request.getCategory(), request.getTotalAssetPnl());
-
-		// SwingRequestDetail 생성
-		SwingRequestDetail swingRequest = SwingRequestDetail.createFrom(request, customer, title);
-
-		// ⭐ 스크린샷 업로드 (공통 메서드 사용)
-		uploadScreenshots(request.getScreenshotFiles(), swingRequest);
-
-		// ✅ 토큰 사용 여부 설정
-		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-			swingRequest.useToken(tokenAmount);
-			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
-				customerId, tokenAmount);
-		} else {
-			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
-		}
-
-		// CASCADE 설정으로 FeedbackRequest 저장 시 attachment도 자동 저장됨
-		SwingRequestDetail saved = (SwingRequestDetail)feedbackRequestRepository.save(swingRequest);
-
-		// ⭐ 피드백 카운트 증가 및 토큰 보상 (DDD 패턴)
-		customer.incrementFeedbackCount();
-		boolean rewarded = customer.rewardTokensIfEligible(
-			RewardConstants.FEEDBACK_THRESHOLD,
-			RewardConstants.TOKEN_REWARD_AMOUNT
-		);
-
-		if (rewarded) {
-			log.info("🎉 Token reward milestone reached! customerId={}, feedbackCount={}, tokensEarned={}, totalTokens={}",
-				customerId,
-				customer.getFeedbackRequestCount(),
-				RewardConstants.TOKEN_REWARD_AMOUNT,
-				customer.getToken());
-		}
-
-		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
-
-		return SwingFeedbackRequestDetailResponseDTO.of(saved);
+		return FeedbackRequestDetailResponseDTO.from(saved);
 	}
 
 	@Override
@@ -294,60 +171,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		for (MultipartFile screenshotFile : screenshotFiles) {
 			if (screenshotFile != null && !screenshotFile.isEmpty()) {
 				S3UploadResult uploadResult = s3FileService.upload(screenshotFile, "feedback-requests/screenshots");
-				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url());
+				FeedbackRequestAttachment.createFrom(feedbackRequest, uploadResult.url(), uploadResult.key());
 			}
 		}
 	}
 
-	/**
-	 * ✅ 토큰 검증 및 차감 (선택적)
-	 *
-	 * 변경된 로직:
-	 * - BASIC 멤버십: 토큰 사용 선택 가능
-	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
-	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
-	 * - PREMIUM 멤버십: 토큰 사용 불가 (기존 유지)
-	 */
-	private void validateAndConsumeTokenIfNeeded(Customer customer, Boolean useToken, Integer tokenAmount) {
-		MembershipLevel membershipLevel = customer.getMembershipLevel();
-
-		// PREMIUM 멤버십인 경우
-		if (membershipLevel == MembershipLevel.PREMIUM) {
-			// 토큰 사용 불가
-			if (Boolean.TRUE.equals(useToken)) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
-			}
-			// PREMIUM은 토큰 없이 자유롭게 생성 가능
-			return;
-		}
-
-		// BASIC 멤버십인 경우
-		if (membershipLevel == MembershipLevel.BASIC) {
-			// 토큰 사용을 선택한 경우
-			if (Boolean.TRUE.equals(useToken)) {
-				// 토큰 개수 기본값 설정 (기본 3개 소모)
-				int requiredTokens = tokenAmount != null ? tokenAmount : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-
-				// 토큰 부족 체크
-				if (customer.getToken() < requiredTokens) {
-					log.warn("Insufficient tokens: customerId={}, required={}, available={}",
-						customer.getId(), requiredTokens, customer.getToken());
-					throw new FeedbackRequestException(
-						FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
-				}
-
-				// 토큰 차감
-				customer.updateToken(customer.getToken() - requiredTokens);
-				log.info("Token consumed: customerId={}, amount={}, remaining={}",
-					customer.getId(), requiredTokens, customer.getToken());
-			} else {
-				// 토큰 사용 안 함 → 기록용으로만 생성
-				log.info("BASIC member creating record-only feedback: customerId={}",
-					customer.getId());
-			}
-		}
-	}
 
 	/**
 	 * Customer ID로 Customer 엔티티를 조회한다.
@@ -361,39 +189,5 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 	}
 
-	/**
-	 * 피드백 요청의 제목을 생성한다.
-	 * 형식: "월/일 종목 ±전체자산대비PnL%"
-	 * 예시: "11/17 주식 +5%", "11/18 코인 -3.5%"
-	 *
-	 * @param requestDate 요청 날짜
-	 * @param category 종목
-	 * @param totalAssetPnl 전체 자산 대비 P&L
-	 * @return 생성된 제목
-	 */
-	private String buildFeedbackTitle(LocalDate requestDate, String category, BigDecimal totalAssetPnl) {
-		int month = requestDate.getMonthValue();
-		int day = requestDate.getDayOfMonth();
-
-		// totalAssetPnl을 퍼센트 문자열로 변환
-		String pnlString;
-		if (totalAssetPnl == null) {
-			pnlString = "0%";
-		} else {
-			// 불필요한 trailing zeros 제거
-			BigDecimal strippedPnl = totalAssetPnl.stripTrailingZeros();
-
-			// 양수면 + 기호 추가, 음수는 자동으로 - 기호 포함
-			if (totalAssetPnl.compareTo(BigDecimal.ZERO) > 0) {
-				pnlString = "+" + strippedPnl.toPlainString() + "%";
-			} else if (totalAssetPnl.compareTo(BigDecimal.ZERO) < 0) {
-				pnlString = strippedPnl.toPlainString() + "%";
-			} else {
-				pnlString = "0%";
-			}
-		}
-
-		return String.format("%d/%d %s %s", month, day, category, pnlString);
-	}
 
 }

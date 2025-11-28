@@ -27,9 +27,6 @@ public class LectureDetailResponseDTO {
     @Schema(description = "강의 본문/설명", example = "이번 강의에서는 투자 심리에 대해 다룹니다.")
     private String content;
 
-    @Schema(description = "동영상 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/lectures/2025-11-07/video.mp4")
-    private String videoUrl;
-
     @Schema(description = "S3 비디오 Key", example = "lectures/2025-11-07/video.mp4")
     private String videoKey;
 
@@ -63,7 +60,6 @@ public class LectureDetailResponseDTO {
                 .chapterId(lecture.getChapter().getId())
                 .title(lecture.getTitle())
                 .content(lecture.getContent())
-                .videoUrl(lecture.getVideoUrl())
                 .videoKey(lecture.getVideoKey())
                 .durationSeconds(lecture.getDurationSeconds())
                 .lectureExposure(lecture.getLectureExposure())
