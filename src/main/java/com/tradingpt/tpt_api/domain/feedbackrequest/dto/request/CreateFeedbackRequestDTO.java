@@ -123,9 +123,6 @@ public class CreateFeedbackRequestDTO {
 	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
 	private Boolean useToken;
 
-	@Schema(description = "사용할 토큰 개수 (기본값: 1)", example = "1")
-	private Integer tokenAmount;
-
 	// ========================================
 	// 공통 필드 (완강 전/후 모두 필수 또는 선택)
 	// ========================================

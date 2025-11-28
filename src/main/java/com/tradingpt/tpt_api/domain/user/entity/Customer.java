@@ -368,4 +368,64 @@ public class Customer extends User {
 		}
 		this.token += amount;
 	}
+
+	// ========================================
+	// 피드백 요청 검증 비즈니스 메서드
+	// ========================================
+
+	/**
+	 * 요청한 완강 상태가 현재 고객의 완강 상태와 호환되는지 검증
+	 * 불일치 시 FeedbackRequestException 발생
+	 *
+	 * @param requestCourseStatus 요청한 완강 상태
+	 * @throws FeedbackRequestException courseStatus가 호환되지 않는 경우
+	 */
+	public void validateCourseStatusCompatibility(CourseStatus requestCourseStatus) {
+		if (!this.courseStatus.isCompatibleWith(requestCourseStatus)) {
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.COURSE_STATUS_MISMATCH);
+		}
+	}
+
+	/**
+	 * 피드백 요청 시 토큰 검증 및 차감 (멤버십에 따른 분기 처리)
+	 *
+	 * 변경된 로직:
+	 * - BASIC 멤버십: 토큰 사용 선택 가능
+	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
+	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
+	 * - PREMIUM 멤버십: 토큰 사용 불가
+	 *
+	 * @param useToken       토큰 사용 여부
+	 * @param requiredTokens 차감할 토큰 개수 (서버에서 고정된 값)
+	 * @return 실제로 토큰이 차감되었는지 여부
+	 * @throws FeedbackRequestException PREMIUM이 토큰 사용 시도 또는 토큰 부족 시
+	 */
+	public boolean validateAndConsumeTokenForFeedback(Boolean useToken, int requiredTokens) {
+		// PREMIUM 멤버십인 경우
+		if (this.membershipLevel == MembershipLevel.PREMIUM) {
+			if (Boolean.TRUE.equals(useToken)) {
+				throw new FeedbackRequestException(
+					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
+			}
+			// PREMIUM은 토큰 없이 자유롭게 생성 가능
+			return false;
+		}
+
+		// BASIC 멤버십인 경우
+		if (this.membershipLevel == MembershipLevel.BASIC) {
+			if (Boolean.TRUE.equals(useToken)) {
+				// 토큰 부족 체크
+				if (this.token < requiredTokens) {
+					throw new FeedbackRequestException(FeedbackRequestErrorStatus.INSUFFICIENT_TOKEN);
+				}
+				// 토큰 차감
+				this.token -= requiredTokens;
+				return true;
+			}
+			// 토큰 사용 안 함 → 기록용으로만 생성
+			return false;
+		}
+
+		return false;
+	}
 }
