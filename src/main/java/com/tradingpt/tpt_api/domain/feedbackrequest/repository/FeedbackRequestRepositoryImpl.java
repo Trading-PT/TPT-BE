@@ -233,24 +233,31 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer month,
 		InvestmentType investmentType
 	) {
+		// courseStatus 필터 제거: 해당 월의 모든 피드백을 대상으로 통계
+		// (완강 전/후는 Service에서 분기 처리되므로 여기서는 필터링 불필요)
 		BooleanBuilder basePredicate = new BooleanBuilder()
 			.and(feedbackRequest.customer.id.eq(customerId))
 			.and(feedbackRequest.feedbackYear.eq(year))
 			.and(feedbackRequest.feedbackMonth.eq(month))
-			.and(feedbackRequest.investmentType.eq(investmentType))
-			.and(feedbackRequest.courseStatus.eq(CourseStatus.AFTER_COMPLETION));
+			.and(feedbackRequest.investmentType.eq(investmentType));
 
+		// 승률 계산: totalAssetPnl > 0 기준 (전체 자산 기준 P&L)
 		NumberExpression<Integer> winCase = new CaseBuilder()
-			.when(feedbackRequest.pnl.gt(BigDecimal.ZERO))
+			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
 			.then(1)
 			.otherwise(0);
+
+		// 수익 매매의 rnr 합계 (totalAssetPnl > 0인 경우만 rnr 합산)
+		NumberExpression<Double> winningRnrCase = new CaseBuilder()
+			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
+			.then(feedbackRequest.rnr)
+			.otherwise((Double) null);
 
 		var reverseStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
 			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.REVERSE)))
@@ -260,8 +267,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
 			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.PULL_BACK)))
@@ -271,8 +277,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
 			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.BREAK_OUT)))
@@ -285,9 +290,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
 				reverseStats != null ? reverseStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				reverseStats != null ? reverseStats.get(2, Double.class) : 0.0,
+				reverseStats != null ? reverseStats.get(1, Integer.class) : 0
 			),
 			// PULL_BACK
 			pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
@@ -295,9 +300,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
 				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				pullBackStats != null ? pullBackStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				pullBackStats != null ? pullBackStats.get(2, Double.class) : 0.0,
+				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 			),
 			// BREAK_OUT
 			breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
@@ -305,11 +310,24 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
 				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				breakOutStats != null ? breakOutStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				breakOutStats != null ? breakOutStats.get(2, Double.class) : 0.0,
+				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 			)
 		);
+	}
+
+	/**
+	 * 수익 매매의 평균 RnR 계산
+	 * @param winningRnrSum 수익 매매의 rnr 합계
+	 * @param winCount 수익 매매 개수
+	 * @return 평균 RnR (수익 매매가 없으면 0.0)
+	 */
+	private Double calculateAverageWinningRnr(Double winningRnrSum, Integer winCount) {
+		if (winCount == null || winCount == 0 || winningRnrSum == null) {
+			return 0.0;
+		}
+		return winningRnrSum / winCount;
 	}
 
 	@Override
