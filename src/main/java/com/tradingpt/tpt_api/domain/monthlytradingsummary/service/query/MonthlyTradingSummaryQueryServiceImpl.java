@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -174,13 +173,12 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			.map(WeeklyRawData::getWeeklyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForMonthlySummary(
+		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
+
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double monthlyAverageRnr = feedbackRequestRepository.findAverageRnRForMonthlySummary(
 			customerId, year, month, investmentType
 		);
-
-		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
-		Double monthlyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedback = MonthlyFeedbackSummaryResponseDTO.of(
 			weekDTOs,
@@ -236,13 +234,12 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 			.map(WeeklyRawData::getWeeklyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForMonthlySummary(
+		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
+
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double monthlyAverageRnr = feedbackRequestRepository.findAverageRnRForMonthlySummary(
 			customerId, year, month, investmentType
 		);
-
-		Double winningRate = TradingCalculationUtil.calculateWinRate(totalTradingCount, totalWinCount);
-		Double monthlyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		MonthlyFeedbackSummaryResponseDTO monthlyFeedback = MonthlyFeedbackSummaryResponseDTO.of(
 			weekDTOs,
