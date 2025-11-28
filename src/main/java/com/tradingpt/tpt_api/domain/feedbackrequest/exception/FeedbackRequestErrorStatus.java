@@ -62,6 +62,7 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	INSUFFICIENT_TOKEN(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_21", "토큰이 부족합니다."),
 	TOKEN_REQUIRED_FOR_BASIC_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_22", "BASIC 멤버십은 토큰을 사용해야 피드백 요청이 가능합니다."),
 	TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_23", "PREMIUM 멤버십은 토큰을 사용할 수 없습니다."),
+	COURSE_STATUS_MISMATCH(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_24", "요청한 완강 상태가 현재 사용자의 완강 상태와 일치하지 않습니다."),
 	;
 
 	private final HttpStatus httpStatus;
