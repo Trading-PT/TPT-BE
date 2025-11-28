@@ -99,7 +99,8 @@
       "Bash(aws codedeploy:*)",
       "Bash(aws codedeploy list-deployment-groups:*)",
       "mcp__mysql__list_tables",
-      "mcp__mysql__fetch_data"
+      "mcp__mysql__fetch_data",
+      "mcp__mysql-dev__write_query"
     ],
     "deny": [],
     "ask": []
