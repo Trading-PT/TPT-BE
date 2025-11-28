@@ -17,6 +17,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestExc
 import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRepository;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -45,6 +46,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// 사용자의 트레이딩 타입 체크 (throw exception)
 		customer.checkTradingType(request.getInvestmentType());
 
+		// ✅ courseStatus 검증: 요청한 완강 상태가 현재 사용자의 완강 상태와 일치하는지 확인
+		validateCourseStatus(customer, request.getCourseStatus());
+
 		// ✅ 토큰 검증 및 차감 (선택적)
 		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
 
@@ -62,7 +66,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 			.customer(customer)
 			.title(title)
 			.courseStatus(request.getCourseStatus())
-			.membershipLevel(request.getMembershipLevel())
+			.membershipLevel(customer.getMembershipLevel())  // ✅ 서버에서 조회한 멤버십 레벨 사용
 			// 날짜 정보
 			.feedbackYear(period.year())
 			.feedbackMonth(period.month())
@@ -286,6 +290,42 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	private Customer getCustomerById(Long customerId) {
 		return (Customer)userRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+	}
+
+	/**
+	 * ✅ courseStatus 검증
+	 *
+	 * 요청한 완강 상태가 현재 사용자의 완강 상태와 일치하는지 확인한다.
+	 * - PENDING_COMPLETION은 BEFORE_COMPLETION과 동일하게 취급 (완강 전 필드 검증 필요)
+	 * - 불일치 시 예외 발생
+	 *
+	 * @param customer 고객 엔티티
+	 * @param requestCourseStatus 요청한 완강 상태
+	 * @throws FeedbackRequestException courseStatus가 일치하지 않는 경우
+	 */
+	private void validateCourseStatus(Customer customer, CourseStatus requestCourseStatus) {
+		CourseStatus customerCourseStatus = customer.getCourseStatus();
+
+		// PENDING_COMPLETION과 BEFORE_COMPLETION은 동일하게 취급
+		// (월 중간에 완강해도 다음 달까지는 BEFORE_COMPLETION으로 간주)
+		boolean customerIsBeforeCompletion =
+			customerCourseStatus == CourseStatus.BEFORE_COMPLETION ||
+			customerCourseStatus == CourseStatus.PENDING_COMPLETION;
+
+		boolean requestIsBeforeCompletion =
+			requestCourseStatus == CourseStatus.BEFORE_COMPLETION ||
+			requestCourseStatus == CourseStatus.PENDING_COMPLETION;
+
+		// 둘 다 "완강 전" 그룹이거나 둘 다 AFTER_COMPLETION인 경우 일치
+		boolean isMatch = (customerIsBeforeCompletion && requestIsBeforeCompletion) ||
+			(customerCourseStatus == CourseStatus.AFTER_COMPLETION &&
+			 requestCourseStatus == CourseStatus.AFTER_COMPLETION);
+
+		if (!isMatch) {
+			log.warn("CourseStatus mismatch: customerId={}, customerStatus={}, requestStatus={}",
+				customer.getId(), customerCourseStatus, requestCourseStatus);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.COURSE_STATUS_MISMATCH);
+		}
 	}
 
 	/**
