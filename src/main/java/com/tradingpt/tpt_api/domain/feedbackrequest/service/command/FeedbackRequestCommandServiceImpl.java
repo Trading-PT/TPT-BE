@@ -50,7 +50,7 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		validateCourseStatus(customer, request.getCourseStatus());
 
 		// ✅ 토큰 검증 및 차감 (선택적)
-		validateAndConsumeTokenIfNeeded(customer, request.getUseToken(), request.getTokenAmount());
+		validateAndConsumeTokenIfNeeded(customer, request.getUseToken());
 
 		// 피드백 기간 정보 계산
 		FeedbackPeriodUtil.FeedbackPeriod period = FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
@@ -111,10 +111,9 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 
 		// ✅ 토큰 사용 여부 설정
 		if (Boolean.TRUE.equals(request.getUseToken())) {
-			Integer tokenAmount = request.getTokenAmount() != null ? request.getTokenAmount() : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
-			feedbackRequest.useToken(tokenAmount);
+			feedbackRequest.useToken(RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
 			log.info("Feedback request created with token: customerId={}, tokenAmount={}",
-				customerId, tokenAmount);
+				customerId, RewardConstants.DEFAULT_TOKEN_CONSUMPTION);
 		} else {
 			log.info("Feedback request created as record-only (no token): customerId={}", customerId);
 		}
@@ -238,8 +237,11 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
 	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
 	 * - PREMIUM 멤버십: 토큰 사용 불가 (기존 유지)
+	 *
+	 * ⚠️ 토큰 차감 개수는 서버에서 RewardConstants.DEFAULT_TOKEN_CONSUMPTION으로 고정
+	 *    (프론트에서 임의 변경 불가)
 	 */
-	private void validateAndConsumeTokenIfNeeded(Customer customer, Boolean useToken, Integer tokenAmount) {
+	private void validateAndConsumeTokenIfNeeded(Customer customer, Boolean useToken) {
 		MembershipLevel membershipLevel = customer.getMembershipLevel();
 
 		// PREMIUM 멤버십인 경우
@@ -257,8 +259,8 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		if (membershipLevel == MembershipLevel.BASIC) {
 			// 토큰 사용을 선택한 경우
 			if (Boolean.TRUE.equals(useToken)) {
-				// 토큰 개수 기본값 설정 (기본 3개 소모)
-				int requiredTokens = tokenAmount != null ? tokenAmount : RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
+				// 서버에서 고정된 토큰 차감 개수 사용
+				int requiredTokens = RewardConstants.DEFAULT_TOKEN_CONSUMPTION;
 
 				// 토큰 부족 체크
 				if (customer.getToken() < requiredTokens) {
