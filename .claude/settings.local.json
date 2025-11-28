@@ -100,7 +100,16 @@
       "Bash(aws codedeploy list-deployment-groups:*)",
       "mcp__mysql__list_tables",
       "mcp__mysql__fetch_data",
-      "mcp__mysql-dev__write_query"
+      "mcp__mysql-dev__write_query",
+      "Bash(mysql:*)",
+      "Bash(source ~/.zshrc)",
+      "Bash(source ~/.bashrc)",
+      "Bash(docker ps:*)",
+      "Bash(docker exec:*)",
+      "Bash(docker logs:*)",
+      "Bash(env)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
