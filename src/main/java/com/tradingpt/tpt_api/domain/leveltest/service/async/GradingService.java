@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.async;
 
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -28,7 +30,7 @@ public class GradingService {
 	 * 여러 서버/스레드에서 동시에 들어와도 "원자적 선점"으로 한쪽만 채점 수행.
 	 */
 	@Transactional
-	public void gradeAttemptSafely(Long attemptId) {
+	public void gradeAttemptSafely(Long attemptId, Customer customer) {
 		// 1) 선점: SUBMITTED → GRADING (원자적 상태 플립)
 		int acquired = attemptRepository.acquireForGrading(attemptId, LevelTestStaus.SUBMITTED, LevelTestStaus.GRADING);
 		if (acquired == 0) {
@@ -61,5 +63,6 @@ public class GradingService {
 
 		attempt.updateTotalScore(total);
 		// JPA 변경감지로 flush
+		customer.setLeveltestStatus(LeveltestStatus.COMPLETED);
 	}
 }

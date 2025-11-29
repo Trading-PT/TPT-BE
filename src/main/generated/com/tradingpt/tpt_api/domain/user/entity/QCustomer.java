@@ -43,6 +43,8 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final ListPath<com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory, com.tradingpt.tpt_api.domain.investmenttypehistory.entity.QInvestmentTypeHistory> investmentHistories = this.<com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory, com.tradingpt.tpt_api.domain.investmenttypehistory.entity.QInvestmentTypeHistory>createList("investmentHistories", com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory.class, com.tradingpt.tpt_api.domain.investmenttypehistory.entity.QInvestmentTypeHistory.class, PathInits.DIRECT2);
 
+    public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus> leveltestStatus = createEnum("leveltestStatus", com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus.class);
+
     public final DateTimePath<java.time.LocalDateTime> membershipExpiredAt = createDateTime("membershipExpiredAt", java.time.LocalDateTime.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.MembershipLevel> membershipLevel = createEnum("membershipLevel", com.tradingpt.tpt_api.domain.user.enums.MembershipLevel.class);

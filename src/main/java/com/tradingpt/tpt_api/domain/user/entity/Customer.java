@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -109,6 +110,11 @@ public class Customer extends User {
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	@Builder.Default
+	private LeveltestStatus leveltestStatus = LeveltestStatus.AVAILABLE;
 
 	@Column(name = "open_chapter_number")
 	private Integer openChapterNumber;
@@ -427,5 +433,9 @@ public class Customer extends User {
 		}
 
 		return false;
+	}
+
+	public void setLeveltestStatus(LeveltestStatus leveltestStatus) {
+		this.leveltestStatus = leveltestStatus;
 	}
 }
