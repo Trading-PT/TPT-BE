@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
@@ -36,7 +35,7 @@ import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRaw
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedDayWeeklySummaryDTO;
-import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedGeneralWeeklySummaryDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.AfterCompletedSwingWeeklySummaryDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.BeforeCompletedCourseWeeklySummaryDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackListItemDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackListResponseDTO;
@@ -236,14 +235,13 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.map(DailyRawData::getDailyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForWeeklySummary(
-			customerId, year, month, courseStatus, investmentType
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double weeklyAverageRnr = feedbackRequestRepository.findAverageRnRForWeeklySummary(
+			customerId, year, month, week, courseStatus, investmentType
 		);
 
 		Double winningRate = TradingCalculationUtil.calculateWinRate(
 			totalTradingCount, totalWinCount);
-		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
 			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)
@@ -301,14 +299,13 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.map(DailyRawData::getDailyPnl)
 			.reduce(BigDecimal.ZERO, BigDecimal::add);
 
-		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매만)
-		List<TradeRnRData> winningTrades = feedbackRequestRepository.findWinningTradesForWeeklySummary(
-			customerId, year, month, courseStatus, investmentType
+		// ✅ 수익 매매들의 평균 R&R 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double weeklyAverageRnr = feedbackRequestRepository.findAverageRnRForWeeklySummary(
+			customerId, year, month, week, courseStatus, investmentType
 		);
 
 		Double winningRate = TradingCalculationUtil.calculateWinRate(
 			totalTradingCount, totalWinCount);
-		Double weeklyAverageRnr = TradingCalculationUtil.calculateAverageRnRFromWinningTrades(winningTrades);
 
 		WeeklyFeedbackSummaryResponseDTO weeklyFeedback = WeeklyFeedbackSummaryResponseDTO.builder()
 			.weeklyWeekFeedbackSummaryResponseDTOS(dailyDTOs)
@@ -317,7 +314,11 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.weeklyPnl(weeklyPnl)
 			.build();
 
-		// 4. 방향성 통계 조회
+		// 4. 이전 주와 현재 주 성과 비교
+		PerformanceComparison<PerformanceComparison.WeekSnapshot> performanceComparison =
+			buildWeeklyPerformanceComparison(customerId, year, month, week, investmentType);
+
+		// 5. 방향성 통계 조회
 		DirectionStatistics directionStats = feedbackRequestRepository.findDirectionStatistics(
 			customerId, year, month, week
 		);
@@ -335,7 +336,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			))
 			.build();
 
-		// 5. 트레이너 평가 조회
+		// 6. 트레이너 평가 조회
 		Optional<WeeklyTradingSummary> evaluation = weeklyTradingSummaryRepository
 			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
 				customerId, year, month, week);
@@ -354,6 +355,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			.month(month)
 			.week(week)
 			.weeklyFeedbackSummaryResponseDTO(weeklyFeedback)
+			.performanceComparison(performanceComparison)
 			.directionStatisticsResponseDTO(directionDTO)
 			.weeklyLossTradingAnalysis(weeklyLossTradingAnalysis)
 			.weeklyProfitableTradingAnalysis(weeklyProfitableTradingAnalysis)
@@ -362,9 +364,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	}
 
 	/**
-	 * 완강 후 스윙/스캘핑 주간 요약 생성
+	 * 완강 후 스윙 주간 요약 생성
 	 */
-	private AfterCompletedGeneralWeeklySummaryDTO buildAfterCompletionGeneralSummary(
+	private AfterCompletedSwingWeeklySummaryDTO buildAfterCompletionGeneralSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -384,7 +386,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			))
 			.toList();
 
-		return AfterCompletedGeneralWeeklySummaryDTO.builder()
+		return AfterCompletedSwingWeeklySummaryDTO.builder()
 			.courseStatus(courseStatus)
 			.investmentType(investmentType)
 			.year(year)

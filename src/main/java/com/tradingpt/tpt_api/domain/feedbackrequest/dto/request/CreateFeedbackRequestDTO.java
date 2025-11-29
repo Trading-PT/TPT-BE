@@ -14,7 +14,6 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
@@ -56,10 +55,6 @@ public class CreateFeedbackRequestDTO {
 	@NotNull(message = "완강 여부는 필수입니다.")
 	@Schema(description = "완강 여부", requiredMode = Schema.RequiredMode.REQUIRED)
 	private CourseStatus courseStatus;
-
-	@NotNull(message = "멤버십 레벨은 필수입니다.")
-	@Schema(description = "멤버십", requiredMode = Schema.RequiredMode.REQUIRED)
-	private MembershipLevel membershipLevel;
 
 	@NotNull(message = "피드백 요청 연도는 필수입니다.")
 	@Min(value = 2020, message = "연도는 2020년 이상이어야 합니다.")
@@ -127,9 +122,6 @@ public class CreateFeedbackRequestDTO {
 
 	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
 	private Boolean useToken;
-
-	@Schema(description = "사용할 토큰 개수 (기본값: 1)", example = "1")
-	private Integer tokenAmount;
 
 	// ========================================
 	// 공통 필드 (완강 전/후 모두 필수 또는 선택)

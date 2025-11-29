@@ -21,7 +21,6 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
-import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.TradeRnRData;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -233,49 +232,68 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer month,
 		InvestmentType investmentType
 	) {
-		BooleanBuilder basePredicate = new BooleanBuilder()
-			.and(feedbackRequest.customer.id.eq(customerId))
-			.and(feedbackRequest.feedbackYear.eq(year))
-			.and(feedbackRequest.feedbackMonth.eq(month))
-			.and(feedbackRequest.investmentType.eq(investmentType))
-			.and(feedbackRequest.courseStatus.eq(CourseStatus.AFTER_COMPLETION));
+		// courseStatus 필터 제거: 해당 월의 모든 피드백을 대상으로 통계
+		// (완강 전/후는 Service에서 분기 처리되므로 여기서는 필터링 불필요)
 
+		// 승률 계산: totalAssetPnl > 0 기준 (전체 자산 기준 P&L)
 		NumberExpression<Integer> winCase = new CaseBuilder()
-			.when(feedbackRequest.pnl.gt(BigDecimal.ZERO))
+			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
 			.then(1)
 			.otherwise(0);
 
+		// 수익 매매의 rnr 합계 (totalAssetPnl > 0인 경우만 rnr 합산)
+		NumberExpression<Double> winningRnrCase = new CaseBuilder()
+			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
+			.then(feedbackRequest.rnr)
+			.otherwise((Double) null);
+
+		// ⚠️ BooleanBuilder는 mutable이므로 각 쿼리마다 새로 생성해야 함
 		var reverseStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
-			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.REVERSE)))
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.investmentType.eq(investmentType),
+				feedbackRequest.entryPoint.eq(EntryPoint.REVERSE)
+			)
 			.fetchOne();
 
 		var pullBackStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
-			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.PULL_BACK)))
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.investmentType.eq(investmentType),
+				feedbackRequest.entryPoint.eq(EntryPoint.PULL_BACK)
+			)
 			.fetchOne();
 
 		var breakOutStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winningRnrCase.sum().coalesce(0.0)
 			)
 			.from(feedbackRequest)
-			.where(basePredicate.and(feedbackRequest.entryPoint.eq(EntryPoint.BREAK_OUT)))
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.investmentType.eq(investmentType),
+				feedbackRequest.entryPoint.eq(EntryPoint.BREAK_OUT)
+			)
 			.fetchOne();
 
 		return new EntryPointStatistics(
@@ -285,9 +303,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				reverseStats != null ? reverseStats.get(0, Integer.class) : 0,
 				reverseStats != null ? reverseStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				reverseStats != null ? reverseStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				reverseStats != null ? reverseStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				reverseStats != null ? reverseStats.get(2, Double.class) : 0.0,
+				reverseStats != null ? reverseStats.get(1, Integer.class) : 0
 			),
 			// PULL_BACK
 			pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
@@ -295,9 +313,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				pullBackStats != null ? pullBackStats.get(0, Integer.class) : 0,
 				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				pullBackStats != null ? pullBackStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				pullBackStats != null ? pullBackStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				pullBackStats != null ? pullBackStats.get(2, Double.class) : 0.0,
+				pullBackStats != null ? pullBackStats.get(1, Integer.class) : 0
 			),
 			// BREAK_OUT
 			breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
@@ -305,11 +323,25 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				breakOutStats != null ? breakOutStats.get(0, Integer.class) : 0,
 				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 			),
-			TradingCalculationUtil.calculateAverageRnR(
-				breakOutStats != null ? breakOutStats.get(2, BigDecimal.class) : BigDecimal.ZERO,
-				breakOutStats != null ? breakOutStats.get(3, BigDecimal.class) : BigDecimal.ZERO
+			calculateAverageWinningRnr(
+				breakOutStats != null ? breakOutStats.get(2, Double.class) : 0.0,
+				breakOutStats != null ? breakOutStats.get(1, Integer.class) : 0
 			)
 		);
+	}
+
+	/**
+	 * 수익 매매의 평균 RnR 계산
+	 * @param winningRnrSum 수익 매매의 rnr 합계
+	 * @param winCount 수익 매매 개수
+	 * @return 평균 RnR (수익 매매가 없으면 0.0, 소수점 둘째 자리 반올림)
+	 */
+	private Double calculateAverageWinningRnr(Double winningRnrSum, Integer winCount) {
+		if (winCount == null || winCount == 0 || winningRnrSum == null) {
+			return 0.0;
+		}
+		double result = winningRnrSum / winCount;
+		return Math.round(result * 100.0) / 100.0;
 	}
 
 	@Override
@@ -334,14 +366,29 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO)
 			)
 			.from(feedbackRequest)
 			.where(predicate)
 			.fetchOne();
 
-		return buildPerformanceSnapshot(result);
+		if (result == null) {
+			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+		}
+
+		Integer totalCount = result.get(0, Integer.class);
+		Integer winCount = result.get(1, Integer.class);
+		BigDecimal totalPnl = result.get(2, BigDecimal.class);
+
+		BigDecimal winRate = totalCount > 0
+			? BigDecimal.valueOf((double)winCount / totalCount * 100).setScale(2, RoundingMode.HALF_UP)
+			: BigDecimal.ZERO;
+
+		// ✅ 수익 매매 기준 평균 RnR 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double avgRnrDouble = findAverageRnRForMonthlySummary(customerId, year, month, investmentType);
+		BigDecimal avgRnr = BigDecimal.valueOf(avgRnrDouble);
+
+		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
 	}
 
 	@Override
@@ -434,8 +481,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.select(
 				feedbackRequest.count().intValue(),
 				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO)
 			)
 			.from(feedbackRequest)
 			.where(predicate)
@@ -448,10 +494,13 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer totalCount = result.get(0, Integer.class);
 		Integer winCount = result.get(1, Integer.class);
 		BigDecimal totalPnl = result.get(2, BigDecimal.class);
-		BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
 
 		Double winRate = TradingCalculationUtil.calculateWinRate(totalCount, winCount);
-		Double avgRnr = TradingCalculationUtil.calculateAverageRnR(totalPnl, totalRiskTaking);
+
+		// ✅ 수익 매매 기준 평균 RnR 계산 (pnl > 0인 매매의 rnr 컬럼 평균)
+		Double avgRnr = findAverageRnRForWeeklyPerformance(
+			customerId, year, month, week, investmentType
+		);
 
 		return new WeeklyPerformanceSnapshot(winRate, avgRnr, totalPnl);
 	}
@@ -464,62 +513,106 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		Integer week
 	) {
 		// DAY 타입의 완강 후 피드백만 해당 (directionFrameExists가 null이 아닌 것)
-		BooleanBuilder basePredicate = new BooleanBuilder()
-			.and(feedbackRequest.customer.id.eq(customerId))
-			.and(feedbackRequest.feedbackYear.eq(year))
-			.and(feedbackRequest.feedbackMonth.eq(month))
-			.and(feedbackRequest.feedbackWeek.eq(week))
-			.and(feedbackRequest.investmentType.eq(InvestmentType.DAY))
-			.and(feedbackRequest.directionFrameExists.isNotNull());
 
 		NumberExpression<Integer> winCase = new CaseBuilder()
 			.when(feedbackRequest.pnl.gt(BigDecimal.ZERO))
 			.then(1)
 			.otherwise(0);
 
-		// 방향성 O 통계
+		// ⚠️ BooleanBuilder는 mutable이므로 각 쿼리마다 조건을 직접 지정
+		// 방향성 O 통계 (전체)
 		var directionOStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
-				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winCase.sum().coalesce(0)
 			)
 			.from(feedbackRequest)
-			.where(basePredicate.and(feedbackRequest.directionFrameExists.eq(true)))
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
+				feedbackRequest.investmentType.eq(InvestmentType.DAY),
+				feedbackRequest.directionFrameExists.eq(true)
+			)
 			.fetchOne();
 
-		// 방향성 X 통계
+		// 방향성 O 수익 매매의 rnr 합계 (pnl > 0인 매매만)
+		var directionORnrStats = queryFactory
+			.select(
+				feedbackRequest.rnr.sum().coalesce(0.0),
+				feedbackRequest.count().intValue()
+			)
+			.from(feedbackRequest)
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
+				feedbackRequest.investmentType.eq(InvestmentType.DAY),
+				feedbackRequest.directionFrameExists.eq(true),
+				feedbackRequest.pnl.gt(BigDecimal.ZERO)
+			)
+			.fetchOne();
+
+		// 방향성 X 통계 (전체)
 		var directionXStats = queryFactory
 			.select(
 				feedbackRequest.count().intValue(),
-				winCase.sum().coalesce(0),
-				feedbackRequest.totalAssetPnl.sum().coalesce(BigDecimal.ZERO),
-				feedbackRequest.riskTaking.sum().coalesce(BigDecimal.ZERO).castToNum(BigDecimal.class)
+				winCase.sum().coalesce(0)
 			)
 			.from(feedbackRequest)
-			.where(basePredicate.and(feedbackRequest.directionFrameExists.eq(false)))
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
+				feedbackRequest.investmentType.eq(InvestmentType.DAY),
+				feedbackRequest.directionFrameExists.eq(false)
+			)
+			.fetchOne();
+
+		// 방향성 X 수익 매매의 rnr 합계 (pnl > 0인 매매만)
+		var directionXRnrStats = queryFactory
+			.select(
+				feedbackRequest.rnr.sum().coalesce(0.0),
+				feedbackRequest.count().intValue()
+			)
+			.from(feedbackRequest)
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
+				feedbackRequest.investmentType.eq(InvestmentType.DAY),
+				feedbackRequest.directionFrameExists.eq(false),
+				feedbackRequest.pnl.gt(BigDecimal.ZERO)
+			)
 			.fetchOne();
 
 		// 방향성 O 계산
 		Integer directionOCount = directionOStats != null ? directionOStats.get(0, Integer.class) : 0;
 		Integer directionOWinCount = directionOStats != null ? directionOStats.get(1, Integer.class) : 0;
-		BigDecimal directionOPnl = directionOStats != null ? directionOStats.get(2, BigDecimal.class) : BigDecimal.ZERO;
-		BigDecimal directionORiskTaking =
-			directionOStats != null ? directionOStats.get(3, BigDecimal.class) : BigDecimal.ZERO;
-
 		Double directionOWinRate = TradingCalculationUtil.calculateWinRate(directionOCount, directionOWinCount);
-		Double directionORnr = TradingCalculationUtil.calculateAverageRnR(directionOPnl, directionORiskTaking);
+
+		// 방향성 O 평균 RnR (수익 매매 기준)
+		Double directionORnrSum = directionORnrStats != null ? directionORnrStats.get(0, Double.class) : 0.0;
+		Integer directionOWinTradeCount = directionORnrStats != null ? directionORnrStats.get(1, Integer.class) : 0;
+		Double directionORnr = directionOWinTradeCount > 0
+			? Math.round((directionORnrSum / directionOWinTradeCount) * 100.0) / 100.0
+			: 0.0;
 
 		// 방향성 X 계산
 		Integer directionXCount = directionXStats != null ? directionXStats.get(0, Integer.class) : 0;
 		Integer directionXWinCount = directionXStats != null ? directionXStats.get(1, Integer.class) : 0;
-		BigDecimal directionXPnl = directionXStats != null ? directionXStats.get(2, BigDecimal.class) : BigDecimal.ZERO;
-		BigDecimal directionXRiskTaking =
-			directionXStats != null ? directionXStats.get(3, BigDecimal.class) : BigDecimal.ZERO;
-
 		Double directionXWinRate = TradingCalculationUtil.calculateWinRate(directionXCount, directionXWinCount);
-		Double directionXRnr = TradingCalculationUtil.calculateAverageRnR(directionXPnl, directionXRiskTaking);
+
+		// 방향성 X 평균 RnR (수익 매매 기준)
+		Double directionXRnrSum = directionXRnrStats != null ? directionXRnrStats.get(0, Double.class) : 0.0;
+		Integer directionXWinTradeCount = directionXRnrStats != null ? directionXRnrStats.get(1, Integer.class) : 0;
+		Double directionXRnr = directionXWinTradeCount > 0
+			? Math.round((directionXRnrSum / directionXWinTradeCount) * 100.0) / 100.0
+			: 0.0;
 
 		return new DirectionStatistics(
 			directionOCount,
@@ -751,44 +844,59 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
-	public List<TradeRnRData> findWinningTradesForWeeklySummary(
+	public Double findAverageRnRForWeeklySummary(
 		Long customerId,
 		Integer year,
 		Integer month,
+		Integer week,
 		CourseStatus courseStatus,
 		InvestmentType investmentType
 	) {
-		return queryFactory
-			.select(Projections.constructor(
-				TradeRnRData.class,
-				feedbackRequest.pnl,
-				feedbackRequest.riskTaking
-			))
+		// 수익 매매(pnl > 0)의 rnr 컬럼 합계와 개수 조회
+		var result = queryFactory
+			.select(
+				feedbackRequest.rnr.sum().coalesce(0.0),
+				feedbackRequest.count().intValue()
+			)
 			.from(feedbackRequest)
 			.where(
 				feedbackRequest.customer.id.eq(customerId),
 				feedbackRequest.feedbackYear.eq(year),
 				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
 				feedbackRequest.courseStatus.eq(courseStatus),
 				feedbackRequest.investmentType.eq(investmentType),
 				feedbackRequest.pnl.gt(BigDecimal.ZERO)
 			)
-			.fetch();
+			.fetchOne();
+
+		if (result == null) {
+			return 0.0;
+		}
+
+		Double rnrSum = result.get(0, Double.class);
+		Integer winCount = result.get(1, Integer.class);
+
+		if (winCount == null || winCount == 0) {
+			return 0.0;
+		}
+
+		return Math.round((rnrSum / winCount) * 100.0) / 100.0;
 	}
 
 	@Override
-	public List<TradeRnRData> findWinningTradesForMonthlySummary(
+	public Double findAverageRnRForMonthlySummary(
 		Long customerId,
 		Integer year,
 		Integer month,
 		InvestmentType investmentType
 	) {
-		return queryFactory
-			.select(Projections.constructor(
-				TradeRnRData.class,
-				feedbackRequest.pnl,
-				feedbackRequest.riskTaking
-			))
+		// 수익 매매(pnl > 0)의 rnr 컬럼 합계와 개수 조회
+		var result = queryFactory
+			.select(
+				feedbackRequest.rnr.sum().coalesce(0.0),
+				feedbackRequest.count().intValue()
+			)
 			.from(feedbackRequest)
 			.where(
 				feedbackRequest.customer.id.eq(customerId),
@@ -797,27 +905,59 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				feedbackRequest.investmentType.eq(investmentType),
 				feedbackRequest.pnl.gt(BigDecimal.ZERO)
 			)
-			.fetch();
-	}
+			.fetchOne();
 
-	private MonthlyPerformanceSnapshot buildPerformanceSnapshot(com.querydsl.core.Tuple result) {
 		if (result == null) {
-			return new MonthlyPerformanceSnapshot(BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
+			return 0.0;
 		}
 
-		Integer totalCount = result.get(0, Integer.class);
+		Double rnrSum = result.get(0, Double.class);
 		Integer winCount = result.get(1, Integer.class);
-		BigDecimal totalPnl = result.get(2, BigDecimal.class);
-		BigDecimal totalRiskTaking = result.get(3, BigDecimal.class);
 
-		BigDecimal winRate = totalCount > 0
-			? BigDecimal.valueOf((double)winCount / totalCount * 100).setScale(2, RoundingMode.HALF_UP)
-			: BigDecimal.ZERO;
-		BigDecimal avgRnr = totalRiskTaking.compareTo(BigDecimal.ZERO) > 0
-			? totalPnl.divide(totalRiskTaking, 2, RoundingMode.HALF_UP)
-			: BigDecimal.ZERO;
+		if (winCount == null || winCount == 0) {
+			return 0.0;
+		}
 
-		return new MonthlyPerformanceSnapshot(winRate, avgRnr, totalPnl);
+		return Math.round((rnrSum / winCount) * 100.0) / 100.0;
+	}
+
+	@Override
+	public Double findAverageRnRForWeeklyPerformance(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week,
+		InvestmentType investmentType
+	) {
+		// 수익 매매(pnl > 0)의 rnr 컬럼 합계와 개수 조회
+		var result = queryFactory
+			.select(
+				feedbackRequest.rnr.sum().coalesce(0.0),
+				feedbackRequest.count().intValue()
+			)
+			.from(feedbackRequest)
+			.where(
+				feedbackRequest.customer.id.eq(customerId),
+				feedbackRequest.feedbackYear.eq(year),
+				feedbackRequest.feedbackMonth.eq(month),
+				feedbackRequest.feedbackWeek.eq(week),
+				feedbackRequest.investmentType.eq(investmentType),
+				feedbackRequest.pnl.gt(BigDecimal.ZERO)
+			)
+			.fetchOne();
+
+		if (result == null) {
+			return 0.0;
+		}
+
+		Double rnrSum = result.get(0, Double.class);
+		Integer winCount = result.get(1, Integer.class);
+
+		if (winCount == null || winCount == 0) {
+			return 0.0;
+		}
+
+		return Math.round((rnrSum / winCount) * 100.0) / 100.0;
 	}
 
 }

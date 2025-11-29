@@ -5,10 +5,12 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -182,6 +184,105 @@ public class FeedbackRequest extends BaseEntity {
 	 */
 	private LocalDate positionStartDate; // 포지션 진입 날짜
 	private LocalDate positionEndDate; // 포지션 종료 날짜
+
+	// ===== Static Factory Methods =====
+
+	/**
+	 * CreateFeedbackRequestDTO와 Customer로부터 FeedbackRequest를 생성한다.
+	 *
+	 * <p>DDD 원칙에 따라 복잡한 Entity 생성 로직을 캡슐화한다.
+	 * - 피드백 기간 정보(year, month, week) 자동 계산
+	 * - 제목 자동 생성 (날짜/종목/PnL 형식)
+	 * - Customer의 멤버십 레벨 자동 설정
+	 *
+	 * @param request 피드백 요청 생성 DTO
+	 * @param customer 고객 엔티티
+	 * @return 생성된 FeedbackRequest 엔티티
+	 */
+	public static FeedbackRequest createFrom(CreateFeedbackRequestDTO request, Customer customer) {
+		// 피드백 기간 정보 계산
+		FeedbackPeriodUtil.FeedbackPeriod period =
+			FeedbackPeriodUtil.resolveFrom(request.getFeedbackRequestDate());
+
+		// 제목 자동 생성
+		String title = buildTitle(
+			request.getFeedbackRequestDate(),
+			request.getCategory(),
+			request.getTotalAssetPnl()
+		);
+
+		return FeedbackRequest.builder()
+			// 기본 정보
+			.investmentType(request.getInvestmentType())
+			.customer(customer)
+			.title(title)
+			.courseStatus(request.getCourseStatus())
+			.membershipLevel(customer.getMembershipLevel())
+			// 날짜 정보
+			.feedbackYear(period.year())
+			.feedbackMonth(period.month())
+			.feedbackWeek(period.week())
+			.feedbackRequestDate(request.getFeedbackRequestDate())
+			// 매매 기본 정보
+			.category(request.getCategory())
+			.positionHoldingTime(request.getPositionHoldingTime())
+			.riskTaking(request.getRiskTaking())
+			.leverage(request.getLeverage())
+			.position(request.getPosition())
+			.pnl(request.getPnl())
+			.totalAssetPnl(request.getTotalAssetPnl())
+			.rnr(request.getRnr())
+			// 매매 상세 정보
+			.operatingFundsRatio(request.getOperatingFundsRatio())
+			.entryPrice(request.getEntryPrice())
+			.exitPrice(request.getExitPrice())
+			.settingStopLoss(request.getSettingStopLoss())
+			.settingTakeProfit(request.getSettingTakeProfit())
+			.positionStartReason(request.getPositionStartReason())
+			.positionEndReason(request.getPositionEndReason())
+			.tradingReview(request.getTradingReview())
+			// 완강 후 필드 (DAY/SWING 공통)
+			.directionFrameExists(request.getDirectionFrameExists())
+			.directionFrame(request.getDirectionFrame())
+			.mainFrame(request.getMainFrame())
+			.subFrame(request.getSubFrame())
+			.trendAnalysis(request.getTrendAnalysis())
+			.trainerFeedbackRequestContent(request.getTrainerFeedbackRequestContent())
+			.entryPoint(request.getEntryPoint())
+			.grade(request.getGrade())
+			.additionalBuyCount(request.getAdditionalBuyCount())
+			.splitSellCount(request.getSplitSellCount())
+			// SWING 전용 필드 (DAY에서는 null)
+			.positionStartDate(request.getPositionStartDate())
+			.positionEndDate(request.getPositionEndDate())
+			.build();
+	}
+
+	/**
+	 * 피드백 요청의 제목을 생성한다.
+	 * 형식: "월/일 종목 ±전체자산대비PnL%"
+	 * 예시: "11/17 주식 +5%", "11/18 코인 -3.5%"
+	 */
+	private static String buildTitle(LocalDate requestDate, String category, BigDecimal totalAssetPnl) {
+		int month = requestDate.getMonthValue();
+		int day = requestDate.getDayOfMonth();
+
+		String pnlString;
+		if (totalAssetPnl == null) {
+			pnlString = "0%";
+		} else {
+			BigDecimal strippedPnl = totalAssetPnl.stripTrailingZeros();
+			if (totalAssetPnl.compareTo(BigDecimal.ZERO) > 0) {
+				pnlString = "+" + strippedPnl.toPlainString() + "%";
+			} else if (totalAssetPnl.compareTo(BigDecimal.ZERO) < 0) {
+				pnlString = strippedPnl.toPlainString() + "%";
+			} else {
+				pnlString = "0%";
+			}
+		}
+
+		return String.format("%d/%d %s %s", month, day, category, pnlString);
+	}
 
 	// ===== 비즈니스 메서드 =====
 
