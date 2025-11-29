@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.subscription.service.command;
 
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import java.time.LocalDate;
 
 import org.springframework.context.annotation.Lazy;
@@ -38,18 +40,20 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     private final CustomerRepository customerRepository;
     private final SubscriptionPlanRepository subscriptionPlanRepository;
     private final RecurringPaymentService recurringPaymentService;
+    private final UserRepository userRepository;
 
     // 순환 참조 방지를 위한 @Lazy 사용
     public SubscriptionCommandServiceImpl(
         SubscriptionRepository subscriptionRepository,
         CustomerRepository customerRepository,
         SubscriptionPlanRepository subscriptionPlanRepository,
-        @Lazy RecurringPaymentService recurringPaymentService
-    ) {
+        @Lazy RecurringPaymentService recurringPaymentService,
+        UserRepository userRepository) {
         this.subscriptionRepository = subscriptionRepository;
         this.customerRepository = customerRepository;
         this.subscriptionPlanRepository = subscriptionPlanRepository;
         this.recurringPaymentService = recurringPaymentService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -127,6 +131,7 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         try {
             recurringPaymentService.executePaymentForSubscription(subscription);
             log.info("신규 구독 첫 결제 성공: subscriptionId={}", subscription.getId());
+            customer.setUserStatus(UserStatus.PAID_BEFORE_TEST);  //결제후, 레벨테스트 전으로 변경
         } catch (NicePayException e) {
             log.error("신규 구독 첫 결제 실패 (NicePay 오류): subscriptionId={}, errorCode={}",
                 subscription.getId(), e.getErrorStatus().getCode(), e);
