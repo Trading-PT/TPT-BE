@@ -33,6 +33,9 @@ public class ReviewResponseDTO {
 	@Schema(description = "리뷰 내용")
 	private String content;
 
+	@Schema(description = "리뷰 별점 (1-5)", example = "5")
+	private Integer rating;
+
 	@Schema(description = "리뷰 작성 일시")
 	private LocalDateTime submittedAt;
 
@@ -52,6 +55,7 @@ public class ReviewResponseDTO {
 			.customerName(review.getCustomer().getName())
 			.phoneNumber(review.getCustomer().getPhoneNumber())
 			.content(review.getContent())
+			.rating(review.getRating())
 			.submittedAt(review.getSubmittedAt())
 			.isPublic(review.isPublic());
 

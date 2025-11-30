@@ -1,5 +1,12 @@
 package com.tradingpt.tpt_api.domain.review.service.command;
 
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -7,16 +14,19 @@ import com.tradingpt.tpt_api.domain.review.dto.request.CreateReplyRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.request.UpdateReviewVisibilityRequestDTO;
 import com.tradingpt.tpt_api.domain.review.entity.Review;
+import com.tradingpt.tpt_api.domain.review.entity.ReviewTag;
 import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewErrorStatus;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewException;
 import com.tradingpt.tpt_api.domain.review.repository.ReviewRepository;
+import com.tradingpt.tpt_api.domain.review.repository.ReviewTagRepository;
+import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
+import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.content.ContentImageUploader;
 
 import lombok.RequiredArgsConstructor;
@@ -28,29 +38,83 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class ReviewCommandServiceImpl implements ReviewCommandService {
 
-	private final UserRepository userRepository;
+	private static final Pattern S3_KEY_PATTERN = Pattern.compile("amazonaws\\.com/(.+)$");
+
 	private final ContentImageUploader contentImageUploader;
 	private final ReviewRepository reviewRepository;
+	private final ReviewTagRepository reviewTagRepository;
 	private final TrainerRepository trainerRepository;
+	private final CustomerRepository customerRepository;
+	private final SubscriptionRepository subscriptionRepository;
 
 	@Override
 	public Void createReview(Long customerId, CreateReviewRequestDTO request) {
 
 		// 유저 찾기
-		Customer customer = (Customer)userRepository.findById(customerId)
+		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 우선은 테스트를 위해 미구독 고객도 리뷰를 작성할 수 있도록 한다.
+		// 구독 상태 검증 - 활성 구독이 있어야만 리뷰 작성 가능
+		boolean hasActiveSubscription = subscriptionRepository
+			.findByCustomer_IdAndStatus(
+				customerId,
+				com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE
+			)
+			.isPresent();
 
-		// TODO: 구독 여부와 마지막 리뷰 작성일로부터 6개월이 지났을 경우에만 작성할 수 있도록 한다.
+		if (!hasActiveSubscription) {
+			throw new ReviewException(ReviewErrorStatus.SUBSCRIPTION_REQUIRED);
+		}
 
-		// 리뷰 내용 업로드
+		// 리뷰 내용 업로드 (인라인 이미지를 S3에 업로드하고 URL로 변환)
 		String processedContent = contentImageUploader.processContent(request.getContent(), "reviews");
 
 		// 리뷰 생성 및 저장
-		Review newReview = Review.createFrom(request, customer);
+		Review newReview = Review.createFrom(customer, processedContent, request.getRating());
 		reviewRepository.save(newReview);
 
+		// 처리된 콘텐츠에서 S3 이미지 URL을 추출하여 ReviewAttachment 생성
+		extractAndSaveAttachments(newReview, processedContent);
+
+		// 태그 연결 (태그가 선택된 경우)
+		if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+			List<ReviewTag> tags = reviewTagRepository.findAllByIdIn(request.getTagIds());
+			newReview.addTags(tags);
+		}
+
+		return null;
+	}
+
+	/**
+	 * 처리된 HTML에서 S3 이미지 URL을 추출하여 ReviewAttachment로 저장
+	 */
+	private void extractAndSaveAttachments(Review review, String processedContent) {
+		Document document = Jsoup.parseBodyFragment(processedContent);
+
+		for (Element img : document.select("img")) {
+			String src = img.attr("src");
+
+			// S3 URL인 경우에만 처리 (data: URI는 제외)
+			if (src.contains("amazonaws.com") && !src.startsWith("data:")) {
+				String fileKey = extractFileKeyFromUrl(src);
+				if (fileKey != null) {
+					review.addAttachment(src, fileKey);
+					log.debug("Added ReviewAttachment: url={}, key={}", src, fileKey);
+				}
+			}
+		}
+	}
+
+	/**
+	 * S3 URL에서 파일 키를 추출
+	 * 예: https://bucket.s3.region.amazonaws.com/reviews/inline-uuid.png -> reviews/inline-uuid.png
+	 */
+	private String extractFileKeyFromUrl(String url) {
+		Matcher matcher = S3_KEY_PATTERN.matcher(url);
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+		log.warn("Could not extract file key from URL: {}", url);
 		return null;
 	}
 

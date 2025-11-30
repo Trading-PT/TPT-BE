@@ -118,7 +118,9 @@
       "Bash(aws iam create-policy:*)",
       "Bash(aws iam attach-role-policy:*)",
       "Bash(./gradlew:*)",
-      "Bash(pip3 install:*)"
+      "Bash(pip3 install:*)",
+      "mcp__mysql-dev__alter_table",
+      "mcp__mysql-dev__create_table"
     ],
     "deny": [],
     "ask": []

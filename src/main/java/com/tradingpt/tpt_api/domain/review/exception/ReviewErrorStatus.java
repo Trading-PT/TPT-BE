@@ -31,6 +31,7 @@ public enum ReviewErrorStatus implements BaseCodeInterface {
 	REVIEW_ALREADY_HAS_REPLY(HttpStatus.BAD_REQUEST, "REVIEW_400_0", "이미 답변이 작성된 리뷰입니다."),
 	INVALID_REVIEW_CONTENT(HttpStatus.BAD_REQUEST, "REVIEW_400_1", "리뷰 내용이 올바르지 않습니다."),
 	REVIEW_HAS_NO_REPLY(HttpStatus.BAD_REQUEST, "REVIEW_400_2", "리뷰에 답변이 작성되어 있지 않습니다."),
+	SUBSCRIPTION_REQUIRED(HttpStatus.BAD_REQUEST, "REVIEW_400_3", "리뷰를 작성하려면 활성 구독이 필요합니다."),
 	;
 
 	private final HttpStatus httpStatus;

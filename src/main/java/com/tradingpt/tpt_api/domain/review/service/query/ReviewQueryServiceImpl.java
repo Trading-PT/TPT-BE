@@ -10,11 +10,16 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tradingpt.tpt_api.domain.review.dto.response.AdminReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.PublicReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewStatisticsResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewTagResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewTagStatisticsResponseDTO;
 import com.tradingpt.tpt_api.domain.review.entity.Review;
 import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewErrorStatus;
 import com.tradingpt.tpt_api.domain.review.exception.ReviewException;
 import com.tradingpt.tpt_api.domain.review.repository.ReviewRepository;
+import com.tradingpt.tpt_api.domain.review.repository.ReviewTagMappingRepository;
+import com.tradingpt.tpt_api.domain.review.repository.ReviewTagRepository;
 import com.tradingpt.tpt_api.global.common.dto.SliceInfo;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +32,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ReviewQueryServiceImpl implements ReviewQueryService {
 
 	private final ReviewRepository reviewRepository;
+	private final ReviewTagRepository reviewTagRepository;
+	private final ReviewTagMappingRepository reviewTagMappingRepository;
 
 	@Override
 	public List<ReviewResponseDTO> getMyReviews(Long customerId) {
@@ -99,5 +106,30 @@ public class ReviewQueryServiceImpl implements ReviewQueryService {
 			.orElseThrow(() -> new ReviewException(ReviewErrorStatus.REVIEW_NOT_FOUND));
 
 		return ReviewResponseDTO.from(review);
+	}
+
+	@Override
+	public List<ReviewTagResponseDTO> getReviewTags() {
+		return reviewTagRepository.findAllByOrderByNameAsc()
+			.stream()
+			.map(ReviewTagResponseDTO::from)
+			.toList();
+	}
+
+	@Override
+	public ReviewStatisticsResponseDTO getReviewStatistics() {
+		// 전체 리뷰 개수 조회
+		Long totalReviewCount = reviewRepository.countAllReviews();
+
+		// 전체 별점 합계 조회
+		Long totalRatingSum = reviewRepository.sumAllRatings();
+
+		// 태그별 통계 조회
+		List<ReviewTagStatisticsResponseDTO> tagStatistics = reviewTagMappingRepository.countReviewsByTag()
+			.stream()
+			.map(ReviewTagStatisticsResponseDTO::from)
+			.toList();
+
+		return ReviewStatisticsResponseDTO.of(totalReviewCount, totalRatingSum, tagStatistics);
 	}
 }
