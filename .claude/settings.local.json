@@ -129,7 +129,11 @@
       "Bash(docker logs:*)",
       "Bash(env)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "mcp__mysql-prod__read_query",
+      "mcp__mysql-prod__write_query",
+      "mcp__mysql-prod__list_tables",
+      "mcp__mysql-prod__describe_table"
     ],
     "deny": [],
     "ask": []

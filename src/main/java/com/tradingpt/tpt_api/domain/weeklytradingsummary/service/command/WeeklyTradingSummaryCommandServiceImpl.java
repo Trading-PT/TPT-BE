@@ -19,6 +19,10 @@ import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.CreateWeeklyTradingSummaryRequestDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.UpsertWeeklyEvaluationRequestDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.UpsertWeeklyMemoRequestDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyEvaluationResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyMemoResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.entity.WeeklyTradingSummary;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.exception.WeeklyTradingSummaryErrorStatus;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.exception.WeeklyTradingSummaryException;
@@ -318,5 +322,158 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			throw new WeeklyTradingSummaryException(
 				WeeklyTradingSummaryErrorStatus.DETAILED_EVALUATION_NOT_ALLOWED_FOR_CUSTOMER);
 		}
+	}
+
+	/**
+	 * =============================
+	 * UPSERT METHODS (DDD 패턴)
+	 * =============================
+	 */
+
+	/**
+	 * 주간 매매일지 메모 Upsert (고객용 - 완강 전)
+	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 */
+	@Override
+	public WeeklyMemoResponseDTO upsertWeeklyMemoByCustomer(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId,
+		UpsertWeeklyMemoRequestDTO request
+	) {
+		log.info("Customer upserting weekly memo for customerId={}, year={}, month={}, week={}",
+			customerId, year, month, week);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+
+		// 2. 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 해당 주의 투자 타입 조회
+		InvestmentType investmentType = getInvestmentTypeForWeek(customerId, year, month, week);
+
+		// 4. 콘텐츠 처리
+		String processedMemo = contentImageUploader.processContent(
+			request.getMemo(),
+			"weekly-summaries"
+		);
+
+		// 5. 기존 요약 조회 (Upsert 패턴)
+		WeeklyTradingSummary summary = weeklyTradingSummaryRepository
+			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
+				customerId, year, month, week)
+			.orElse(null);
+
+		if (summary != null) {
+			// UPDATE: Entity의 DDD 비즈니스 메서드 호출 (내부에서 검증)
+			summary.updateCustomerMemo(processedMemo);
+			log.info("Customer updated weekly memo");
+		} else {
+			// CREATE: 트레이너 조회 후 새 Entity 생성
+			Trainer trainer = null;
+			if (customer.getAssignedTrainer() != null) {
+				trainer = trainerRepository.findById(customer.getAssignedTrainer().getId())
+					.orElse(null);
+			}
+
+			summary = WeeklyTradingSummary.createForCustomerMemo(
+				processedMemo,
+				customer,
+				trainer,
+				investmentType,
+				year,
+				month,
+				week
+			);
+			weeklyTradingSummaryRepository.save(summary);
+			log.info("Customer created weekly memo");
+		}
+
+		// JPA Dirty Checking으로 자동 UPDATE (save() 불필요)
+		return WeeklyMemoResponseDTO.from(summary);
+	}
+
+	/**
+	 * 주간 매매일지 트레이너 평가 Upsert (트레이너/관리자용 - 완강 후 + DAY 타입)
+	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 */
+	@Override
+	public WeeklyEvaluationResponseDTO upsertWeeklyEvaluationByTrainer(
+		Integer year,
+		Integer month,
+		Integer week,
+		Long customerId,
+		Long trainerId,
+		UpsertWeeklyEvaluationRequestDTO request
+	) {
+		log.info("Trainer upserting weekly evaluation for customerId={}, year={}, month={}, week={}, trainerId={}",
+			customerId, year, month, week, trainerId);
+
+		// 1. 날짜 검증
+		DateValidationUtil.validateYearMonthWeek(year, month, week);
+
+		// 2. 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 3. 트레이너 조회
+		Trainer trainer = trainerRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 4. 해당 주의 투자 타입 조회
+		InvestmentType investmentType = getInvestmentTypeForWeek(customerId, year, month, week);
+
+		// 5. 콘텐츠 처리
+		String processedEvaluation = contentImageUploader.processContent(
+			request.getWeeklyEvaluation(),
+			"weekly-summaries"
+		);
+		String processedProfitAnalysis = contentImageUploader.processContent(
+			request.getWeeklyProfitableTradingAnalysis(),
+			"weekly-summaries"
+		);
+		String processedLossAnalysis = contentImageUploader.processContent(
+			request.getWeeklyLossTradingAnalysis(),
+			"weekly-summaries"
+		);
+
+		// 6. 기존 요약 조회 (Upsert 패턴)
+		WeeklyTradingSummary summary = weeklyTradingSummaryRepository
+			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
+				customerId, year, month, week)
+			.orElse(null);
+
+		if (summary != null) {
+			// UPDATE: Entity의 DDD 비즈니스 메서드 호출 (내부에서 검증)
+			summary.updateTrainerEvaluation(
+				processedEvaluation,
+				processedProfitAnalysis,
+				processedLossAnalysis
+			);
+			log.info("Trainer updated weekly evaluation");
+		} else {
+			// CREATE: 새 Entity 생성
+			summary = WeeklyTradingSummary.createForTrainerEvaluation(
+				processedEvaluation,
+				processedProfitAnalysis,
+				processedLossAnalysis,
+				customer,
+				trainer,
+				investmentType,
+				year,
+				month,
+				week
+			);
+			weeklyTradingSummaryRepository.save(summary);
+			log.info("Trainer created weekly evaluation");
+		}
+
+		// JPA Dirty Checking으로 자동 UPDATE (save() 불필요)
+		return WeeklyEvaluationResponseDTO.from(summary);
 	}
 }

@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.command;
 
+import com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -74,10 +75,10 @@ public class LevelTestCommandServiceImpl implements LevelTestCommandService {
 		responseRepository.saveAll(responses);
 
 		// 5) 비동기 채점
-		gradingAsyncInvoker.trigger(attempt.getId());
+		gradingAsyncInvoker.trigger(attempt.getId(), customer);
 
 		// 6) 사용자 상태 갱신
-		customer.setUserStatus(UserStatus.PAID_AFTER_TEST_TRAINER_ASSIGNING);
+		customer.setLeveltestStatus(LeveltestStatus.BEFORE_GRADE);
 
 		// 7) 응답 반환
 		return LeveltestAttemptSubmitResponseDTO.builder()
