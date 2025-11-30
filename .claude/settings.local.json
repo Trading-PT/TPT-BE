@@ -116,7 +116,9 @@
       "mcp__mysql-prod__describe_table",
       "Bash(aws iam list-role-policies:*)",
       "Bash(aws iam create-policy:*)",
-      "Bash(aws iam attach-role-policy:*)"
+      "Bash(aws iam attach-role-policy:*)",
+      "Bash(./gradlew:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": [],
     "ask": []

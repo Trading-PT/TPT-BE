@@ -50,11 +50,71 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 	@Override
 	public Slice<FeedbackRequest> findAllFeedbackRequestsSlice(Pageable pageable) {
-		List<FeedbackRequest> allResults = queryFactory
+		// 1단계: 베스트 피드백 조회 (최대 4개, 고정 수량이므로 전체 로드 OK)
+		List<FeedbackRequest> bestFeedbacks = queryFactory
 			.selectFrom(feedbackRequest)
+			.leftJoin(feedbackRequest.customer).fetchJoin()
+			.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
+			.where(feedbackRequest.isBestFeedback.isTrue())
+			.orderBy(feedbackRequest.createdAt.desc())
+			.distinct()
 			.fetch();
 
-		return createSlice(allResults, pageable);
+		// 실제 베스트 피드백 수 (최대 4개까지만 사용)
+		int actualBestCount = Math.min(bestFeedbacks.size(), MAX_BEST_FEEDBACK_COUNT);
+		List<FeedbackRequest> limitedBestFeedbacks = bestFeedbacks.subList(0, actualBestCount);
+
+		int pageNumber = pageable.getPageNumber();
+		int pageSize = pageable.getPageSize();
+
+		if (pageNumber == 0) {
+			// 첫 페이지: 베스트 피드백 + 일반 피드백
+			int regularNeeded = pageSize - actualBestCount;
+
+			List<FeedbackRequest> regularFeedbacks = queryFactory
+				.selectFrom(feedbackRequest)
+				.leftJoin(feedbackRequest.customer).fetchJoin()
+				.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
+				.where(feedbackRequest.isBestFeedback.isNull()
+					.or(feedbackRequest.isBestFeedback.isFalse()))
+				.orderBy(feedbackRequest.createdAt.desc())
+				.distinct()
+				.offset(0)
+				.limit(regularNeeded + 1)  // hasNext 확인용 +1
+				.fetch();
+
+			boolean hasNext = regularFeedbacks.size() > regularNeeded;
+			if (hasNext) {
+				regularFeedbacks = regularFeedbacks.subList(0, regularNeeded);
+			}
+
+			List<FeedbackRequest> combined = new ArrayList<>(limitedBestFeedbacks);
+			combined.addAll(regularFeedbacks);
+
+			return new SliceImpl<>(combined, pageable, hasNext);
+		} else {
+			// 2페이지 이후: 일반 피드백만 (베스트 피드백 제외)
+			long regularOffset = (long) pageNumber * pageSize - actualBestCount;
+
+			List<FeedbackRequest> regularFeedbacks = queryFactory
+				.selectFrom(feedbackRequest)
+				.leftJoin(feedbackRequest.customer).fetchJoin()
+				.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
+				.where(feedbackRequest.isBestFeedback.isNull()
+					.or(feedbackRequest.isBestFeedback.isFalse()))
+				.orderBy(feedbackRequest.createdAt.desc())
+				.distinct()
+				.offset(regularOffset)
+				.limit(pageSize + 1)  // hasNext 확인용 +1
+				.fetch();
+
+			boolean hasNext = regularFeedbacks.size() > pageSize;
+			if (hasNext) {
+				regularFeedbacks = regularFeedbacks.subList(0, pageSize);
+			}
+
+			return new SliceImpl<>(regularFeedbacks, pageable, hasNext);
+		}
 	}
 
 	/**
@@ -95,17 +155,23 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 	@Override
 	public Slice<FeedbackRequest> findAllFeedbacksByCreatedAtDesc(Pageable pageable) {
-		List<FeedbackRequest> allResults = queryFactory
+		// DB 레벨에서 페이징 처리 (Fetch Join으로 N+1 방지)
+		List<FeedbackRequest> content = queryFactory
 			.selectFrom(feedbackRequest)
+			.leftJoin(feedbackRequest.customer).fetchJoin()
+			.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 			.orderBy(feedbackRequest.createdAt.desc())
+			.distinct()
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize() + 1)  // hasNext 확인용 +1
 			.fetch();
 
-		int start = Math.min((int)pageable.getOffset(), allResults.size());
-		int end = Math.min(start + pageable.getPageSize(), allResults.size());
-		boolean hasNext = end < allResults.size();
-		List<FeedbackRequest> sliceContent = allResults.subList(start, end);
+		boolean hasNext = content.size() > pageable.getPageSize();
+		if (hasNext) {
+			content = content.subList(0, pageable.getPageSize());
+		}
 
-		return new SliceImpl<>(sliceContent, pageable, hasNext);
+		return new SliceImpl<>(content, pageable, hasNext);
 	}
 
 	@Override
