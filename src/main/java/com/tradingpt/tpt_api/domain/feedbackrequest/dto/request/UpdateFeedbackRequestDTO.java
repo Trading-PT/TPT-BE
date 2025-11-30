@@ -198,4 +198,33 @@ public class UpdateFeedbackRequestDTO {
 
 		return true;
 	}
+
+	/**
+	 * Stop Loss와 Entry Price, Position 논리적 일관성 검증
+	 *
+	 * 롱 포지션 (LONG):
+	 * - Stop Loss < Entry Price (손절가는 진입가보다 낮아야 함)
+	 *
+	 * 숏 포지션 (SHORT):
+	 * - Stop Loss > Entry Price (손절가는 진입가보다 높아야 함)
+	 */
+	@AssertTrue(message = "스탑로스 가격이 포지션과 논리적으로 일치하지 않습니다. (LONG: 스탑로스 < 진입가, SHORT: 스탑로스 > 진입가)")
+	@JsonIgnore
+	public boolean isStopLossConsistent() {
+		if (position == null || entryPrice == null || settingStopLoss == null) {
+			return true;
+		}
+
+		int stopLossVsEntry = settingStopLoss.compareTo(entryPrice);
+
+		if (position == Position.LONG) {
+			// LONG: Stop Loss는 Entry Price보다 낮아야 함
+			return stopLossVsEntry < 0;
+		} else if (position == Position.SHORT) {
+			// SHORT: Stop Loss는 Entry Price보다 높아야 함
+			return stopLossVsEntry > 0;
+		}
+
+		return true;
+	}
 }
