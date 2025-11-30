@@ -9,6 +9,9 @@ import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryErrorStatus;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryException;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -28,10 +31,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
 @SuperBuilder
+@DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "monthly_trading_summary")
@@ -112,12 +117,86 @@ public class MonthlyTradingSummary extends BaseEntity {
 	}
 
 	/**
-	 * 평가 수정
+	 * 평가 수정 (레거시 - 검증 없음)
 	 */
 	public void updateEvaluation(String monthlyEvaluation, String nextMonthGoal) {
 		this.monthlyEvaluation = monthlyEvaluation;
 		this.nextMonthGoal = nextMonthGoal;
 		this.evaluatedAt = LocalDateTime.now();
+	}
+
+	// ========================================
+	// DDD 비즈니스 규칙 메서드 (Tell, Don't Ask)
+	// ========================================
+
+	/**
+	 * 트레이너가 평가를 작성/수정할 수 있는지 확인
+	 * 비즈니스 규칙: AFTER_COMPLETION일 때만 트레이너가 월간 평가 작성 가능 (DAY/SWING 모두)
+	 *
+	 * @return 트레이너가 평가를 작성할 수 있으면 true
+	 */
+	public boolean canTrainerWriteEvaluation() {
+		return this.courseStatus == CourseStatus.AFTER_COMPLETION;
+	}
+
+	// ========================================
+	// DDD 비즈니스 메서드 (상태 변경 캡슐화)
+	// ========================================
+
+	/**
+	 * 트레이너 평가 업데이트 (비즈니스 규칙 검증 포함)
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * @param processedEvaluation 처리된 월간 평가
+	 * @param processedGoal       처리된 다음 달 목표
+	 * @throws MonthlyTradingSummaryException 완강 전이면 평가 수정 불가
+	 */
+	public void updateTrainerEvaluation(String processedEvaluation, String processedGoal) {
+		if (!canTrainerWriteEvaluation()) {
+			throw new MonthlyTradingSummaryException(
+				MonthlyTradingSummaryErrorStatus.COURSE_NOT_COMPLETED
+			);
+		}
+		this.monthlyEvaluation = processedEvaluation;
+		this.nextMonthGoal = processedGoal;
+		this.evaluatedAt = LocalDateTime.now();
+	}
+
+	// ========================================
+	// 정적 팩토리 메서드 (DDD 패턴)
+	// ========================================
+
+	/**
+	 * 트레이너 평가용 월간 요약 생성 (AFTER_COMPLETION)
+	 *
+	 * @param processedEvaluation 처리된 월간 평가
+	 * @param processedGoal       처리된 다음 달 목표
+	 * @param customer            고객
+	 * @param trainer             담당 트레이너
+	 * @param investmentType      투자 타입
+	 * @param year                연도
+	 * @param month               월
+	 * @return 새로운 MonthlyTradingSummary 엔티티
+	 */
+	public static MonthlyTradingSummary createForTrainerEvaluation(
+		String processedEvaluation,
+		String processedGoal,
+		Customer customer,
+		User trainer,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month
+	) {
+		return MonthlyTradingSummary.builder()
+			.customer(customer)
+			.trainer(trainer)
+			.courseStatus(CourseStatus.AFTER_COMPLETION)
+			.investmentType(investmentType)
+			.period(MonthlyPeriod.of(year, month))
+			.monthlyEvaluation(processedEvaluation)
+			.nextMonthGoal(processedGoal)
+			.evaluatedAt(LocalDateTime.now())
+			.build();
 	}
 
 }

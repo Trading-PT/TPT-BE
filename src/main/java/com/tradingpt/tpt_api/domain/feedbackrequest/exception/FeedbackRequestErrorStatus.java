@@ -30,6 +30,7 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	DELETE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_1", "자신의 피드백 요청만 삭제할 수 있습니다."),
 	RESPONSE_UPDATE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_2", "답변 작성자만 수정할 수 있습니다."),
 	CANNOT_RESPOND_TO_NON_TOKEN_FEEDBACK_AS_UNASSIGNED_TRAINER(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_3", "배정되지 않은 트레이너는 토큰 사용 피드백에만 응답할 수 있습니다."),
+	UPDATE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_4", "자신의 피드백 요청만 수정할 수 있습니다."),
 
 	// 409 Conflict
 	FEEDBACK_RESPONSE_ALREADY_EXISTS(HttpStatus.CONFLICT, "FEEDBACK_REQ_409_0", "이미 답변이 작성된 피드백 요청입니다."),
@@ -63,6 +64,7 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	TOKEN_REQUIRED_FOR_BASIC_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_22", "BASIC 멤버십은 토큰을 사용해야 피드백 요청이 가능합니다."),
 	TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_23", "PREMIUM 멤버십은 토큰을 사용할 수 없습니다."),
 	COURSE_STATUS_MISMATCH(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_24", "요청한 완강 상태가 현재 사용자의 완강 상태와 일치하지 않습니다."),
+	COMPLETED_FEEDBACK_UPDATE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "FEEDBACK_REQ_400_25", "피드백 답변이 완료된 요청은 수정할 수 없습니다."),
 	;
 
 	private final HttpStatus httpStatus;

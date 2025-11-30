@@ -8,10 +8,13 @@ import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHi
 import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHistoryException;
 import com.tradingpt.tpt_api.domain.investmenttypehistory.repository.InvestmentTypeHistoryRepository;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.CreateMonthlyTradingSummaryRequestDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.UpsertMonthlyEvaluationRequestDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyEvaluationResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingSummary;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryErrorStatus;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryException;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -35,6 +38,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final ContentImageUploader contentImageUploader;
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public Void createMonthlySummary(
@@ -130,5 +134,82 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 
 		log.debug("Course completion validated for customerId={}, year={}, month={}",
 			customerId, year, month);
+	}
+
+	/**
+	 * =============================
+	 * UPSERT METHODS (DDD 패턴)
+	 * =============================
+	 */
+
+	/**
+	 * 월간 매매일지 트레이너 평가 Upsert (트레이너/관리자용 - 완강 후)
+	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 */
+	@Override
+	public MonthlyEvaluationResponseDTO upsertMonthlyEvaluationByTrainer(
+		Integer year,
+		Integer month,
+		Long customerId,
+		Long trainerId,
+		UpsertMonthlyEvaluationRequestDTO request
+	) {
+		log.info("Trainer upserting monthly evaluation for customerId={}, year={}, month={}, trainerId={}",
+			customerId, year, month, trainerId);
+
+		// 1. 고객 조회
+		Customer customer = customerRepository.findById(customerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
+
+		// 2. 트레이너 조회
+		User trainer = userRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+		// 3. 해당 연/월의 투자 타입 조회
+		InvestmentType investmentType = investmentTypeHistoryRepository
+			.findActiveHistoryForMonth(customerId, year, month)
+			.orElseThrow(() -> new InvestmentHistoryException(
+				InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
+			.getInvestmentType();
+
+		// 4. 콘텐츠 처리
+		String processedEvaluation = contentImageUploader.processContent(
+			request.getMonthlyEvaluation(),
+			"monthly-summaries"
+		);
+		String processedGoal = contentImageUploader.processContent(
+			request.getNextMonthGoal(),
+			"monthly-summaries"
+		);
+
+		// 5. 기존 요약 조회 (Upsert 패턴)
+		MonthlyTradingSummary summary = monthlyTradingSummaryRepository
+			.findByCustomer_IdAndPeriod_YearAndPeriod_Month(customerId, year, month)
+			.orElse(null);
+
+		if (summary != null) {
+			// UPDATE: Entity의 DDD 비즈니스 메서드 호출 (내부에서 검증)
+			summary.updateTrainerEvaluation(processedEvaluation, processedGoal);
+			log.info("Trainer updated monthly evaluation");
+		} else {
+			// CREATE: 완강 검증 후 새 Entity 생성
+			validateCourseCompletion(customerId, year, month);
+
+			summary = MonthlyTradingSummary.createForTrainerEvaluation(
+				processedEvaluation,
+				processedGoal,
+				customer,
+				trainer,
+				investmentType,
+				year,
+				month
+			);
+			monthlyTradingSummaryRepository.save(summary);
+			log.info("Trainer created monthly evaluation");
+		}
+
+		// JPA Dirty Checking으로 자동 UPDATE (save() 불필요)
+		return MonthlyEvaluationResponseDTO.from(summary);
 	}
 }

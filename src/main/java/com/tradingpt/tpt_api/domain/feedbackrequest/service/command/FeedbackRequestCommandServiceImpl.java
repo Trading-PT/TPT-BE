@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
@@ -86,6 +87,69 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		// JPA Dirty Checking이 자동으로 Customer UPDATE (save() 불필요)
 
 		return FeedbackRequestDetailResponseDTO.from(saved);
+	}
+
+	@Override
+	public FeedbackRequestDetailResponseDTO updateFeedbackRequest(
+		Long feedbackRequestId,
+		UpdateFeedbackRequestDTO request,
+		Long customerId
+	) {
+		// 1. 피드백 요청 조회
+		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
+			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
+
+		// 2. 소유권 검증 (DDD: Entity에서 검증)
+		feedbackRequest.validateOwnership(customerId);
+
+		// 3. 수정 가능 상태 검증 (DDD: Entity에서 검증)
+		feedbackRequest.validateUpdatable();
+
+		// 4. 매매 기본 정보 업데이트 (DDD: Entity 비즈니스 메서드)
+		feedbackRequest.updateTradingData(
+			request.getCategory(),
+			request.getPositionHoldingTime(),
+			request.getPosition(),
+			request.getPnl(),
+			request.getTotalAssetPnl(),
+			request.getRnr(),
+			request.getRiskTaking(),
+			request.getLeverage(),
+			request.getOperatingFundsRatio(),
+			request.getEntryPrice(),
+			request.getExitPrice(),
+			request.getSettingStopLoss(),
+			request.getSettingTakeProfit(),
+			request.getPositionStartReason(),
+			request.getPositionEndReason(),
+			request.getTradingReview()
+		);
+
+		// 5. 완강 후 전용 필드 업데이트 (해당 시)
+		feedbackRequest.updateAfterCompletionData(
+			request.getDirectionFrameExists(),
+			request.getDirectionFrame(),
+			request.getMainFrame(),
+			request.getSubFrame(),
+			request.getTrendAnalysis(),
+			request.getTrainerFeedbackRequestContent(),
+			request.getEntryPoint(),
+			request.getGrade(),
+			request.getAdditionalBuyCount(),
+			request.getSplitSellCount()
+		);
+
+		// 6. SWING 전용 필드 업데이트 (해당 시)
+		feedbackRequest.updateSwingSpecificData(
+			request.getPositionStartDate(),
+			request.getPositionEndDate()
+		);
+
+		log.info("Feedback request updated: feedbackRequestId={}, customerId={}",
+			feedbackRequestId, customerId);
+
+		// JPA Dirty Checking이 자동으로 UPDATE 처리 (save() 불필요)
+		return FeedbackRequestDetailResponseDTO.from(feedbackRequest);
 	}
 
 	@Override
