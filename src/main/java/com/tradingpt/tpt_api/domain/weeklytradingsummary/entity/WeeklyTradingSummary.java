@@ -8,6 +8,9 @@ import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.exception.WeeklyTradingSummaryErrorStatus;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.exception.WeeklyTradingSummaryException;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -26,10 +29,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
 @SuperBuilder
+@DynamicUpdate
 @NoArgsConstructor(access = lombok.AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Table(name = "weekly_trading_summary")
@@ -149,6 +154,165 @@ public class WeeklyTradingSummary extends BaseEntity {
 		this.weeklyProfitableTradingAnalysis = weeklyProfitableTradingAnalysis;
 		this.weeklyLossTradingAnalysis = weeklyLossTradingAnalysis;
 		this.evaluatedAt = LocalDateTime.now();
+	}
+
+	// ========================================
+	// DDD 비즈니스 규칙 메서드 (Tell, Don't Ask)
+	// ========================================
+
+	/**
+	 * 고객이 메모를 작성/수정할 수 있는지 확인
+	 * 비즈니스 규칙: BEFORE_COMPLETION 그룹일 때만 고객이 메모 작성 가능
+	 *
+	 * @return 고객이 메모를 작성할 수 있으면 true
+	 */
+	public boolean canCustomerWriteMemo() {
+		return this.courseStatus != null && this.courseStatus.isBeforeCompletionGroup();
+	}
+
+	/**
+	 * 트레이너가 평가를 작성/수정할 수 있는지 확인
+	 * 비즈니스 규칙: AFTER_COMPLETION + DAY 타입일 때만 트레이너가 평가 작성 가능
+	 *
+	 * @return 트레이너가 평가를 작성할 수 있으면 true
+	 */
+	public boolean canTrainerWriteEvaluation() {
+		return this.courseStatus == CourseStatus.AFTER_COMPLETION
+			&& this.investmentType == InvestmentType.DAY;
+	}
+
+	/**
+	 * SWING 타입에서 주간 평가가 없는지 확인
+	 * 비즈니스 규칙: SWING 타입은 완강 후에도 주간 평가가 없음
+	 *
+	 * @return SWING 타입이면서 완강 후이면 true
+	 */
+	public boolean hasNoWeeklyEvaluationForSwing() {
+		return this.courseStatus == CourseStatus.AFTER_COMPLETION
+			&& this.investmentType == InvestmentType.SWING;
+	}
+
+	// ========================================
+	// DDD 비즈니스 메서드 (상태 변경 캡슐화)
+	// ========================================
+
+	/**
+	 * 고객 메모 업데이트 (비즈니스 규칙 검증 포함)
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * @param processedMemo 처리된(sanitized) 메모 내용
+	 * @throws WeeklyTradingSummaryException 완강 후에는 메모 수정 불가
+	 */
+	public void updateCustomerMemo(String processedMemo) {
+		if (!canCustomerWriteMemo()) {
+			throw new WeeklyTradingSummaryException(
+				WeeklyTradingSummaryErrorStatus.CUSTOMER_CANNOT_CREATE_FOR_AFTER_COMPLETION
+			);
+		}
+		this.memo = processedMemo;
+	}
+
+	/**
+	 * 트레이너 평가 업데이트 (비즈니스 규칙 검증 포함)
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * @param processedEvaluation     처리된 주간 평가
+	 * @param processedProfitAnalysis 처리된 수익 매매 분석
+	 * @param processedLossAnalysis   처리된 손실 매매 분석
+	 * @throws WeeklyTradingSummaryException 완강 전이거나 SWING 타입이면 평가 수정 불가
+	 */
+	public void updateTrainerEvaluation(
+		String processedEvaluation,
+		String processedProfitAnalysis,
+		String processedLossAnalysis
+	) {
+		if (this.courseStatus != CourseStatus.AFTER_COMPLETION) {
+			throw new WeeklyTradingSummaryException(
+				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_BEFORE_COMPLETION
+			);
+		}
+		if (this.investmentType != InvestmentType.DAY) {
+			throw new WeeklyTradingSummaryException(
+				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_NON_DAY_AFTER_COMPLETION
+			);
+		}
+		this.weeklyEvaluation = processedEvaluation;
+		this.weeklyProfitableTradingAnalysis = processedProfitAnalysis;
+		this.weeklyLossTradingAnalysis = processedLossAnalysis;
+		this.evaluatedAt = LocalDateTime.now();
+	}
+
+	// ========================================
+	// 정적 팩토리 메서드 (DDD 패턴)
+	// ========================================
+
+	/**
+	 * 고객 메모용 주간 요약 생성 (BEFORE_COMPLETION)
+	 *
+	 * @param processedMemo  처리된 메모 내용
+	 * @param customer       고객
+	 * @param trainer        담당 트레이너 (nullable)
+	 * @param investmentType 투자 타입
+	 * @param year           연도
+	 * @param month          월
+	 * @param week           주
+	 * @return 새로운 WeeklyTradingSummary 엔티티
+	 */
+	public static WeeklyTradingSummary createForCustomerMemo(
+		String processedMemo,
+		Customer customer,
+		Trainer trainer,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		return WeeklyTradingSummary.builder()
+			.customer(customer)
+			.trainer(trainer)
+			.courseStatus(CourseStatus.BEFORE_COMPLETION)
+			.investmentType(investmentType)
+			.period(WeeklyPeriod.of(year, month, week))
+			.memo(processedMemo)
+			.build();
+	}
+
+	/**
+	 * 트레이너 평가용 주간 요약 생성 (AFTER_COMPLETION + DAY)
+	 *
+	 * @param processedEvaluation     처리된 주간 평가
+	 * @param processedProfitAnalysis 처리된 수익 매매 분석
+	 * @param processedLossAnalysis   처리된 손실 매매 분석
+	 * @param customer                고객
+	 * @param trainer                 담당 트레이너
+	 * @param investmentType          투자 타입
+	 * @param year                    연도
+	 * @param month                   월
+	 * @param week                    주
+	 * @return 새로운 WeeklyTradingSummary 엔티티
+	 */
+	public static WeeklyTradingSummary createForTrainerEvaluation(
+		String processedEvaluation,
+		String processedProfitAnalysis,
+		String processedLossAnalysis,
+		Customer customer,
+		Trainer trainer,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month,
+		Integer week
+	) {
+		return WeeklyTradingSummary.builder()
+			.customer(customer)
+			.trainer(trainer)
+			.courseStatus(CourseStatus.AFTER_COMPLETION)
+			.investmentType(investmentType)
+			.period(WeeklyPeriod.of(year, month, week))
+			.weeklyEvaluation(processedEvaluation)
+			.weeklyProfitableTradingAnalysis(processedProfitAnalysis)
+			.weeklyLossTradingAnalysis(processedLossAnalysis)
+			.evaluatedAt(LocalDateTime.now())
+			.build();
 	}
 
 }

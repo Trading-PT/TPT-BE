@@ -10,6 +10,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Grade;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Position;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
+import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestException;
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.FeedbackPeriodUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -339,5 +341,134 @@ public class FeedbackRequest extends BaseEntity {
 		if (customer != null && !customer.getFeedbackRequests().contains(this)) {
 			customer.getFeedbackRequests().add(this);
 		}
+	}
+
+	// ===== Update 관련 비즈니스 메서드 =====
+
+	/**
+	 * 소유권 검증
+	 * 자신의 피드백 요청만 수정할 수 있다.
+	 *
+	 * @param customerId 검증할 고객 ID
+	 * @throws FeedbackRequestException 소유권이 없는 경우
+	 */
+	public void validateOwnership(Long customerId) {
+		if (!this.customer.getId().equals(customerId)) {
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.UPDATE_PERMISSION_DENIED
+			);
+		}
+	}
+
+	/**
+	 * 수정 가능 여부 검증
+	 * 이미 피드백 답변이 완료된 경우 수정 불가
+	 *
+	 * @throws FeedbackRequestException 수정 불가능한 상태인 경우
+	 */
+	public void validateUpdatable() {
+		// FR: 답변 완료 + 읽음, FN: 답변 완료 + 미읽음 → 둘 다 수정 불가
+		boolean isResponseCompleted = this.status == Status.FR || this.status == Status.FN
+			|| Boolean.TRUE.equals(this.isResponded);
+		if (isResponseCompleted) {
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.COMPLETED_FEEDBACK_UPDATE_NOT_ALLOWED
+			);
+		}
+	}
+
+	/**
+	 * 매매 데이터 업데이트
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * @param category 종목
+	 * @param positionHoldingTime 포지션 홀딩 시간
+	 * @param position 포지션 (LONG/SHORT)
+	 * @param pnl P&L
+	 * @param totalAssetPnl 전체 자산 기준 P&L
+	 * @param rnr 손익비
+	 * @param riskTaking 리스크 테이킹
+	 * @param leverage 레버리지
+	 * @param operatingFundsRatio 비중
+	 * @param entryPrice 진입 가격
+	 * @param exitPrice 탈출 가격
+	 * @param settingStopLoss 설정 손절가
+	 * @param settingTakeProfit 설정 익절가
+	 * @param positionStartReason 포지션 진입 근거
+	 * @param positionEndReason 포지션 탈출 근거
+	 * @param tradingReview 매매 복기
+	 */
+	public void updateTradingData(
+		String category,
+		String positionHoldingTime,
+		Position position,
+		BigDecimal pnl,
+		BigDecimal totalAssetPnl,
+		Double rnr,
+		BigDecimal riskTaking,
+		BigDecimal leverage,
+		Integer operatingFundsRatio,
+		BigDecimal entryPrice,
+		BigDecimal exitPrice,
+		BigDecimal settingStopLoss,
+		BigDecimal settingTakeProfit,
+		String positionStartReason,
+		String positionEndReason,
+		String tradingReview
+	) {
+		this.category = category;
+		this.positionHoldingTime = positionHoldingTime;
+		this.position = position;
+		this.pnl = pnl;
+		this.totalAssetPnl = totalAssetPnl;
+		this.rnr = rnr;
+		this.riskTaking = riskTaking;
+		this.leverage = leverage;
+		this.operatingFundsRatio = operatingFundsRatio;
+		this.entryPrice = entryPrice;
+		this.exitPrice = exitPrice;
+		this.settingStopLoss = settingStopLoss;
+		this.settingTakeProfit = settingTakeProfit;
+		this.positionStartReason = positionStartReason;
+		this.positionEndReason = positionEndReason;
+		this.tradingReview = tradingReview;
+
+		// 제목 자동 업데이트 (종목/PnL 변경 시)
+		this.title = buildTitle(this.feedbackRequestDate, category, totalAssetPnl);
+	}
+
+	/**
+	 * 완강 후 필드 업데이트
+	 */
+	public void updateAfterCompletionData(
+		Boolean directionFrameExists,
+		String directionFrame,
+		String mainFrame,
+		String subFrame,
+		String trendAnalysis,
+		String trainerFeedbackRequestContent,
+		EntryPoint entryPoint,
+		Grade grade,
+		Integer additionalBuyCount,
+		Integer splitSellCount
+	) {
+		this.directionFrameExists = directionFrameExists;
+		this.directionFrame = directionFrame;
+		this.mainFrame = mainFrame;
+		this.subFrame = subFrame;
+		this.trendAnalysis = trendAnalysis;
+		this.trainerFeedbackRequestContent = trainerFeedbackRequestContent;
+		this.entryPoint = entryPoint;
+		this.grade = grade;
+		this.additionalBuyCount = additionalBuyCount;
+		this.splitSellCount = splitSellCount;
+	}
+
+	/**
+	 * SWING 전용 필드 업데이트
+	 */
+	public void updateSwingSpecificData(LocalDate positionStartDate, LocalDate positionEndDate) {
+		this.positionStartDate = positionStartDate;
+		this.positionEndDate = positionEndDate;
 	}
 }
