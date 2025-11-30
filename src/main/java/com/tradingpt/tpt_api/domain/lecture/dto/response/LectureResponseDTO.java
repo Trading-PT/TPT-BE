@@ -47,4 +47,7 @@ public class LectureResponseDTO {
 
     @Schema(description = "완강 여부", example = "true")
     private Boolean completed;
+
+    @Schema(description = "수강 만료일 (무료 강의의 경 생성됨, 없으면 null)", example = "2025-01-08T00:00:00")
+    private LocalDateTime dueDate;
 }

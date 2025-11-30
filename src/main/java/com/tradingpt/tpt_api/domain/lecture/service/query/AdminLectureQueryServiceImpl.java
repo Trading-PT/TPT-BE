@@ -19,6 +19,8 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
     private final CustomerRepository customerRepository;
     private final CustomerAssignmentRepository customerAssignmentRepository;
     private final AssignmentAttachmentRepository assignmentAttachmentRepository;
+    private final S3FileService s3FileService;
 
     @Override
     @Transactional(readOnly = true)
@@ -66,9 +69,6 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
         return LectureDetailResponseDTO.from(lecture);
     }
 
-    /**
-     * 특정 회원 PRO 강의 과제 현황 조회
-     */
     @Override
     @Transactional(readOnly = true)
     public CustomerHomeworkSummaryResponseDTO getCustomerHomeworkSummary(Long customerId) {
@@ -77,75 +77,97 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-        // 2. PRO 챕터 강의들을 정렬된 리스트로 가져오기
-        List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
+        // 2. PRO 강의 정렬하여 가져오기
+        List<Lecture> proLectures = lectureRepository.findAllOrderByChapterAndLectureOrder()
+                .stream()
+                .filter(l -> l.getChapter().getChapterType() == ChapterType.PRO)
+                .toList();
 
-        List<Lecture> proLectures = new ArrayList<>();
-        for (Lecture lecture : allLectures) {
-            if (lecture.getChapter().getChapterType() == ChapterType.PRO) {
-                proLectures.add(lecture);
-            }
-        }
-
-        // 3. 지금까지 열린 PRO 강의 개수 (null 이면 0)
-        int openedCount = (customer.getOpenChapterNumber() == null)
+        // 3. 열린 최대 lectureOrder (= openChapterNumber)
+        int openedMaxOrder = (customer.getOpenChapterNumber() == null)
                 ? 0
                 : customer.getOpenChapterNumber();
-
-        // 열린 개수는 PRO 강의 총 개수를 넘지 않도록 조정
-        int totalOpenedCount = Math.min(openedCount, proLectures.size());
 
         int notSubmittedCount = 0;
         List<CustomerHomeworkSummaryResponseDTO.CustomerHomeworkItemDTO> items = new ArrayList<>();
 
-        // 4. PRO 강의를 순회하면서 상태/제출 파일 정보 계산
+        // 4. 각 PRO 강의에 대한 제출 정보 구성
         for (int i = 0; i < proLectures.size(); i++) {
 
             Lecture lecture = proLectures.get(i);
-            int order = i + 1; // 1-based 표시
+            int order = i + 1;
+            Integer lectureOrder = lecture.getLectureOrder();
+            int lo = (lectureOrder == null ? 0 : lectureOrder);
 
             String status;
-            String submittedFileName = null;
+            List<CustomerHomeworkSummaryResponseDTO.SubmissionDTO> submissions = new ArrayList<>();
 
-            if (i >= totalOpenedCount) {
-                // 아직 열리지 않은 강의
-                status = "수강 전";
+            // 🔥 lectureOrder 기준으로 열림 여부 판단
+            if (lo == 0 || lo > openedMaxOrder) {
+                status = "수강 전"; // 아직 열리지 않은 강의
             } else {
-                // 이미 열린 강의 → 제출 여부 확인
+                // 🔥 이미 열린 강의 → 과제 제출 조회
                 CustomerAssignment assignment = customerAssignmentRepository
                         .findByLectureIdAndCustomerId(lecture.getId(), customerId)
                         .orElse(null);
 
-                boolean submitted = (assignment != null && assignment.isSubmitted());
-
-                if (submitted) {
-                    status = "제출";
-
-                    // 제출된 과제 첨부파일 조회 (1개만 관리)
-                    AssignmentAttachment attachment = assignmentAttachmentRepository
-                            .findByCustomerAssignmentId(assignment.getId())
-                            .orElse(null);
-
-                    if (attachment != null) {
-                        // ✅ S3 private + key-only 구조에 맞게 key 기반으로 파일명 추출
-                        submittedFileName = extractFileNameFromKey(attachment.getFileKey());
-                    }
-                } else {
+                if (assignment == null) {
                     status = "미제출";
                     notSubmittedCount++;
+
+                } else {
+                    // 제출한 첨부파일(여러 attempt) 조회
+                    List<AssignmentAttachment> attachments =
+                            assignmentAttachmentRepository
+                                    .findAllByCustomerAssignmentIdOrderByAttemptNoAsc(assignment.getId());
+
+                    if (attachments.isEmpty()) {
+                        status = "미제출";
+                        notSubmittedCount++;
+
+                    } else {
+                        status = "제출";
+
+                        for (AssignmentAttachment att : attachments) {
+
+                            String downloadUrl = s3FileService.createPresignedGetUrl(
+                                    att.getFileKey(),
+                                    Duration.ofMinutes(60) // 60분짜리 URL
+                            );
+                            submissions.add(
+                                    CustomerHomeworkSummaryResponseDTO.SubmissionDTO.builder()
+                                            .attemptNo(att.getAttemptNo())
+                                            .fileName(extractFileNameFromKey(att.getFileKey()))
+                                            .downloadUrl(downloadUrl)
+                                            .submittedAt(att.getCreatedAt())
+                                            .build()
+                            );
+                        }
+                    }
                 }
             }
 
-            items.add(CustomerHomeworkSummaryResponseDTO.CustomerHomeworkItemDTO.builder()
-                    .lectureId(lecture.getId())
-                    .order(order)
-                    .lectureTitle(lecture.getTitle())
-                    .status(status)
-                    .submittedFileName(submittedFileName)
-                    .build());
+            // 5. DTO 구성
+            items.add(
+                    CustomerHomeworkSummaryResponseDTO.CustomerHomeworkItemDTO.builder()
+                            .lectureId(lecture.getId())
+                            .order(order)
+                            .lectureTitle(lecture.getTitle())
+                            .status(status)
+                            .submissions(submissions)
+                            .build()
+            );
         }
 
-        // 5. 요약 정보와 함께 반환
+        // 6. 실제 열린 강의 수 계산 (lectureOrder 기준)
+        int totalOpenedCount = (int) proLectures.stream()
+                .filter(l -> {
+                    Integer lo = l.getLectureOrder();
+                    return lo != null && lo > 0 && lo <= openedMaxOrder;
+                })
+                .count();
+
+        // 7. 최종 반환
         return CustomerHomeworkSummaryResponseDTO.builder()
                 .customerId(customer.getId())
                 .customerName(customer.getName())
@@ -154,6 +176,8 @@ public class AdminLectureQueryServiceImpl implements AdminLectureQueryService {
                 .items(items)
                 .build();
     }
+
+
 
     /**
      * "All" 이면 null 리턴해서 필터 안 걸고,

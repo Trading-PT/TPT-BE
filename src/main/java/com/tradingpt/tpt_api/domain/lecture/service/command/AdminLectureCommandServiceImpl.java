@@ -234,12 +234,18 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
                             .build()
             );
 
-            // 3-2. PRO 챕터에 대한 강의라면, openChapterNumber + 1
+// 3-2. PRO 챕터에 대한 강의라면, openChapterNumber를 해당 챕터 순번 기준으로 갱신
             if (lecture.getChapter().getChapterType() == ChapterType.PRO) {
                 Integer current = customer.getOpenChapterNumber();
-                int newValue = (current == null ? 0 : current) + 1;
+                int currentValue = (current == null ? 0 : current);
+
+                int lectureOrder = lecture.getLectureOrder();
+
+                int newValue = Math.max(currentValue, lectureOrder);
+
                 customer.updateOpenChapterNumber(newValue);
             }
+
         }
 
         return lectureId;

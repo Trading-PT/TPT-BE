@@ -29,6 +29,8 @@ public class QLectureProgress extends EntityPathBase<LectureProgress> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    public final DateTimePath<java.time.LocalDateTime> dueDate = createDateTime("dueDate", java.time.LocalDateTime.class);
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final BooleanPath isCompleted = createBoolean("isCompleted");

@@ -79,5 +79,12 @@ public interface S3FileService {
 	default S3PresignedDownloadResult createPresignedDownloadUrl(String objectKey) {
 		return createPresignedDownloadUrl(objectKey, 60);
 	}
+
+	S3UploadResult uploadToPrivate(MultipartFile file, String directory);
+
+	/**
+	 * Private 버킷에서 객체 삭제
+	 */
+	void deleteFromPrivate(String key);
 }
 
