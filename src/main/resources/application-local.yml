@@ -64,4 +64,8 @@ nicepay:
   feign:
     logger-level: FULL
 
-
+# CloudFront (prod 제외 공통)
+cloudfront:
+  domain: ${CLOUDFRONT_DOMAIN}
+  keyPairId: ${CLOUDFRONT_KEY_PAIR_ID}
+  privateKey: ${CLOUDFRONT_PRIVATE_KEY}

@@ -195,9 +195,3 @@ logging:
     org.springframework.security: DEBUG
     com.tradingpt.tpt_api.auth.filter: DEBUG
     org.springframework.security.web.authentication.rememberme: DEBUG
-
-# CloudFront (prod 제외 공통)
-cloudfront:
-  domain: ${CLOUDFRONT_DOMAIN}
-  keyPairId: ${CLOUDFRONT_KEY_PAIR_ID}
-  privateKey: ${CLOUDFRONT_PRIVATE_KEY}
