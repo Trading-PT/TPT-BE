@@ -12,10 +12,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestListItemResponseDTO;
@@ -112,6 +115,38 @@ public class FeedbackRequestV1Controller {
 
 		return BaseResponse.onSuccessDelete(
 			feedbackRequestCommandService.deleteFeedbackRequest(feedbackRequestId, customerId));
+	}
+
+	@Operation(
+		summary = "피드백 요청 수정",
+		description = """
+			자신이 작성한 피드백 요청을 수정합니다.
+
+			수정 가능 조건:
+			- 자신이 작성한 피드백만 수정 가능
+			- 트레이너 피드백 답변이 완료되지 않은 경우에만 수정 가능
+
+			수정 불가 필드 (생성 시 결정):
+			- investmentType: 투자 타입 (DAY/SWING)
+			- courseStatus: 완강 여부
+			- feedbackYear, feedbackMonth, feedbackWeek: 날짜 정보
+
+			수정 가능 필드:
+			- 매매 기본 정보: 종목, 포지션, P&L, 손익비, 레버리지 등
+			- 매매 상세 정보: 진입/탈출 가격, 손절가, 익절가, 복기 내용 등
+			- 완강 후 전용 필드: 디렉션 프레임, 메인 프레임, 추세 분석 등
+			- SWING 전용 필드: 포지션 시작/종료 날짜
+			"""
+	)
+	@PutMapping("/{feedbackRequestId}")
+	@PreAuthorize("hasRole('ROLE_CUSTOMER')")
+	public BaseResponse<FeedbackRequestDetailResponseDTO> updateFeedbackRequest(
+		@Parameter(description = "피드백 요청 ID") @PathVariable Long feedbackRequestId,
+		@Valid @RequestBody UpdateFeedbackRequestDTO request,
+		@AuthenticationPrincipal(expression = "id") Long customerId) {
+
+		return BaseResponse.onSuccess(
+			feedbackRequestCommandService.updateFeedbackRequest(feedbackRequestId, request, customerId));
 	}
 
 	@Operation(
