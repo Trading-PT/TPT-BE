@@ -111,6 +111,13 @@ public class Customer extends User {
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
 
+	/**
+	 * 완강 시점 (AFTER_COMPLETION으로 상태 변경된 시각)
+	 * 완강 월/연도 확인 및 평가 대상 기간 판별에 사용
+	 */
+	@Column(name = "completed_at")
+	private LocalDateTime completedAt;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	@Builder.Default
@@ -320,6 +327,21 @@ public class Customer extends User {
 
 	public void updateCourseStatus(CourseStatus status) {
 		this.courseStatus = status;
+	}
+
+	/**
+	 * 완강 처리 (AFTER_COMPLETION 상태로 변경 + 완강 시점 기록)
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 *
+	 * 비즈니스 규칙:
+	 * - PENDING_COMPLETION -> AFTER_COMPLETION 전환 시 호출
+	 * - 완강 시점을 기록하여 평가 대상 기간 판별에 활용
+	 *
+	 * @param completedAt 완강 시각 (보통 스케줄러 실행 시점)
+	 */
+	public void completeTraining(LocalDateTime completedAt) {
+		this.courseStatus = CourseStatus.AFTER_COMPLETION;
+		this.completedAt = completedAt;
 	}
 
 	// ========================================
