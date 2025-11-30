@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.auth.dto.response;
 
+import com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -36,6 +37,7 @@ public class MeResponse {
 	private String nickName;
 	private int token;
 	private LocalDate signedAt;
+	private LeveltestStatus leveltestStatus;
 
 	public static MeResponse from(Customer c) {
 		if (c == null)
@@ -88,6 +90,7 @@ public class MeResponse {
 			.isPremium(isPremium)
 				.nickName(c.getNickname())
 				.signedAt(c.getCreatedAt().toLocalDate())
+				.leveltestStatus(c.getLeveltestStatus())
 			.build();
 	}
 }
