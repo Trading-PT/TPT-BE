@@ -1,6 +1,7 @@
 package com.tradingpt.tpt_api.domain.user.dto.response;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 
@@ -31,6 +32,9 @@ public class MyCustomerListItemDTO {
 	@Schema(description = "멤버십 레벨", example = "PREMIUM")
 	private MembershipLevel membershipLevel;
 
+	@Schema(description = "완강 여부", example = "BEFORE_COMPLETION")
+	private CourseStatus courseStatus;
+
 	@Schema(description = "보유 토큰 개수")
 	private Integer token;
 
@@ -44,6 +48,7 @@ public class MyCustomerListItemDTO {
 			.phoneNumber(customer.getPhoneNumber())
 			.investmentType(customer.getPrimaryInvestmentType())
 			.membershipLevel(customer.getMembershipLevel())
+			.courseStatus(customer.getCourseStatus())
 			.token(customer.getToken())
 			.build();
 	}
