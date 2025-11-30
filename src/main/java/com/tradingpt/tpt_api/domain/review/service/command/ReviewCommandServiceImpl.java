@@ -23,6 +23,7 @@ import com.tradingpt.tpt_api.domain.review.repository.ReviewTagRepository;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -55,12 +56,14 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
 		// 구독 상태 검증 - 활성 구독이 있어야만 리뷰 작성 가능
-		boolean hasActiveSubscription = subscriptionRepository
-			.findByCustomer_IdAndStatus(
-				customerId,
-				com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE
-			)
-			.isPresent();
+		// boolean hasActiveSubscription = subscriptionRepository
+		// 	.findByCustomer_IdAndStatus(
+		// 		customerId,
+		// 		com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE
+		// 	)
+		// 	.isPresent();
+
+		boolean hasActiveSubscription = customer.getMembershipLevel() == MembershipLevel.PREMIUM;
 
 		if (!hasActiveSubscription) {
 			throw new ReviewException(ReviewErrorStatus.SUBSCRIPTION_REQUIRED);
