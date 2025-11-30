@@ -157,4 +157,5 @@ public class AdminReviewV1Controller {
 	) {
 		return BaseResponse.onSuccess(reviewCommandService.updateReviewVisibility(reviewId, request));
 	}
+
 }

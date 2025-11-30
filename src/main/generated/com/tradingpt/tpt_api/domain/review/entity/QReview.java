@@ -24,6 +24,8 @@ public class QReview extends EntityPathBase<Review> {
 
     public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
 
+    public final ListPath<ReviewAttachment, QReviewAttachment> attachments = this.<ReviewAttachment, QReviewAttachment>createList("attachments", ReviewAttachment.class, QReviewAttachment.class, PathInits.DIRECT2);
+
     public final StringPath content = createString("content");
 
     //inherited
@@ -33,9 +35,13 @@ public class QReview extends EntityPathBase<Review> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final NumberPath<Integer> rating = createNumber("rating", Integer.class);
+
     public final DateTimePath<java.time.LocalDateTime> repliedAt = createDateTime("repliedAt", java.time.LocalDateTime.class);
 
     public final StringPath replyContent = createString("replyContent");
+
+    public final ListPath<ReviewTagMapping, QReviewTagMapping> reviewTagMappings = this.<ReviewTagMapping, QReviewTagMapping>createList("reviewTagMappings", ReviewTagMapping.class, QReviewTagMapping.class, PathInits.DIRECT2);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.review.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.review.enums.Status.class);
 
