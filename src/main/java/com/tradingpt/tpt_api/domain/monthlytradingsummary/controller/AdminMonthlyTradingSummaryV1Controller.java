@@ -14,7 +14,10 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.YearlySummaryRe
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.CreateMonthlyTradingSummaryRequestDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.request.UpsertMonthlyEvaluationRequestDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyEvaluationResponseDTO;
+import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.MonthlyWeekFeedbackResponseDTO;
+
+import io.swagger.v3.oas.annotations.Parameter;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.service.command.MonthlyTradingSummaryCommandService;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.service.query.MonthlyTradingSummaryQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -87,6 +90,37 @@ public class AdminMonthlyTradingSummaryV1Controller {
 			monthlyTradingSummaryQueryService.getMonthlyWeekFeedbackResponse(
 				year, month, customerId, trainerId
 			)
+		);
+	}
+
+	@Operation(
+		summary = "고객 월간 매매 일지 조회 (Admin/Trainer)",
+		description = """
+			특정 고객의 월간 매매 일지 통계를 조회합니다.
+
+			## 권한
+			- **ROLE_ADMIN**: 모든 고객의 월간 통계 조회 가능
+			- **ROLE_TRAINER**: 담당 고객의 월간 통계 조회 가능
+
+			## 반환 정보
+			- CourseStatus별 (BEFORE_COMPLETION, AFTER_COMPLETION) 통계
+			- 한 달 중간에 완강 상태가 변경된 경우 여러 CourseStatus별 통계 반환
+			- 투자 타입별 (DAY/SWING) 성과 데이터
+			- 트레이너 평가 및 다음 달 목표
+			"""
+	)
+	@GetMapping("/customers/{customerId}/years/{year}/months/{month}/summary")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<MonthlySummaryResponseDTO> getMonthlySummaryResponse(
+		@Parameter(description = "고객 ID", required = true)
+		@PathVariable Long customerId,
+		@Parameter(description = "연도", example = "2025", required = true)
+		@PathVariable Integer year,
+		@Parameter(description = "월 (1-12)", example = "11", required = true)
+		@PathVariable Integer month
+	) {
+		return BaseResponse.onSuccess(
+			monthlyTradingSummaryQueryService.getMonthlySummaryResponse(year, month, customerId)
 		);
 	}
 
