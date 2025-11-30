@@ -21,6 +21,7 @@ public enum LectureErrorStatus implements BaseCodeInterface {
     NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_0", "해당 강의를 찾을 수 없습니다."),
     ASSIGNMENT_NOT_SUBMITTED(HttpStatus.NOT_FOUND, "LECTURE_404_1", "해당 과제를 찾을 수 없습니다."),
     VIDEO_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_2", "해당 강의를 찾을 수 없습니다."),
+    ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_3", "해당 첨부파일을 찾을 수 없습니다."),
 
     // 400 Bad Request
     DELETE_FAILED(HttpStatus.BAD_REQUEST, "LECTURE_400_0", "강의 삭제 중 오류가 발생했습니다."),
@@ -28,6 +29,9 @@ public enum LectureErrorStatus implements BaseCodeInterface {
     ALREADY_FREE_LECTURE(HttpStatus.BAD_REQUEST, "LECTURE_400_2", "유료 강의는 구매할 수 없습니다."),
     ALREADY_PURCHASED(HttpStatus.BAD_REQUEST, "LECTURE_400_3", "이미 구매한 강의입니다."),
     NOT_ENOUGH_TOKENS(HttpStatus.BAD_REQUEST, "LECTURE_400_4", "보유 토큰이 부족합니다."),
+    LECTURE_EXPIRED(HttpStatus.FORBIDDEN, "LECTURE_400_5","수강 기간이 만료된 강의입니다."),
+
+    INVALID_ATTACHMENT_FOR_LECTURE(HttpStatus.BAD_REQUEST, "LECTURE_400_6", "해당 강의에 속한 첨부파일이 아닙니다.")
     ;
 
     private final HttpStatus httpStatus;
@@ -45,3 +49,4 @@ public enum LectureErrorStatus implements BaseCodeInterface {
                 .build();
     }
 }
+

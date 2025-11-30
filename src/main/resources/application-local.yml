@@ -53,7 +53,8 @@ aws:
     access-key: ${AWS_ACCESS_KEY_ID}
     secret-key: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
-    bucket-name: ${S3_BUCKET_NAME}
+    public-bucket: ${S3_BUCKET_NAME}
+    private-bucket: ${S3_PRIVATE_BUCKET_NAME}
 
 # NicePay 로컬/테스트 환경 설정
 nicepay:

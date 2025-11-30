@@ -133,7 +133,12 @@
       "mcp__mysql-prod__read_query",
       "mcp__mysql-prod__write_query",
       "mcp__mysql-prod__list_tables",
-      "mcp__mysql-prod__describe_table"
+      "mcp__mysql-prod__describe_table",
+      "Bash(aws iam list-role-policies:*)",
+      "Bash(aws iam create-policy:*)",
+      "Bash(aws iam attach-role-policy:*)",
+      "Bash(./gradlew:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": [],
     "ask": []

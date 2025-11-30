@@ -1,6 +1,5 @@
 package com.tradingpt.tpt_api.domain.user.controller;
 
-import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
+import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
@@ -69,58 +69,55 @@ public class AdminUserV1Controller {
 	}
 
 	@Operation(
-			summary = "UID로 회원 검색 (페이지네이션)",
-			description = """
-        입력한 UID 문자열로 시작하는 회원 목록을 페이지네이션으로 조회합니다.
-
-        예시:
-        - GET /api/v1/admin/users/search-by-uid?uid=abc
-        - GET /api/v1/admin/users/search-by-uid?uid=abc&page=0&size=20
-        """
+		summary = "UID로 회원 검색 (페이지네이션)",
+		description = """
+			입력한 UID 문자열로 시작하는 회원 목록을 페이지네이션으로 조회합니다.
+			
+			예시:
+			- GET /api/v1/admin/users/search-by-uid?uid=abc
+			- GET /api/v1/admin/users/search-by-uid?uid=abc&page=0&size=20
+			"""
 	)
 	@GetMapping("/search-by-uid")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByUid(
-			@RequestParam("uid") String uidPrefix,
-			@PageableDefault(size = 20) Pageable pageable
+		@RequestParam("uid") String uidPrefix,
+		@PageableDefault(size = 20) Pageable pageable
 	) {
 		Page<PendingUserApprovalRowResponseDTO> result =
-				adminUserQueryService.searchUsersByUidPrefix(uidPrefix, pageable);
+			adminUserQueryService.searchUsersByUidPrefix(uidPrefix, pageable);
 
 		return ResponseEntity.ok(BaseResponse.onSuccess(result));
 	}
 
 	@Operation(
-			summary = "회원 이름으로 검색 (페이지네이션)",
-			description = """
-        입력한 이름 문자열이 포함된 회원 목록을 페이지네이션으로 조회합니다.
-
-        예시:
-        - GET /api/v1/admin/users/search-by-name?name=홍길동
-        - GET /api/v1/admin/users/search-by-name?name=홍&page=0&size=20
-        """
+		summary = "회원 이름으로 검색 (페이지네이션)",
+		description = """
+			입력한 이름 문자열이 포함된 회원 목록을 페이지네이션으로 조회합니다.
+			
+			예시:
+			- GET /api/v1/admin/users/search-by-name?name=홍길동
+			- GET /api/v1/admin/users/search-by-name?name=홍&page=0&size=20
+			"""
 	)
 	@GetMapping("/search-by-name")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByName(
-			@RequestParam("name") String nameKeyword,
-			@PageableDefault(size = 20) Pageable pageable
+		@RequestParam("name") String nameKeyword,
+		@PageableDefault(size = 20) Pageable pageable
 	) {
 		Page<PendingUserApprovalRowResponseDTO> result =
-				adminUserQueryService.searchUsersByName(nameKeyword, pageable);
+			adminUserQueryService.searchUsersByName(nameKeyword, pageable);
 
 		return ResponseEntity.ok(BaseResponse.onSuccess(result));
 	}
-
-
-
 
 	@Operation(summary = "특정 유저 UID 값 변경", description = "관리자/트레이너가 고객의 UID 문자열을 수정합니다.")
 	@PatchMapping("/{userId}/uid")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<Void>> updateUserUid(
-			@PathVariable Long userId,
-			@Valid @RequestBody UidUpdateRequestDTO request
+		@PathVariable Long userId,
+		@Valid @RequestBody UidUpdateRequestDTO request
 	) {
 		adminUserCommandService.updateUserUid(userId, request.getUid());
 		return ResponseEntity.ok(BaseResponse.onSuccess(null));
@@ -141,24 +138,24 @@ public class AdminUserV1Controller {
 		summary = "내 담당 고객 목록 조회 (무한 스크롤)",
 		description = """
 			트레이너가 담당하는 고객 목록을 무한 스크롤 방식으로 조회합니다.
-
+			
 			특징:
 			- 자신이 담당하는 고객만 조회
 			- 고객 기본 정보 (이름, 전화번호, 투자 유형, 멤버십, 토큰)
 			- 최신 배정 순으로 정렬
 			- Slice 기반 무한 스크롤 지원
-
+			
 			사용 시나리오:
 			- 내 담당 고객 관리 페이지
 			- 각 고객별로 피드백 내역, 과제 관리, 평가 관리 가능
-
+			
 			페이징 파라미터:
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-
+			
 			예시:
-			- GET /api/v1/admin/customers/my-customers
-			- GET /api/v1/admin/customers/my-customers?page=0&size=20
+			- GET /api/v1/admin/users/my-customers
+			- GET /api/v1/admin/users/my-customers?page=0&size=20
 			"""
 	)
 	@GetMapping("/my-customers")
@@ -176,18 +173,18 @@ public class AdminUserV1Controller {
 		summary = "미구독(무료) 고객 목록 조회",
 		description = """
 			미구독 상태의 무료 고객 목록을 조회합니다.
-
+			
 			미구독 고객 정의:
 			1. Subscription이 없거나 ACTIVE 상태가 아닌 고객
 			2. membershipLevel이 BASIC인 고객
 			3. 담당 트레이너가 없는 고객 (assignedTrainer IS NULL)
-
+			
 			조회 정보:
 			- 고객 ID, 이름, 전화번호
 			- 현재 투자 유형 (DAY, SWING)
 			- 보유 토큰 수
 			- 가입일시
-
+			
 			정렬 옵션 (sort 파라미터):
 			- createdAt,desc: 최근 가입 순 (기본값)
 			- createdAt,asc: 오래된 가입 순
@@ -195,12 +192,12 @@ public class AdminUserV1Controller {
 			- name,desc: 이름 내림차순
 			- tokenCount,desc: 토큰 많은 순
 			- tokenCount,asc: 토큰 적은 순
-
+			
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-
+			
 			예시:
 			- GET /api/v1/admin/users/free-customers
 			- GET /api/v1/admin/users/free-customers?page=0&size=20&sort=createdAt,desc
@@ -221,32 +218,32 @@ public class AdminUserV1Controller {
 		summary = "신규 구독 고객 목록 조회",
 		description = """
 			신규로 구독한 고객 목록을 조회합니다.
-
+			
 			신규 구독 고객 정의:
 			- ACTIVE 상태의 Subscription 보유
 			- 다음 중 하나에 해당:
 			  1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
 			  2. 트레이너가 아직 배정되지 않은 구독 고객
-
+			
 			조회 정보:
 			- 고객 기본 정보 (ID, 이름, 전화번호)
 			- 레벨테스트 정보 (응시 여부, 상태, 채점 결과)
 			- 상담 여부
 			- 배정된 트레이너 정보
-
+			
 			레벨테스트 상태:
 			- SUBMITTED: 제출됨
 			- GRADING: 채점 중
 			- GRADED: 채점 완료
-
+			
 			정렬:
 			- 구독 시작일 내림차순 (최신순)
-
+			
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-
+			
 			예시:
 			- GET /api/v1/admin/users/new-subscription-customers
 			- GET /api/v1/admin/users/new-subscription-customers?page=0&size=20

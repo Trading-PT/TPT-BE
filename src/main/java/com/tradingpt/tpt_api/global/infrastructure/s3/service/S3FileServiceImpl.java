@@ -68,8 +68,11 @@ public class S3FileServiceImpl implements S3FileService {
 	private final S3Presigner s3Presigner;
 
 	/** 환경별 버킷 이름. application-*.yml 에서 주입된다. */
-	@Value("${aws.s3.bucket-name}")
-	private String bucketName;
+	@Value("${aws.s3.public-bucket}")
+	private String publicBucket;
+
+	@Value("${aws.s3.private-bucket}")
+	private String privateBucket;
 
 	/**
 	 * 사용자의 멀티파트 파일을 S3에 업로드한다.
@@ -123,6 +126,44 @@ public class S3FileServiceImpl implements S3FileService {
 	}
 
 	@Override
+	public S3UploadResult uploadToPrivate(MultipartFile file, String directory) {
+		if (file == null || file.isEmpty()) {
+			throw new S3Exception(S3ErrorStatus.EMPTY_FILE);
+		}
+
+		String originalFilename = file.getOriginalFilename();
+		String extension = resolveExtension(originalFilename);
+		validateExtension(extension);
+
+		String contentType = resolveContentType(file.getContentType(), extension);
+		String key = buildObjectKey(directory, extension);
+
+		// ✅ privateBucket 사용
+		PutObjectRequest request = PutObjectRequest.builder()
+				.bucket(privateBucket)
+				.key(key)
+				.contentType(contentType)
+				.contentLength(file.getSize())
+				.build();
+
+		try (InputStream inputStream = file.getInputStream()) {
+			uploadToS3(request, RequestBody.fromInputStream(inputStream, file.getSize()));
+
+			// private 버킷 기준 URL 생성 (내부에서만 쓰거나, 사실 안 써도 됨)
+			URL objectUrl = s3Client.utilities()
+					.getUrl(GetUrlRequest.builder()
+							.bucket(privateBucket)
+							.key(key)
+							.build());
+
+			return new S3UploadResult(key, objectUrl.toString(), originalFilename, contentType);
+		} catch (IOException e) {
+			throw new S3Exception(S3ErrorStatus.UPLOAD_FAILED);
+		}
+	}
+
+
+	@Override
 	public S3PresignedUploadResult createPresignedUploadUrl(String originalFilename, String directory) {
 		// 1. 파일명/확장자 검증
 		String extension = resolveExtension(originalFilename);
@@ -136,9 +177,8 @@ public class S3FileServiceImpl implements S3FileService {
 
 		// 4. presign 할 PutObjectRequest 만들기
 		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
-				.bucket(bucketName)
+				.bucket(privateBucket)
 				.key(key)
-				.contentType(contentType)
 				.build();
 
 		// 5. 만료시간 지정해서 사전서명 URL 생성 (예: 10분)
@@ -151,7 +191,7 @@ public class S3FileServiceImpl implements S3FileService {
 
 		// 6. 클라이언트가 업로드 후 접근할 public URL도 만들어줌
 		URL objectUrl = s3Client.utilities()
-				.getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build());
+				.getUrl(GetUrlRequest.builder().bucket(privateBucket).key(key).build());
 
 		return new S3PresignedUploadResult(
 				presigned.url().toString(),
@@ -170,7 +210,7 @@ public class S3FileServiceImpl implements S3FileService {
 		}
 
 		DeleteObjectRequest request = DeleteObjectRequest.builder()
-			.bucket(bucketName)
+			.bucket(publicBucket)
 			.key(key)
 			.build();
 
@@ -192,7 +232,7 @@ public class S3FileServiceImpl implements S3FileService {
 
 		// 1. GET 요청 정보
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-				.bucket(bucketName)
+				.bucket(privateBucket)
 				.key(key)
 				.build();
 
@@ -235,7 +275,7 @@ public class S3FileServiceImpl implements S3FileService {
 
 		// GetObject 요청 생성
 		GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-			.bucket(bucketName)
+			.bucket(publicBucket)
 			.key(objectKey)
 			.build();
 
@@ -257,6 +297,24 @@ public class S3FileServiceImpl implements S3FileService {
 		}
 	}
 
+	@Override
+	public void deleteFromPrivate(String key) {
+		if (!StringUtils.hasText(key)) {
+			throw new S3Exception(S3ErrorStatus.INVALID_OBJECT_KEY);
+		}
+
+		DeleteObjectRequest request = DeleteObjectRequest.builder()
+				.bucket(privateBucket)   // 여기만 private
+				.key(key)
+				.build();
+
+		try {
+			s3Client.deleteObject(request);
+		} catch (AwsServiceException | SdkClientException e) {
+			throw new S3Exception(S3ErrorStatus.DELETE_FAILED);
+		}
+	}
+
 
 
 	/**
@@ -275,7 +333,7 @@ public class S3FileServiceImpl implements S3FileService {
 	 */
 	private PutObjectRequest createPutObjectRequest(String key, String contentType, long contentLength) {
 		return PutObjectRequest.builder()
-			.bucket(bucketName)
+			.bucket(publicBucket)
 			.key(key)
 			.contentType(contentType)
 			.contentLength(contentLength)
@@ -287,7 +345,7 @@ public class S3FileServiceImpl implements S3FileService {
 	 */
 	private S3UploadResult buildResult(String key, String originalFilename, String contentType) {
 		URL objectUrl = s3Client.utilities()
-			.getUrl(GetUrlRequest.builder().bucket(bucketName).key(key).build());
+			.getUrl(GetUrlRequest.builder().bucket(publicBucket).key(key).build());
 		return new S3UploadResult(key, objectUrl.toString(), originalFilename, contentType);
 	}
 

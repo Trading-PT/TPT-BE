@@ -4,10 +4,6 @@
  * 본 부하 테스트 전 기본 동작 확인용
  * 적은 수의 사용자로 빠르게 테스트
  *
- * 사전 준비:
- * 1. create-test-accounts.sql 실행하여 운영 DB에 테스트 계정 생성
- * 2. 테스트 계정 비밀번호: loadtest123!
- *
  * 실행 방법 (EC2에서):
  *   BASE_URL=https://api.tradingpt.kr k6 run production-smoke-test.js
  */
@@ -22,7 +18,6 @@ import { Rate, Trend } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'https://api.tradingpt.kr';
 
-// 테스트 계정 설정
 const TEST_USER_PREFIX = 'loadtest_user_';
 const TEST_PASSWORD = 'loadtest123!';
 const START_USER_NUM = 900001;
@@ -59,13 +54,38 @@ function getTestUser(vuId) {
     };
 }
 
+/**
+ * 쿠키에서 CSRF 토큰 추출
+ */
+function extractCsrfTokenFromCookies(jar, url) {
+    const cookies = jar.cookiesForURL(url);
+    if (cookies && cookies['XSRF-TOKEN']) {
+        return cookies['XSRF-TOKEN'][0];
+    }
+    return '';
+}
+
+/**
+ * 응답 헤더에서 CSRF 토큰 추출
+ */
+function extractCsrfTokenFromHeaders(response) {
+    return response.headers['Xsrf-Token'] ||
+           response.headers['XSRF-TOKEN'] ||
+           response.headers['xsrf-token'] ||
+           '';
+}
+
+/**
+ * 로그인 수행
+ * /api/v1/auth/** 경로는 CSRF 면제됨
+ */
 function login(user, jar) {
     const startTime = Date.now();
 
     const loginPayload = JSON.stringify({
         username: user.username,
         password: user.password,
-        'remember-me': false,
+        rememberMe: false,  // JSON 필드명: rememberMe (not remember-me)
     });
 
     const response = http.post(`${BASE_URL}/api/v1/auth/login`, loginPayload, {
@@ -88,7 +108,26 @@ function login(user, jar) {
         console.log(`Login failed: ${response.status} - ${response.body?.substring(0, 200)}`);
     }
 
-    return success;
+    // CSRF 토큰 추출
+    let csrfToken = extractCsrfTokenFromHeaders(response);
+    if (!csrfToken) {
+        csrfToken = extractCsrfTokenFromCookies(jar, BASE_URL);
+    }
+
+    return { success, csrfToken };
+}
+
+/**
+ * 테스트용 날짜 파라미터 생성
+ */
+function getTestDateParams() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const firstDayOfMonth = new Date(year, month - 1, 1);
+    const dayOfMonth = now.getDate();
+    const week = Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
+    return { year, month, week: Math.min(week, 5) };
 }
 
 // =====================================================
@@ -98,20 +137,16 @@ export default function () {
     const vuId = __VU;
     const user = getTestUser(vuId);
     const jar = http.cookieJar();
+    const dateParams = getTestDateParams();
 
-    // 1. Health Check (인증 불필요)
-    group('Health Check', function () {
-        const response = http.get(`${BASE_URL}/actuator/health`);
-        check(response, {
-            'health check is 200': (r) => r.status === 200,
-        });
-    });
+    let csrfToken = '';
+    let loggedIn = false;
 
-    sleep(0.5);
-
-    // 2. 로그인
+    // 1. 로그인
     group('Login', function () {
-        const loggedIn = login(user, jar);
+        const result = login(user, jar);
+        loggedIn = result.success;
+        csrfToken = result.csrfToken;
 
         if (!loggedIn) {
             apiErrorRate.add(1);
@@ -119,25 +154,58 @@ export default function () {
         }
     });
 
+    if (!loggedIn) {
+        sleep(1);
+        return;
+    }
+
     sleep(0.5);
 
-    // 3. 인증된 API 테스트
+    // 2. 인증된 API 테스트
     group('Authenticated APIs', function () {
-        // 사용자 정보 조회
-        let response = http.get(`${BASE_URL}/api/v1/auth/me`, { jar: jar });
-        const meSuccess = check(response, {
-            'user me is 200': (r) => r.status === 200,
+        const headers = {
+            'Content-Type': 'application/json',
+        };
+        if (csrfToken) {
+            headers['X-XSRF-TOKEN'] = csrfToken;
+        }
+
+        // 피드백 요청 목록 조회
+        let response = http.get(`${BASE_URL}/api/v1/feedback-requests?page=0&size=10`, {
+            headers: headers,
+            jar: jar,
         });
-        apiErrorRate.add(!meSuccess);
+        let success = check(response, {
+            'feedback list is 200': (r) => r.status === 200,
+        });
+        apiErrorRate.add(!success);
+        if (!success) {
+            console.log(`Feedback list failed: ${response.status} - ${response.body?.substring(0, 200)}`);
+        }
 
         sleep(0.5);
 
-        // 메모 조회
-        response = http.get(`${BASE_URL}/api/v1/memo`, { jar: jar });
-        const memoSuccess = check(response, {
-            'memo accessible': (r) => r.status === 200 || r.status === 404,
+        // 주간 매매 요약 조회
+        response = http.get(
+            `${BASE_URL}/api/v1/weekly-trading-summary/customers/me/years/${dateParams.year}/months/${dateParams.month}/weeks/${dateParams.week}`,
+            { headers: headers, jar: jar }
+        );
+        success = check(response, {
+            'weekly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
         });
-        apiErrorRate.add(!memoSuccess);
+        apiErrorRate.add(!success);
+
+        sleep(0.5);
+
+        // 월간 매매 요약 조회
+        response = http.get(
+            `${BASE_URL}/api/v1/monthly-trading-summaries/customers/me/years/${dateParams.year}/months/${dateParams.month}`,
+            { headers: headers, jar: jar }
+        );
+        success = check(response, {
+            'monthly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
+        });
+        apiErrorRate.add(!success);
     });
 
     sleep(1);

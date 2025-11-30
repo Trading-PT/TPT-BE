@@ -22,13 +22,21 @@ public class QAssignmentAttachment extends EntityPathBase<AssignmentAttachment> 
 
     public static final QAssignmentAttachment assignmentAttachment = new QAssignmentAttachment("assignmentAttachment");
 
+    public final com.tradingpt.tpt_api.global.common.QBaseEntity _super = new com.tradingpt.tpt_api.global.common.QBaseEntity(this);
+
+    public final NumberPath<Integer> attemptNo = createNumber("attemptNo", Integer.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
+
     public final QCustomerAssignment customerAssignment;
 
     public final StringPath fileKey = createString("fileKey");
 
-    public final StringPath fileUrl = createString("fileUrl");
-
     public final NumberPath<Long> id = createNumber("id", Long.class);
+
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
     public QAssignmentAttachment(String variable) {
         this(AssignmentAttachment.class, forVariable(variable), INITS);

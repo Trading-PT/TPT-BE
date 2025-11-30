@@ -13,7 +13,8 @@ import com.tradingpt.tpt_api.domain.feedbackresponse.dto.request.UpdateFeedbackR
 import com.tradingpt.tpt_api.domain.feedbackresponse.dto.response.FeedbackResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
@@ -57,10 +58,10 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 				FeedbackRequestErrorStatus.FEEDBACK_RESPONSE_ALREADY_EXISTS);
 		}
 
-		// 3. 트레이너 조회
-		Trainer trainer = getTrainerById(trainerId);
+		// 3. 작성자 조회 (Trainer 또는 Admin)
+		User writer = getWriterById(trainerId);
 
-		validateTrainerPermission(feedbackRequest, trainer);
+		validateWriterPermission(feedbackRequest, writer);
 
 		// 4. ✅ 콘텐츠 처리 (저장 전에 처리 완료)
 		String processedContent = contentImageUploader.processContent(
@@ -71,7 +72,7 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		// 5. 피드백 응답 생성 (처리된 콘텐츠로)
 		FeedbackResponse feedbackResponse = FeedbackResponse.createFrom(
 			feedbackRequest,
-			trainer,
+			writer,
 			request.getTitle(),
 			processedContent
 		);
@@ -84,7 +85,7 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 
 		log.info("Feedback response created successfully for feedbackRequestId={}", feedbackRequestId);
 
-		return FeedbackResponseDTO.of(feedbackResponse, trainer);
+		return FeedbackResponseDTO.of(feedbackResponse, writer);
 	}
 
 	@Override
@@ -110,15 +111,15 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		}
 
 		// 3. 권한 확인 (작성자만 수정 가능)
-		if (!feedbackResponse.getTrainer().getId().equals(trainerId)) {
-			log.warn("Trainer {} attempted to update response created by trainer {}",
-				trainerId, feedbackResponse.getTrainer().getId());
+		if (!feedbackResponse.getWriter().getId().equals(trainerId)) {
+			log.warn("User {} attempted to update response created by user {}",
+				trainerId, feedbackResponse.getWriter().getId());
 			throw new FeedbackRequestException(
 				FeedbackRequestErrorStatus.RESPONSE_UPDATE_PERMISSION_DENIED);
 		}
 
-		// 4. 트레이너 조회
-		Trainer trainer = getTrainerById(trainerId);
+		// 4. 작성자 조회
+		User writer = getWriterById(trainerId);
 
 		// 5. ✅ 콘텐츠 처리 (저장 전에 처리 완료)
 		String processedContent = contentImageUploader.processContent(
@@ -131,7 +132,7 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 
 		log.info("Feedback response updated successfully for feedbackRequestId={}", feedbackRequestId);
 
-		return FeedbackResponseDTO.of(feedbackResponse, trainer);
+		return FeedbackResponseDTO.of(feedbackResponse, writer);
 	}
 
 	// ========================================
@@ -139,11 +140,18 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 	// ========================================
 
 	/**
-	 * ✅ 트레이너 권한 검증
-	 * - 토큰 사용 피드백: 모든 트레이너 응답 가능
-	 * - 일반 피드백: 배정된 트레이너만 응답 가능
+	 * ✅ 작성자 권한 검증 (Trainer 또는 Admin)
+	 * - Admin: 모든 피드백에 응답 가능
+	 * - Trainer + 토큰 사용 피드백: 모든 트레이너 응답 가능
+	 * - Trainer + 일반 피드백: 배정된 트레이너만 응답 가능
 	 */
-	private void validateTrainerPermission(FeedbackRequest feedbackRequest, Trainer trainer) {
+	private void validateWriterPermission(FeedbackRequest feedbackRequest, User writer) {
+		// Admin은 모든 피드백에 응답 가능
+		if (writer.getRole() == Role.ROLE_ADMIN) {
+			log.info("Admin user, can respond to any feedback");
+			return;
+		}
+
 		// 토큰 사용 피드백이면 모든 트레이너 응답 가능
 		if (Boolean.TRUE.equals(feedbackRequest.getIsTokenUsed())) {
 			log.info("Token-used feedback, any trainer can respond");
@@ -153,19 +161,26 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		// 일반 피드백이면 배정된 트레이너만 응답 가능
 		Customer customer = feedbackRequest.getCustomer();
 		if (customer.getAssignedTrainer() == null
-			|| !customer.getAssignedTrainer().getId().equals(trainer.getId())) {
+			|| !customer.getAssignedTrainer().getId().equals(writer.getId())) {
 			log.warn("Trainer not assigned to this customer: trainerId={}, customerId={}",
-				trainer.getId(), customer.getId());
+				writer.getId(), customer.getId());
 			throw new FeedbackRequestException(
 				FeedbackRequestErrorStatus.CANNOT_RESPOND_TO_NON_TOKEN_FEEDBACK_AS_UNASSIGNED_TRAINER);
 		}
 	}
 
 	/**
-	 * 트레이너 조회 헬퍼 메서드
+	 * 작성자 조회 헬퍼 메서드 (Trainer 또는 Admin)
 	 */
-	private Trainer getTrainerById(Long trainerId) {
-		return (Trainer)userRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+	private User getWriterById(Long writerId) {
+		User user = userRepository.findById(writerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
+
+		// Trainer 또는 Admin만 피드백 응답 작성 가능
+		if (user.getRole() != Role.ROLE_TRAINER && user.getRole() != Role.ROLE_ADMIN) {
+			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
+		}
+
+		return user;
 	}
 }
