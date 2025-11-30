@@ -5,18 +5,19 @@ import static com.tradingpt.tpt_api.domain.lecture.entity.QLecture.lecture;
 import static com.tradingpt.tpt_api.domain.lecture.entity.QLectureProgress.lectureProgress;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterBlockDTO;
 import com.tradingpt.tpt_api.domain.lecture.dto.response.LectureResponseDTO;
+import com.tradingpt.tpt_api.domain.lecture.entity.QLectureProgress;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-
 
 @Repository
 @RequiredArgsConstructor
@@ -42,7 +43,10 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
             return List.of();
         }
 
-        // 2) 해당 챕터들에 대한 강의 + Progress 한 번에 조회
+        // 2) 최신 LectureProgress만 가져오도록 서브쿼리 생성
+        QLectureProgress lpSub = new QLectureProgress("lpSub");
+
+        // 3) 챕터 + 강의 + 최신 Progress 함께 조회
         List<Tuple> rows = queryFactory
                 .select(
                         chapter.id,
@@ -57,15 +61,29 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
                         lecture.durationSeconds,
                         lecture.requiredTokens,
 
-                        lectureProgress.watchedSeconds,  // ✅ 추가
-                        lectureProgress.isCompleted,      // 없으면 null
-                        lectureProgress.lastWatchedAt     // 없으면 null
+                        lectureProgress.watchedSeconds,
+                        lectureProgress.isCompleted,
+                        lectureProgress.lastWatchedAt,
+                        lectureProgress.dueDate
                 )
                 .from(chapter)
                 .join(lecture).on(lecture.chapter.eq(chapter))
                 .leftJoin(lectureProgress)
-                .on(lectureProgress.lecture.eq(lecture)
-                        .and(lectureProgress.customer.id.eq(userId)))
+                .on(
+                        lectureProgress.lecture.eq(lecture)
+                                .and(lectureProgress.customer.id.eq(userId))
+                                .and(
+                                        lectureProgress.dueDate.eq(
+                                                JPAExpressions
+                                                        .select(lpSub.dueDate.max())
+                                                        .from(lpSub)
+                                                        .where(
+                                                                lpSub.lecture.eq(lecture)
+                                                                        .and(lpSub.customer.id.eq(userId))
+                                                        )
+                                        )
+                                )
+                )
                 .where(chapter.id.in(chapterIds))
                 .orderBy(
                         chapter.chapterOrder.asc(),
@@ -73,15 +91,16 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
                 )
                 .fetch();
 
-        // 3) ChapterId 기준으로 묶어서 ChapterBlockDTO 구성
+        // 4) ChapterId 기준으로 묶어서 ChapterBlockDTO 구성
         Map<Long, ChapterBlockDTO> chapterMap = new LinkedHashMap<>();
 
         int totalProLectures = 0;   // PRO 전체 강의 수
-        int completedProCount = 0;  // 완강한 PRO 전체 강의 수
+        int completedProCount = 0;  // 완강한 PRO 강의 수
 
         for (Tuple t : rows) {
             Long chapterId = t.get(chapter.id);
 
+            // ChapterBlockDTO 생성 (없을 때만)
             chapterMap.putIfAbsent(
                     chapterId,
                     ChapterBlockDTO.builder()
@@ -99,14 +118,15 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
 
             ChapterBlockDTO chapterDTO = chapterMap.get(chapterId);
 
-            // 유료/무료 판별 (요청대로 0 = 유료, 0보다 크면 무료)
+            // 무료/유료 판별
             Integer requiredTokens = t.get(lecture.requiredTokens);
             boolean isPaid = (requiredTokens != null && requiredTokens == 0);
 
             // Progress 정보
             Integer watchedSeconds = t.get(lectureProgress.watchedSeconds);
             Boolean completed = t.get(lectureProgress.isCompleted);
-            var lastWatchedAt = t.get(lectureProgress.lastWatchedAt);
+            LocalDateTime lastWatchedAt = t.get(lectureProgress.lastWatchedAt);
+            LocalDateTime dueDate = t.get(lectureProgress.dueDate);
 
             // PRO 강의 여부
             boolean isProLecture = (requiredTokens != null && requiredTokens == 0);
@@ -117,6 +137,7 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
                 }
             }
 
+            // LectureResponseDTO 구성
             LectureResponseDTO lectureDTO = LectureResponseDTO.builder()
                     .lectureId(t.get(lecture.id))
                     .chapterId(chapterId)
@@ -126,19 +147,21 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
                     .durationSeconds(t.get(lecture.durationSeconds))
                     .requiredTokens(requiredTokens != null ? requiredTokens : 0)
                     .paid(isPaid)
-                    .watchedSeconds(watchedSeconds != null ? watchedSeconds : null)
-                    .completed(completed)                      // progress 없으면 null
-                    .lastWatchedAt(lastWatchedAt)             // progress 없으면 null
+                    .watchedSeconds(watchedSeconds)
+                    .completed(completed)
+                    .lastWatchedAt(lastWatchedAt)
+                    .dueDate(dueDate)              // ⭐ 최신 LectureProgress의 dueDate
                     .build();
 
             chapterDTO.getLectures().add(lectureDTO);
         }
 
-        // 전체 PRO 강의 기준 진도율 계산
+        // 5) 전체 PRO 기준 진도율 계산
         int finalProgressPercent =
-                totalProLectures == 0 ? 0 : (int) ((completedProCount * 100.0) / totalProLectures);
+                totalProLectures == 0 ? 0 :
+                        (int) ((completedProCount * 100.0) / totalProLectures);
 
-        // 모든 챕터에 동일한 진도율 적용 (전역 진도율 개념)
+        // 모든 챕터에 동일하게 적용
         for (ChapterBlockDTO dto : chapterMap.values()) {
             dto.setProgressPercent(finalProgressPercent);
         }
