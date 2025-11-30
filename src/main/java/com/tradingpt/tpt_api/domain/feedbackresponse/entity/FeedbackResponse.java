@@ -99,4 +99,19 @@ public class FeedbackResponse extends BaseEntity {
 		this.content = newContent;
 	}
 
+	/**
+	 * 첨부파일 추가
+	 */
+	public void addAttachment(String fileUrl, String fileKey) {
+		FeedbackResponseAttachment attachment = FeedbackResponseAttachment.createFrom(this, fileUrl, fileKey);
+		this.feedbackResponseAttachments.add(attachment);
+	}
+
+	/**
+	 * 기존 첨부파일 전체 삭제 (수정 시 사용)
+	 */
+	public void clearAttachments() {
+		this.feedbackResponseAttachments.clear();
+	}
+
 }

@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tradingpt.tpt_api.domain.review.dto.request.CreateReviewRequestDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.PublicReviewListResponseDTO;
 import com.tradingpt.tpt_api.domain.review.dto.response.ReviewResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewStatisticsResponseDTO;
+import com.tradingpt.tpt_api.domain.review.dto.response.ReviewTagResponseDTO;
 import com.tradingpt.tpt_api.domain.review.service.command.ReviewCommandService;
 import com.tradingpt.tpt_api.domain.review.service.query.ReviewQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -104,6 +106,34 @@ public class ReviewV1Controller {
 		@PathVariable Long reviewId
 	) {
 		return BaseResponse.onSuccess(reviewQueryService.getPublicReview(reviewId));
+	}
+
+	@Operation(
+		summary = "리뷰 태그 목록 조회",
+		description = """
+			리뷰 작성 시 선택 가능한 모든 태그 목록을 조회합니다.
+			- 태그 이름 순으로 정렬
+			- 누구나 조회 가능
+			"""
+	)
+	@GetMapping("/tags")
+	public BaseResponse<List<ReviewTagResponseDTO>> getReviewTags() {
+		return BaseResponse.onSuccess(reviewQueryService.getReviewTags());
+	}
+
+	@Operation(
+		summary = "리뷰 통계 조회",
+		description = """
+			리뷰 전체 통계를 조회합니다.
+			- 전체 리뷰 개수
+			- 평균 별점 (총 별점 합 / 총 리뷰 개수)
+			- 태그별 리뷰 개수 (리뷰 수 내림차순 정렬)
+			- 누구나 조회 가능
+			"""
+	)
+	@GetMapping("/statistics")
+	public BaseResponse<ReviewStatisticsResponseDTO> getReviewStatistics() {
+		return BaseResponse.onSuccess(reviewQueryService.getReviewStatistics());
 	}
 
 }

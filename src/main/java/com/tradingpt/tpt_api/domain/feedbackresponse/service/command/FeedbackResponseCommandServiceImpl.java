@@ -1,5 +1,11 @@
 package com.tradingpt.tpt_api.domain.feedbackresponse.service.command;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional
 public class FeedbackResponseCommandServiceImpl implements FeedbackResponseCommandService {
+
+	private static final Pattern S3_KEY_PATTERN = Pattern.compile("amazonaws\\.com/(.+)$");
 
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final UserRepository userRepository;
@@ -77,10 +85,13 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 			processedContent
 		);
 
-		// 6. 피드백 상태 업데이트 (FN: 응답 완료, 아직 읽지 않음)
+		// 6. 이미지 첨부파일 추출 및 저장
+		extractAndSaveAttachments(feedbackResponse, processedContent);
+
+		// 7. 피드백 상태 업데이트 (FN: 응답 완료, 아직 읽지 않음)
 		feedbackRequest.setStatus(Status.FN);
 
-		// 7. 저장 (cascade로 FeedbackResponse도 함께 저장됨)
+		// 8. 저장 (cascade로 FeedbackResponse와 Attachment도 함께 저장됨)
 		feedbackRequestRepository.save(feedbackRequest);
 
 		log.info("Feedback response created successfully for feedbackRequestId={}", feedbackRequestId);
@@ -129,6 +140,10 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 
 		// 6. 피드백 응답 업데이트
 		feedbackResponse.updateContent(processedContent);
+
+		// 7. 기존 첨부파일 삭제 후 새로 추출
+		feedbackResponse.clearAttachments();
+		extractAndSaveAttachments(feedbackResponse, processedContent);
 
 		log.info("Feedback response updated successfully for feedbackRequestId={}", feedbackRequestId);
 
@@ -182,5 +197,37 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 		}
 
 		return user;
+	}
+
+	/**
+	 * 처리된 콘텐츠에서 S3 이미지 URL을 추출하여 FeedbackResponseAttachment로 저장
+	 */
+	private void extractAndSaveAttachments(FeedbackResponse feedbackResponse, String processedContent) {
+		Document document = Jsoup.parseBodyFragment(processedContent);
+
+		for (Element img : document.select("img")) {
+			String src = img.attr("src");
+
+			// S3 URL인 경우만 처리 (base64 제외)
+			if (src.contains("amazonaws.com") && !src.startsWith("data:")) {
+				String fileKey = extractFileKeyFromUrl(src);
+				if (fileKey != null) {
+					feedbackResponse.addAttachment(src, fileKey);
+					log.debug("Added FeedbackResponseAttachment: url={}, key={}", src, fileKey);
+				}
+			}
+		}
+	}
+
+	/**
+	 * S3 URL에서 파일 키 추출
+	 */
+	private String extractFileKeyFromUrl(String url) {
+		Matcher matcher = S3_KEY_PATTERN.matcher(url);
+		if (matcher.find()) {
+			return matcher.group(1);
+		}
+		log.warn("Could not extract file key from URL: {}", url);
+		return null;
 	}
 }

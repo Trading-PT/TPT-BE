@@ -15,6 +15,7 @@ import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.UpsertWeekl
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyEvaluationResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.DailyFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklyDayFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response.WeeklySummaryResponseDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.service.command.WeeklyTradingSummaryCommandService;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.service.query.WeeklyTradingSummaryQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -78,6 +79,39 @@ public class AdminWeeklyTradingSummaryV1Controller {
 		return BaseResponse.onSuccessCreate(
 			weeklyTradingSummaryCommandService.createWeeklyTradingSummaryByTrainer(
 				year, month, week, customerId, trainerId, request)
+		);
+	}
+
+	@Operation(
+		summary = "고객 주간 매매 일지 조회 (Admin/Trainer)",
+		description = """
+			특정 고객의 주간 매매 일지 통계를 조회합니다.
+
+			## 권한
+			- **ROLE_ADMIN**: 모든 고객의 주간 통계 조회 가능
+			- **ROLE_TRAINER**: 담당 고객의 주간 통계 조회 가능
+
+			## 반환 정보
+			- 코스 상태별 (BEFORE_COMPLETION, AFTER_COMPLETION) 통계
+			- 주간 수익/손실 매매 분석
+			- 투자 타입별 (DAY/SWING) 성과 데이터
+			- 트레이너 평가 및 고객 메모
+			"""
+	)
+	@GetMapping("/customers/{customerId}/years/{year}/months/{month}/weeks/{week}/summary")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<WeeklySummaryResponseDTO> getWeeklyTradingSummary(
+		@Parameter(description = "고객 ID", required = true)
+		@PathVariable Long customerId,
+		@Parameter(description = "연도", example = "2025", required = true)
+		@PathVariable Integer year,
+		@Parameter(description = "월 (1-12)", example = "11", required = true)
+		@PathVariable Integer month,
+		@Parameter(description = "주 (1-5)", example = "3", required = true)
+		@PathVariable Integer week
+	) {
+		return BaseResponse.onSuccess(
+			weeklyTradingSummaryQueryService.getWeeklyTradingSummary(year, month, week, customerId)
 		);
 	}
 

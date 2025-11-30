@@ -27,4 +27,16 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	Optional<Review> findByIdAndStatus(Long reviewId, Status status);
 
 	Slice<Review> findAllByOrderBySubmittedAtDesc(Pageable pageable);
+
+	/**
+	 * 전체 리뷰 개수 조회
+	 */
+	@Query("SELECT COUNT(r) FROM Review r")
+	Long countAllReviews();
+
+	/**
+	 * 전체 별점 합계 조회
+	 */
+	@Query("SELECT SUM(r.rating) FROM Review r")
+	Long sumAllRatings();
 }
