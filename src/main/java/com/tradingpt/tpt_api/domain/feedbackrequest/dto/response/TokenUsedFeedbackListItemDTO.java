@@ -70,10 +70,10 @@ public class TokenUsedFeedbackListItemDTO {
 		Long trainerId = null;
 		String trainerName = null;
 
-		// 응답이 있으면 트레이너 정보 추가
-		if (request.getFeedbackResponse() != null) {
-			trainerId = request.getFeedbackResponse().getTrainer().getId();
-			trainerName = request.getFeedbackResponse().getTrainer().getUsername();
+		// 응답이 있으면 작성자(트레이너/관리자) 정보 추가
+		if (request.getFeedbackResponse() != null && request.getFeedbackResponse().getWriter() != null) {
+			trainerId = request.getFeedbackResponse().getWriter().getId();
+			trainerName = request.getFeedbackResponse().getWriter().getUsername();
 		}
 
 		return TokenUsedFeedbackListItemDTO.builder()
