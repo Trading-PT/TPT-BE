@@ -21,6 +21,7 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.repository.WeeklyTradingSummaryRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,11 +37,12 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 	private final CustomerRepository customerRepository;
 	private final MonthlyTradingSummaryRepository monthlyTradingSummaryRepository;
 	private final WeeklyTradingSummaryRepository weeklytradingSummaryRepository;
+	private final TrainerRepository trainerRepository;
 
 	@Override
 	public PendingEvaluationListResponseDTO getPendingEvaluations(Long trainerId, Pageable pageable) {
 		// 1. 트레이너 존재 여부 확인
-		if (!customerRepository.existsById(trainerId)) {
+		if (!trainerRepository.existsById(trainerId)) {
 			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
 		}
 
@@ -103,8 +105,8 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 		YearMonth endYearMonth = YearMonth.of(currentYear, currentMonth);
 
 		for (YearMonth yearMonth = startYearMonth;
-			!yearMonth.isAfter(endYearMonth);
-			yearMonth = yearMonth.plusMonths(1)) {
+			 !yearMonth.isAfter(endYearMonth);
+			 yearMonth = yearMonth.plusMonths(1)) {
 
 			int year = yearMonth.getYear();
 			int month = yearMonth.getMonthValue();
