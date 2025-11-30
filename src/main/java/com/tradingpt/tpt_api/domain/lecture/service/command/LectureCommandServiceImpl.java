@@ -16,8 +16,8 @@ import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.global.infrastructure.s3.service.S3FileService;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.ast.tree.update.Assignment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -73,6 +73,7 @@ public class LectureCommandServiceImpl implements LectureCommandService {
                 .watchedSeconds(0)
                 .lastPositionSeconds(0)
                 .isCompleted(false)
+                .dueDate(LocalDateTime.now().plusDays(7))
                 .build();
 
         lectureProgressRepository.save(progress);
@@ -118,6 +119,7 @@ public class LectureCommandServiceImpl implements LectureCommandService {
      * 과제 제출
      */
     @Override
+    @Transactional
     public Long submitAssignment(Long userId, Long lectureId, MultipartFile file) {
 
         // 1. 강의 조회
@@ -128,7 +130,7 @@ public class LectureCommandServiceImpl implements LectureCommandService {
         Customer customer = customerRepository.findById(userId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-        // 3. 기존 제출 내역 있는지 확인
+        // 3. (lecture, customer) 기준 과제 엔티티 조회 or 생성
         CustomerAssignment assignment = customerAssignmentRepository
                 .findByLectureIdAndCustomerId(lectureId, userId)
                 .orElseGet(() -> CustomerAssignment.builder()
@@ -139,24 +141,21 @@ public class LectureCommandServiceImpl implements LectureCommandService {
                 );
 
         // 4. S3 업로드 (과제 PDF)
-        String directory = "assignments/" + lectureId;
-        var uploadResult = s3FileService.upload(file, directory);
+        String directory = "assignments/" + lectureId + "/" + userId;
+        var uploadResult = s3FileService.uploadToPrivate(file, directory);
 
-        // 5. 기존 파일 있으면 삭제 + 재저장
+        // 5. 과제 상태 갱신 (최신 제출 시각 등)
         assignment.markSubmitted();
         CustomerAssignment saved = customerAssignmentRepository.save(assignment);
 
-        // 첨부파일은 항상 1개만 관리한다고 가정
-        assignmentAttachmentRepository.findByCustomerAssignmentId(saved.getId())
-                .ifPresent(old -> {
-                    s3FileService.delete(old.getFileKey());
-                    assignmentAttachmentRepository.delete(old);
-                });
+        //    대신 attemptNo 계산해서 새 첨부 기록만 추가
+        int nextAttemptNo = assignmentAttachmentRepository
+                .countByCustomerAssignmentId(saved.getId()) + 1;
 
         AssignmentAttachment attachment = AssignmentAttachment.builder()
                 .customerAssignment(saved)
-                .fileUrl(uploadResult.url())
                 .fileKey(uploadResult.key())
+                .attemptNo(nextAttemptNo)
                 .build();
 
         assignmentAttachmentRepository.save(attachment);
