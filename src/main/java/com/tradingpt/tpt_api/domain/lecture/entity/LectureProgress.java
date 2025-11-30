@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter @SuperBuilder
-@NoArgsConstructor(access = AccessLevel.PROTECTED) @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Table(name = "lecture_progress")
 public class LectureProgress extends BaseEntity {
 
@@ -44,6 +45,10 @@ public class LectureProgress extends BaseEntity {
     @Column(name = "last_watched_at")
     private LocalDateTime lastWatchedAt;
 
+    /** 수강 만료일 — null이면 기간 제한 없음 */
+    @Column(name = "due_date")
+    private LocalDateTime dueDate;
+
     public void updateProgress(int currentSeconds, int durationSeconds) {
         if (this.watchedSeconds == null) this.watchedSeconds = 0;
         if (this.lastPositionSeconds == null) this.lastPositionSeconds = 0;
@@ -66,5 +71,10 @@ public class LectureProgress extends BaseEntity {
         if (!this.isCompleted && this.watchedSeconds >= durationSeconds * 0.9) {
             this.isCompleted = true;
         }
+    }
+
+    // 만료 체크 메서드
+    public boolean isExpired() {
+        return dueDate != null && dueDate.isBefore(LocalDateTime.now());
     }
 }

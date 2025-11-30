@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -26,10 +27,12 @@ public class CustomerHomeworkSummaryResponseDTO {
     @Schema(description = "강의별 과제 현황 목록")
     private List<CustomerHomeworkItemDTO> items;
 
-    // 내부 아이템 DTO
+    // ======================
+    // 강의별 과제 요약 DTO
+    // ======================
     @Getter
     @Builder
-    @Schema(description = "강의별 과제 상태 정보")
+    @Schema(description = "강의별 과제 상태 요약 정보")
     public static class CustomerHomeworkItemDTO {
 
         @Schema(description = "PRO 강의 ID", example = "45")
@@ -48,12 +51,29 @@ public class CustomerHomeworkSummaryResponseDTO {
         )
         private String status;
 
-        @Schema(description = "제출된 PDF 파일명(없으면 null)", example = "homework_week1.pdf", nullable = true)
-        private String submittedFileName;
+        @Schema(description = "이 강의에 대해 제출한 모든 과제 제출 이력 목록")
+        private List<SubmissionDTO> submissions;
+    }
 
-        @Schema(description = "제출된 PDF 파일 URL(없으면 null)",
-                example = "https://bucket.s3.amazonaws.com/assignments/45/homework_week1.pdf",
-                nullable = true)
-        private String submittedFileUrl;
+    // ======================
+    // 제출 이력 단건 DTO
+    // ======================
+    @Getter
+    @Builder
+    @Schema(description = "해당 강의의 과제 제출 이력 단건 정보")
+    public static class SubmissionDTO {
+
+        @Schema(description = "제출 차수 (1 = 최초 제출, 2 = 재제출 ...)", example = "2")
+        private int attemptNo;
+
+        @Schema(description = "제출된 PDF 파일명", example = "homework_week1_v2.pdf")
+        private String fileName;
+
+        @Schema(description = "제출 파일 다운로드 URL(CloudFront signed URL)",
+                example = "https://cdn.example.com/assignments/45/xxx.pdf?Expires=123123&Signature=xxxx")
+        private String downloadUrl;
+
+        @Schema(description = "제출 일시", example = "2025-11-29T19:00:01")
+        private LocalDateTime submittedAt;
     }
 }
