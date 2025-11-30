@@ -12,7 +12,8 @@
 
 -- BCrypt 해시된 비밀번호 (원본: "loadtest123!")
 -- Spring Security BCryptPasswordEncoder로 생성된 해시
-SET @BCRYPT_PASSWORD = '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy';
+-- 2025-11-30: BCrypt 해시 수정 (기존 해시가 비밀번호와 매치되지 않는 문제 해결)
+SET @BCRYPT_PASSWORD = '$2a$10$X98mIKlfacwSsFTLet.ReOsdbBpGSUddcHWG91OlaPSm8L1kWCC6y';
 
 -- 테스트 계정 시작 번호 (기존 데이터와 충돌 방지)
 SET @START_NUM = 900001;

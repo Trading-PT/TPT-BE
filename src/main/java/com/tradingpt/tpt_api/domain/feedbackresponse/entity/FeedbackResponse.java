@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -48,9 +48,13 @@ public class FeedbackResponse extends BaseEntity {
 	@JoinColumn(name = "feedback_request_id")
 	private FeedbackRequest feedbackRequest;
 
+	/**
+	 * 피드백 응답 작성자 (Trainer 또는 Admin)
+	 * Admin도 피드백 응답을 작성할 수 있도록 User 타입으로 정의
+	 */
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trainer_id")
-	private Trainer trainer;
+	private User writer;
 
 	@Builder.Default
 	@OneToMany(mappedBy = "feedbackResponse", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -68,11 +72,11 @@ public class FeedbackResponse extends BaseEntity {
 	@Builder.Default
 	private LocalDateTime submittedAt = LocalDateTime.now(); // 피드백 제공 시각
 
-	public static FeedbackResponse createFrom(FeedbackRequest feedbackRequest, Trainer trainer,
+	public static FeedbackResponse createFrom(FeedbackRequest feedbackRequest, User writer,
 		String title, String responseContent) {
 		FeedbackResponse newFeedbackResponse = FeedbackResponse.builder()
 			.feedbackRequest(feedbackRequest)
-			.trainer(trainer)
+			.writer(writer)
 			.title(title)
 			.content(responseContent)
 			.build();
@@ -80,7 +84,15 @@ public class FeedbackResponse extends BaseEntity {
 		feedbackRequest.setFeedbackResponse(newFeedbackResponse);
 
 		return newFeedbackResponse;
+	}
 
+	/**
+	 * 작성자 조회 (하위 호환성을 위한 메서드)
+	 * @deprecated Use getWriter() instead
+	 */
+	@Deprecated
+	public User getTrainer() {
+		return this.writer;
 	}
 
 	public void updateContent(String newContent) {

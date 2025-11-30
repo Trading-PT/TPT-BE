@@ -70,7 +70,7 @@ This is a Spring Boot 3.5.5 trading platform API (TPT-API) using Java 17, Spring
 - `subscription`/`subscriptionplan` - Subscription management and plan definitions with recurring payment
   - Automatic membership level update (PREMIUM) upon successful payment
   - Daily expiration scheduler (`MembershipExpirationScheduler`) for downgrading expired PREMIUM to BASIC
-- `investmenttypehistory` - Investment type tracking over time (SCALPING/DAY/SWING)
+- `investmenttypehistory` - Investment type tracking over time (DAY/SWING)
 
 ### Key Technologies
 - **QueryDSL**: 5.0.0 with Q-classes auto-generated in `src/main/generated/` (Jakarta EE compatible)
@@ -947,7 +947,7 @@ public Subscription incrementPaymentFailureCount(Long subscriptionId) {
    - Weekly P&L feedback retrieval API
    - Best feedback selection system (max 4 via constant)
    - Trainer-written feedback tracking (`isTrainerWritten` field)
-   - Investment type discrimination (SCALPING/DAY/SWING)
+   - Investment type discrimination (DAY/SWING)
 
 ### Current Development
 - Branch: `feature/#124-feat-정기-결제-기능` (Recurring payment feature)

@@ -39,10 +39,10 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
 
     public final StringPath title = createString("title");
 
-    public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
+
+    public final com.tradingpt.tpt_api.domain.user.entity.QUser writer;
 
     public QFeedbackResponse(String variable) {
         this(FeedbackResponse.class, forVariable(variable), INITS);
@@ -63,7 +63,7 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
     public QFeedbackResponse(Class<? extends FeedbackResponse> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.feedbackRequest = inits.isInitialized("feedbackRequest") ? new com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest(forProperty("feedbackRequest"), inits.get("feedbackRequest")) : null;
-        this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QTrainer(forProperty("trainer")) : null;
+        this.writer = inits.isInitialized("writer") ? new com.tradingpt.tpt_api.domain.user.entity.QUser(forProperty("writer")) : null;
     }
 
 }
