@@ -1,0 +1,107 @@
+spring:
+  config:
+    activate:
+      on-profile: loadtest
+
+  datasource:
+    url: jdbc:mysql://${DEV_DB_HOST}:3306/${DEV_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${DEV_DB_USERNAME}
+    password: ${DEV_DB_PASSWORD}
+    hikari:
+      pool-name: HikariCP-LoadTest
+      maximum-pool-size: 50  # 부하테스트용 커넥션 풀 확장
+      minimum-idle: 10
+
+  # Redis 설정
+  data:
+    redis:
+      host: ${DEV_REDIS_HOST}
+      port: 6379
+      ssl:
+        enabled: false
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 50  # 부하테스트용 Redis 커넥션 풀 확장
+          max-idle: 20
+          min-idle: 5
+
+  session:
+    store-type: redis
+    timeout: 7d
+    redis:
+      configure-action: NONE
+      flush-mode: immediate
+      repository-type: indexed
+
+  # JPA 설정 (부하테스트 환경 - SQL 로그 최소화)
+  jpa:
+    hibernate:
+      ddl-auto: none  # 부하테스트 시 DDL 변경 방지
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          batch_size: 1000
+        connection:
+          provider_disables_autocommit: false
+
+# 로깅 설정 (부하테스트 - 최소화)
+logging:
+  level:
+    root: WARN
+    com.tradingpt.tpt_api: INFO
+    org.springframework.web: WARN
+    org.springframework.security: WARN
+
+aws:
+  s3:
+    access-key: ${AWS_ACCESS_KEY_ID}
+    secret-key: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+    bucket-name: ${S3_BUCKET_NAME}
+
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+        same-site: None
+        path: /
+
+app:
+  frontend:
+    base-url: https://www.tradingpt.kr
+  cors:
+    allowed-origins:
+      - https://dev.tradingpt.shop
+      - https://localhost:3000
+      - https://localhost:3001
+      - https://www.tradingpt.kr
+      - https://manage-tradingpt.vercel.app/
+    exposed-headers:
+      - XSRF-TOKEN
+      - X-XSRF-TOKEN
+  swagger:
+    servers:
+      - url: https://dev.tradingpt.kr
+        description: Dev API 서버
+
+# NicePay 테스트 환경 설정
+nicepay:
+  credentials:
+    mid: nictest04m
+    merchant-key: b+zhZ4yOZ7FsH8pm5lhDfHZEb79tIwnjsdA0FBXh86yLc6BJeFVrZFXhAoJ3gEWgrWwN+lJMV0W4hvDdbe4Sjw==
+
+# =====================================================
+# 부하테스트 전용 설정
+# =====================================================
+loadtest:
+  enabled: true
+  # 부하테스트용 인증 우회 헤더
+  # 이 헤더가 있으면 인증을 건너뛰고 가상 사용자로 처리
+  auth-bypass-header: X-Load-Test-Auth
+  # 부하테스트용 비밀 키 (이 값이 일치해야 인증 우회 가능)
+  secret-key: ${LOADTEST_SECRET_KEY:tpt-loadtest-secret-2024}
