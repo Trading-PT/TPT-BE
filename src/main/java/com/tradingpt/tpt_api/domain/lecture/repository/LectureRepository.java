@@ -1,7 +1,9 @@
 package com.tradingpt.tpt_api.domain.lecture.repository;
 
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -35,4 +37,6 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
     WHERE l.chapter.chapterType = com.tradingpt.tpt_api.domain.lecture.enums.ChapterType.PRO
     """)
     int countProLectures();
+
+   Optional<Lecture> findByChapter_ChapterTypeAndLectureOrder(ChapterType chapterType, int lectureOrder);
 }
