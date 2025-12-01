@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.controller;
 
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptHistoryResponseDTO;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -170,5 +172,16 @@ public class AdminLeveltestV1Controller {
 	) {
 		commandService.applyManualGrading(attemptId, request);
 		return ResponseEntity.ok(BaseResponse.onSuccess(attemptId));
+	}
+
+	@Operation(summary = "특정 회원의 레벨테스트 성적 추이 조회")
+	@GetMapping("/attempts/history")
+	public ResponseEntity<BaseResponse<List<AdminLeveltestAttemptHistoryResponseDTO>>> getAttemptHistory(
+			@RequestParam("userId") Long userId
+	) {
+		List<AdminLeveltestAttemptHistoryResponseDTO> history =
+				queryService.getAttemptHistoryByUser(userId);
+
+		return ResponseEntity.ok(BaseResponse.onSuccess(history));
 	}
 }

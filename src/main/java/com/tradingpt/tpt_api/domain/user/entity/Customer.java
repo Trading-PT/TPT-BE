@@ -118,6 +118,9 @@ public class Customer extends User {
 	@Column(name = "completed_at")
 	private LocalDateTime completedAt;
 
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;   //회원탈퇴 날짜, soft delete를 위한 필드, 30일 뒤에 자동 삭제
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	@Builder.Default
@@ -459,5 +462,13 @@ public class Customer extends User {
 
 	public void setLeveltestStatus(LeveltestStatus leveltestStatus) {
 		this.leveltestStatus = leveltestStatus;
+	}
+
+	public void markAsDeleted() {  // 탈퇴처리, 소프트 딜리트
+		this.deletedAt = LocalDateTime.now();
+	}
+
+	public boolean isDeleted() {
+		return this.deletedAt != null;
 	}
 }

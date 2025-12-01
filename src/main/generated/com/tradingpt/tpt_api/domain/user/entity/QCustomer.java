@@ -33,6 +33,8 @@ public class QCustomer extends EntityPathBase<Customer> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = createDateTime("deletedAt", java.time.LocalDateTime.class);
+
     //inherited
     public final StringPath email = _super.email;
 

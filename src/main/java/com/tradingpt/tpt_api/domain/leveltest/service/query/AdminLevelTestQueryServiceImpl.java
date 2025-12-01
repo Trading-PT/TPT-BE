@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.query;
 
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptHistoryResponseDTO;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -61,6 +63,42 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 				.build()
 		);
 	}
+
+	public List<AdminLeveltestAttemptHistoryResponseDTO> getAttemptHistoryByUser(Long userId) {
+
+		// 1) 해당 회원의 전체 시도 리스트(최신 → 오래된 순)
+		List<LevelTestAttempt> attempts = leveltestAttemptRepository. findAllByUserIdOrderByCreatedAtAsc(userId);
+
+		List<AdminLeveltestAttemptHistoryResponseDTO> result = new ArrayList<>();
+
+		int order = 1;
+
+		for (LevelTestAttempt attempt : attempts) {
+
+			// 채점 트레이너
+			String gradingTrainerName =
+					attempt.getTrainer() != null ? attempt.getTrainer().getName() : "-";
+
+			// 담당 트레이너
+			String assignedTrainerName =
+					attempt.getCustomer().getAssignedTrainer() != null
+							? attempt.getCustomer().getAssignedTrainer().getName()
+							: "-";
+
+			// DTO.from() 호출
+			result.add(
+					AdminLeveltestAttemptHistoryResponseDTO.from(
+							attempt,
+							order++,
+							gradingTrainerName,
+							assignedTrainerName
+					)
+			);
+		}
+
+		return result;
+	}
+
 
 	@Override
 	public AdminLeveltestAttemptDetailResponseDTO getAttemptDetail(Long attemptId) {
