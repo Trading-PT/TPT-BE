@@ -66,13 +66,15 @@ public class CloudFrontServiceImpl implements CloudFrontService {
     }
 
 
-    // PEM 문자열을 PrivateKey 객체로 변환
     private PrivateKey loadPrivateKey(String pem) {
         try {
-            // PEM 헤더/푸터 제거
             String cleaned = pem
                     .replace("-----BEGIN PRIVATE KEY-----", "")
                     .replace("-----END PRIVATE KEY-----", "")
+                    // 리터럴 \n, \r 제거 (백슬래시 + 문자 n/r)
+                    .replace("\\n", "")
+                    .replace("\\r", "")
+                    // 나머지 공백 제거 (실제 개행, 탭 등)
                     .replaceAll("\\s", "");
 
             byte[] decoded = Base64.getDecoder().decode(cleaned);
