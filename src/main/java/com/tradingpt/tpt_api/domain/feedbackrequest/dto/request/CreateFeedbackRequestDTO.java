@@ -120,7 +120,7 @@ public class CreateFeedbackRequestDTO {
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
+	@Schema(description = "토큰 사용 여부", example = "true")
 	private Boolean useToken;
 
 	// ========================================

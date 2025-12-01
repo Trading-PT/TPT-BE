@@ -33,6 +33,7 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.Monthly
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
@@ -763,7 +764,8 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.selectFrom(feedbackRequest)
 			.where(
 				feedbackRequest.isTokenUsed.isTrue(),
-				feedbackRequest.status.eq(Status.N)
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.BASIC)
 			)
 			.orderBy(feedbackRequest.createdAt.desc())
 			.offset(pageable.getOffset())
@@ -789,7 +791,9 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.join(feedbackRequest.customer, customer).fetchJoin()
 			.where(
 				customer.assignedTrainer.id.eq(trainerId),
-				feedbackRequest.status.eq(Status.N)
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.PREMIUM)
 			)
 			.orderBy(feedbackRequest.createdAt.desc())
 			.offset(pageable.getOffset())

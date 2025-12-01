@@ -424,22 +424,21 @@ public class Customer extends User {
 	 * - BASIC 멤버십: 토큰 사용 선택 가능
 	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
 	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
-	 * - PREMIUM 멤버십: 토큰 사용 불가
+	 * - PREMIUM 멤버십:
+	 *   - useToken=true → 토큰 차감 없이 사용 기록만 남김 (트레이너가 볼 수 있음)
+	 *   - useToken=false → 기록도 남기지 않음 (트레이너가 볼 수 없음)
 	 *
 	 * @param useToken       토큰 사용 여부
 	 * @param requiredTokens 차감할 토큰 개수 (서버에서 고정된 값)
-	 * @return 실제로 토큰이 차감되었는지 여부
-	 * @throws FeedbackRequestException PREMIUM이 토큰 사용 시도 또는 토큰 부족 시
+	 * @return 토큰 사용 기록 여부 (PREMIUM은 차감 없이 true 반환 가능, BASIC은 실제 차감 시에만 true)
+	 * @throws FeedbackRequestException BASIC 멤버십에서 토큰 부족 시
 	 */
 	public boolean validateAndConsumeTokenForFeedback(Boolean useToken, int requiredTokens) {
 		// PREMIUM 멤버십인 경우
 		if (this.membershipLevel == MembershipLevel.PREMIUM) {
-			if (Boolean.TRUE.equals(useToken)) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
-			}
-			// PREMIUM은 토큰 없이 자유롭게 생성 가능
-			return false;
+			// PREMIUM은 토큰 차감 없이 자유롭게 생성 가능
+			// useToken=true면 기록상으로만 토큰 사용으로 표시 (실제 차감은 없음)
+			return Boolean.TRUE.equals(useToken);
 		}
 
 		// BASIC 멤버십인 경우
