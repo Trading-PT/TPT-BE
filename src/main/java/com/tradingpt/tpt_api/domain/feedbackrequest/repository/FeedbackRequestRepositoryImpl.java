@@ -94,7 +94,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			return new SliceImpl<>(combined, pageable, hasNext);
 		} else {
 			// 2페이지 이후: 일반 피드백만 (베스트 피드백 제외)
-			long regularOffset = (long) pageNumber * pageSize - actualBestCount;
+			long regularOffset = (long)pageNumber * pageSize - actualBestCount;
 
 			List<FeedbackRequest> regularFeedbacks = queryFactory
 				.selectFrom(feedbackRequest)
@@ -311,7 +311,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		NumberExpression<Double> winningRnrCase = new CaseBuilder()
 			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
 			.then(feedbackRequest.rnr)
-			.otherwise((Double) null);
+			.otherwise((Double)null);
 
 		// ⚠️ BooleanBuilder는 mutable이므로 각 쿼리마다 새로 생성해야 함
 		var reverseStats = queryFactory
@@ -761,7 +761,10 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	public Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable) {
 		List<FeedbackRequest> content = queryFactory
 			.selectFrom(feedbackRequest)
-			.where(feedbackRequest.isTokenUsed.isTrue())
+			.where(
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.status.eq(Status.N)
+			)
 			.orderBy(feedbackRequest.createdAt.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize() + 1)
