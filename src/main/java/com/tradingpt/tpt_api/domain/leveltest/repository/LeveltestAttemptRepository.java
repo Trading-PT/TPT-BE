@@ -30,4 +30,13 @@ public interface LeveltestAttemptRepository extends JpaRepository<LevelTestAttem
 
 	List<LevelTestAttempt> findByCustomer_IdAndStatus(Long customerId, LevelTestStaus status);
 
+	@Query("""
+        select a
+        from LevelTestAttempt a
+            join fetch a.customer c
+            left join fetch a.trainer t
+        where c.id = :userId
+        order by a.createdAt asc
+    """)
+	List<LevelTestAttempt> findAllByUserIdOrderByCreatedAtAsc(@Param("userId") Long userId);
 }
