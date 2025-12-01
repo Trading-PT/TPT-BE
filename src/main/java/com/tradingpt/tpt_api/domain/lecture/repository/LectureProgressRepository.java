@@ -1,6 +1,8 @@
 package com.tradingpt.tpt_api.domain.lecture.repository;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,4 +29,6 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
           AND lp.isCompleted = true
         """)
     int countCompletedProLectures(@Param("customerId") Long customerId);
+
+    boolean existsByCustomerAndLecture(Customer customer, Lecture lecture);
 }

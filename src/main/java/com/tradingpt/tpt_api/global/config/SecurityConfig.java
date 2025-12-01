@@ -229,7 +229,7 @@ public class SecurityConfig {
 			.sessionManagement(sm -> sm
 				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
 				.sessionFixation(sf -> sf.migrateSession())
-				.sessionConcurrency(sc -> sc.maximumSessions(1)
+				.sessionConcurrency(sc -> sc.maximumSessions(5)
 					.sessionRegistry(sessionRegistry))
 			)
 			.authorizeHttpRequests(auth -> auth

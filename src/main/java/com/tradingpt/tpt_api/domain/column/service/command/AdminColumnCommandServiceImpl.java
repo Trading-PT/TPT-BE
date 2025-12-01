@@ -146,11 +146,6 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         // 이미 베스트면 그냥 종료(멱등)
         if (column.getIsBest()) return columnId;
 
-        Long categoryId = column.getCategory().getId();
-
-        long current = columnsRepository.countByCategory_IdAndIsBestTrue(categoryId);
-        if (current >= 3) throw new ColumnException(ColumnErrorStatus.BEST_LIMIT_EXCEEDED);
-
         column.markBest(); // 엔티티 상태 변경
 
         return columnId;

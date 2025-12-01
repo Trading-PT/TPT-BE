@@ -5,10 +5,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
 
-  session:
-    store-type: redis
-    timeout: 7d
-
   # 공통 데이터소스 설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -39,7 +35,6 @@ spring:
   servlet:
     session:
       store-type: redis
-      timeout: 7d
       tracking-modes: cookie
     multipart:
       enabled: true
