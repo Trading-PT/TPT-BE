@@ -20,8 +20,8 @@ public class CustomerDeleteScheduler {
     private final CustomerRepository customerRepository;
 
     /**
-     * 🔥 탈퇴 후 30일 지난 고객을 매일 새벽 3시에 영구 삭제
-     * 🔥 EC2 여러대여도 ShedLock으로 오직 1대만 수행
+     *  탈퇴 후 30일 지난 고객을 매일 새벽 3시에 영구 삭제
+     *  EC2 여러대여도 ShedLock으로 오직 1대만 수행
      */
     @Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시
     @SchedulerLock(
