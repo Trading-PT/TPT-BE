@@ -303,10 +303,19 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		} catch (Exception e) {
 			log.error("빌키 삭제 API 호출 실패", e);
 
-			paymentMethod.setPgResponseCode("통신 실패", e.getMessage());
+			// PG사 에러 응답을 DB에 저장 (별도 트랜잭션으로 커밋 - 메인 트랜잭션 롤백과 독립적)
+			// REQUIRES_NEW 전파로 에러 정보는 메인 트랜잭션 실패 시에도 DB에 보존됨
+			paymentMethodTransactionService.updatePgResponseInNewTransaction(
+				paymentMethodId,
+				"통신 실패",
+				e.getMessage()
+			);
 
+			// PG사의 구체적인 에러 메시지를 사용자에게 전달
+			String userMessage = e.getMessage() != null ? e.getMessage() : "빌링키 삭제에 실패했습니다.";
 			throw new PaymentMethodException(
-				PaymentMethodErrorStatus.BILLING_KEY_DELETION_FAILED
+				PaymentMethodErrorStatus.BILLING_KEY_DELETION_FAILED,
+				userMessage
 			);
 		}
 

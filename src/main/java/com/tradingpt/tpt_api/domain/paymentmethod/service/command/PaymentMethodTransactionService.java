@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodErrorStatus;
+import com.tradingpt.tpt_api.domain.paymentmethod.exception.PaymentMethodException;
 import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -35,5 +37,28 @@ public class PaymentMethodTransactionService {
 		PaymentMethod saved = paymentMethodRepository.save(paymentMethod);
 		log.info("결제수단 저장 완료: paymentMethodId={}", saved.getId());
 		return saved;
+	}
+
+	/**
+	 * PG사 응답 코드 저장 (별도 트랜잭션)
+	 * 메인 트랜잭션이 롤백되어도 PG사 에러 정보가 보존되도록 REQUIRES_NEW 사용
+	 * NicePay API 실패 시 디버깅 및 사용자 안내를 위해 에러 정보를 DB에 저장
+	 *
+	 * @param paymentMethodId 결제수단 ID
+	 * @param resultCode      결과 코드 (예: "통신 실패", "3001")
+	 * @param resultMessage   결과 메시지 (예: NicePay 에러 메시지)
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void updatePgResponseInNewTransaction(Long paymentMethodId, String resultCode, String resultMessage) {
+		log.info("PG 응답 저장 (별도 트랜잭션): paymentMethodId={}, resultCode={}", paymentMethodId, resultCode);
+
+		PaymentMethod paymentMethod = paymentMethodRepository.findById(paymentMethodId)
+			.orElseThrow(() -> new PaymentMethodException(PaymentMethodErrorStatus.PAYMENT_METHOD_NOT_FOUND));
+
+		// Entity의 비즈니스 메서드를 통한 상태 변경 (JPA dirty checking)
+		paymentMethod.setPgResponseCode(resultCode, resultMessage);
+
+		// JPA dirty checking으로 자동 UPDATE - save() 불필요
+		log.info("PG 응답 저장 완료: paymentMethodId={}", paymentMethodId);
 	}
 }
