@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -208,7 +209,7 @@ public class AdminUserV1Controller {
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public BaseResponse<Slice<FreeCustomerResponseDTO>> getFreeCustomers(
 		@Parameter(description = "페이징 정보 (page, size, sort)")
-		@PageableDefault(size = 20, sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC)
+		@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
 		Pageable pageable
 	) {
 		return BaseResponse.onSuccess(customerQueryService.getFreeCustomers(pageable));
