@@ -1,12 +1,15 @@
 package com.tradingpt.tpt_api.domain.consultation.entity;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import com.tradingpt.tpt_api.global.common.BaseEntity;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,12 +23,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ConsultationBlock extends BaseEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "consultation_block_id")
+	private Long id;
 
-    private LocalDate consultationBlockDate;
+	private LocalDate consultationBlockDate;
 
-    private LocalTime consultationBlockTime;
+	private LocalTime consultationBlockTime;
 
 }
 
