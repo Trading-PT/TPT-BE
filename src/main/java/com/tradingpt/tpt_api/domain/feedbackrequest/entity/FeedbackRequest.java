@@ -96,7 +96,9 @@ public class FeedbackRequest extends BaseEntity {
 	private String category; // 종목
 	private String positionHoldingTime; // 포지션 홀딩 시간
 
+	@Column(precision = 20, scale = 8)
 	private BigDecimal riskTaking; // 리스크 테이킹
+	@Column(precision = 20, scale = 8)
 	private BigDecimal leverage; // 레버리지
 
 	@Enumerated(EnumType.STRING)
@@ -108,7 +110,9 @@ public class FeedbackRequest extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private MembershipLevel membershipLevel;
 
+	@Column(precision = 20, scale = 8)
 	private BigDecimal pnl; // P&L
+	@Column(precision = 20, scale = 8)
 	private BigDecimal totalAssetPnl; // 전체 자산 기준 P&L (pnl * operatingFundsRatio / 100)
 	private Double rnr; // R&R
 
