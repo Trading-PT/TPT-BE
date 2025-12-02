@@ -153,6 +153,22 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
 
     @Override
     @Transactional
+    public Long unmarkBest(Long columnId) {
+        Columns column = columnsRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));
+
+        // 이미 베스트가 아니면 멱등 처리
+        if (!column.getIsBest()) {
+            return columnId;
+        }
+
+        column.unmarkBest(); // 엔티티 메서드에서 isBest = false 처리
+
+        return columnId;
+    }
+
+    @Override
+    @Transactional
     public Long createComment(Long columnId, Long userId, CommentRequestDTO request) {
         Columns column = columnsRepository.findById(columnId)
                 .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));

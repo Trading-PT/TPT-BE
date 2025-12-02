@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class LevelTestCommandServiceImpl implements LevelTestCommandService {
 
 	private final CustomerRepository customerRepository;
@@ -38,6 +37,7 @@ public class LevelTestCommandServiceImpl implements LevelTestCommandService {
 	private final GradingAsyncInvoker gradingAsyncInvoker;
 
 	@Override
+	@Transactional
 	public LeveltestAttemptSubmitResponseDTO submitAttempt(Long customerId, LeveltestSubmitRequestDTO request) {
 
 		Customer customer = customerRepository.findById(customerId)
@@ -85,5 +85,4 @@ public class LevelTestCommandServiceImpl implements LevelTestCommandService {
 			.attemptId(attempt.getId())
 			.build();
 	}
-
 }

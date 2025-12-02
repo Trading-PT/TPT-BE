@@ -71,4 +71,8 @@ public class Columns extends BaseEntity {
     }
 
     public void markBest() { this.isBest = true; }
+
+    public void unmarkBest() {
+        this.isBest = false;
+    }
 }
