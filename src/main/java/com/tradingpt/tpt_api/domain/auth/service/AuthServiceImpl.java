@@ -89,6 +89,7 @@ public class AuthServiceImpl implements AuthService {
 				(req.getUsername().startsWith("KAKAO_") || req.getUsername().startsWith("NAVER_"));
 
 		if (isSocialUsername) { //소셜일 경우
+			verificationService.markEmailVerifiedWithoutCode(email, session);
 			updateSocialCustomer(req, session, phone, email);
 			return;
 		}
