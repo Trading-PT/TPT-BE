@@ -1,7 +1,6 @@
 package com.tradingpt.tpt_api.domain.subscription.controller;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.tradingpt.tpt_api.domain.subscription.dto.response.SubscriptionCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.subscription.dto.response.SubscriptionCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.subscription.service.query.SubscriptionQueryService;
 import com.tradingpt.tpt_api.global.common.BaseResponse;
@@ -49,6 +47,11 @@ public class AdminSubscriptionV1Controller {
 			- 무한 스크롤 방식 (Slice 사용)
 			- 기본 20개, 최대 100개
 			
+			**응답 정보:**
+			- totalCount: 필터 조건에 맞는 구독 고객 총 인원 수
+			- content: 구독 고객 목록
+			- sliceInfo: 페이징 정보
+			
 			**권한:**
 			- ADMIN: 모든 고객 조회 가능
 			- TRAINER: 본인 담당 고객만 조회 가능 (myCustomersOnly=true 강제)
@@ -74,9 +77,7 @@ public class AdminSubscriptionV1Controller {
 			pageable = Pageable.ofSize(100).withPage(pageable.getPageNumber());
 		}
 
-		Slice<SubscriptionCustomerResponseDTO> slice = subscriptionQueryService
-			.getActiveSubscriptionCustomers(trainerId, myCustomersOnly, pageable);
-
-		return BaseResponse.onSuccess(SubscriptionCustomerSliceResponseDTO.from(slice));
+		return BaseResponse.onSuccess(subscriptionQueryService
+			.getActiveSubscriptionCustomers(trainerId, myCustomersOnly, pageable));
 	}
 }

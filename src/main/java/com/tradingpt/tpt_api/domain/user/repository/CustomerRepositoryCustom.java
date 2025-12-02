@@ -41,6 +41,18 @@ public interface CustomerRepositoryCustom {
 	Slice<Customer> findFreeCustomers(Pageable pageable);
 
 	/**
+	 * 미구독(무료) 고객 총 인원 수 조회
+	 *
+	 * 조건:
+	 * - ACTIVE 상태의 Subscription이 없음
+	 * - membershipLevel이 BASIC
+	 * - 담당 트레이너가 없음 (assignedTrainer IS NULL)
+	 *
+	 * @return 미구독 고객 총 인원 수
+	 */
+	Long countFreeCustomers();
+
+	/**
 	 * 신규 구독 고객 목록 조회
 	 *
 	 * 조건:

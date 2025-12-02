@@ -168,6 +168,31 @@ public class CustomerRepositoryImpl implements CustomerRepositoryCustom {
 	}
 
 	/**
+	 * 미구독(무료) 고객 총 인원 수 조회
+	 *
+	 * 조건:
+	 * - ACTIVE 상태의 Subscription이 없음
+	 * - membershipLevel이 BASIC
+	 * - 담당 트레이너가 없음 (assignedTrainer IS NULL)
+	 *
+	 * @return 미구독 고객 총 인원 수
+	 */
+	@Override
+	public Long countFreeCustomers() {
+		Long count = queryFactory
+			.select(customer.countDistinct())
+			.from(customer)
+			.leftJoin(subscription).on(subscription.customer.eq(customer))
+			.where(
+				isFreeCustomer(),
+				customer.assignedTrainer.isNull()
+			)
+			.fetchOne();
+
+		return count != null ? count : 0L;
+	}
+
+	/**
 	 * 미구독 고객 조건
 	 * 1. Subscription이 없거나 (LEFT JOIN 결과 NULL)
 	 * 2. Subscription이 있지만 status가 ACTIVE가 아님

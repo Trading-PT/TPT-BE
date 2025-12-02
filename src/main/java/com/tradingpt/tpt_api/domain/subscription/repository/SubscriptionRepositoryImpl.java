@@ -120,6 +120,27 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 	}
 
 	/**
+	 * 활성 구독 고객 총 인원 수 조회
+	 *
+	 * @param trainerId 트레이너 ID (null이면 전체 조회)
+	 * @return 활성 구독 고객 총 인원 수
+	 */
+	@Override
+	public Long countActiveSubscriptionCustomers(Long trainerId) {
+		Long count = queryFactory
+			.select(subscription.count())
+			.from(subscription)
+			.innerJoin(subscription.customer, customer)
+			.where(
+				subscription.status.eq(Status.ACTIVE),
+				trainerIdFilter(trainerId)
+			)
+			.fetchOne();
+
+		return count != null ? count : 0L;
+	}
+
+	/**
 	 * 트레이너 필터 조건
 	 * trainerId가 null이면 전체 조회
 	 */
