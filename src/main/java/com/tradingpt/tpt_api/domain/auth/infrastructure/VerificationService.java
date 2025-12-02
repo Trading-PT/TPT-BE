@@ -14,4 +14,6 @@ public interface VerificationService {
     void clearEmailTrace(String email);
 
     void requireVerified(String phone, String email, HttpSession session);
+
+    void markEmailVerifiedWithoutCode(String email, HttpSession session);
 }
