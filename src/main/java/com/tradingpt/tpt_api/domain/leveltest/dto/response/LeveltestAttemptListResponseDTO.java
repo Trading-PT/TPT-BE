@@ -27,7 +27,7 @@ public class LeveltestAttemptListResponseDTO {
         return LeveltestAttemptListResponseDTO.builder()
                 .attemptId(attempt.getId())
                 .totalScore(attempt.getTotalScore())
-                .grade(attempt.getGrade().toString())
+                .grade(attempt.getGrade() != null ? attempt.getGrade().toString() : null)
                 .createdAt(attempt.getCreatedAt()
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
                 .build();
