@@ -34,24 +34,23 @@ public class AdminSubscriptionV1Controller {
 		summary = "구독 고객 목록 조회",
 		description = """
 			활성 구독 고객 목록을 조회합니다.
-			
+
 			**필터 옵션:**
 			- `myCustomersOnly=true`: 내가 담당하는 고객만 조회 (assignedTrainer = 본인)
 			- `myCustomersOnly=false` 또는 생략: 모든 활성 구독 고객 조회
-			
+
 			**정렬 기준:**
-			1. 멤버십 레벨 (PREMIUM 우선)
-			2. 구독 생성일 (최신 순)
-			
+			- 구독 생성일 (최신 순)
+
 			**페이징:**
 			- 무한 스크롤 방식 (Slice 사용)
 			- 기본 20개, 최대 100개
-			
+
 			**응답 정보:**
 			- totalCount: 필터 조건에 맞는 구독 고객 총 인원 수
-			- content: 구독 고객 목록
+			- content: 구독 고객 목록 (이름, 전화번호, 트레이너명)
 			- sliceInfo: 페이징 정보
-			
+
 			**권한:**
 			- ADMIN: 모든 고객 조회 가능
 			- TRAINER: 본인 담당 고객만 조회 가능 (myCustomersOnly=true 강제)
