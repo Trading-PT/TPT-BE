@@ -336,6 +336,11 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			return;
 		}
 
+		// 트레이너가 작성한 피드백도 누구나 접근 가능
+		if (Boolean.TRUE.equals(feedbackRequest.getIsTrainerWritten())) {
+			return;
+		}
+
 		// 일반 피드백일 경우
 		// ✅ 2. 비로그인 사용자는 일반 피드백 접근 불가
 		if (currentUserId == null) {

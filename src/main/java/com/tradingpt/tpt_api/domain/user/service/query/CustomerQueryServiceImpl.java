@@ -13,6 +13,7 @@ import com.tradingpt.tpt_api.domain.leveltest.entity.LevelTestAttempt;
 import com.tradingpt.tpt_api.domain.leveltest.enums.LevelTestStaus;
 import com.tradingpt.tpt_api.domain.leveltest.repository.LeveltestAttemptRepository;
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListItemDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
@@ -66,18 +67,24 @@ public class CustomerQueryServiceImpl implements CustomerQueryService {
 	 * 1. ACTIVE 구독이 없는 BASIC 멤버십 고객 조회
 	 * 2. 담당 트레이너가 없는 고객만 조회
 	 * 3. Slice 방식 페이징 (무한 스크롤)
-	 * 4. Repository에서 조회 후 DTO 변환
+	 * 4. 총 인원 수 함께 반환
 	 *
 	 * @param pageable 페이징 정보
-	 * @return 미구독 고객 Slice
+	 * @return 미구독 고객 슬라이스 (총 인원 수 포함)
 	 */
 	@Override
-	public Slice<FreeCustomerResponseDTO> getFreeCustomers(Pageable pageable) {
+	public FreeCustomerSliceResponseDTO getFreeCustomers(Pageable pageable) {
 		// 1. Repository에서 미구독 고객 조회
 		Slice<Customer> customerSlice = customerRepository.findFreeCustomers(pageable);
 
 		// 2. Entity를 DTO로 변환 (Slice 유지)
-		return customerSlice.map(FreeCustomerResponseDTO::from);
+		Slice<FreeCustomerResponseDTO> dtoSlice = customerSlice.map(FreeCustomerResponseDTO::from);
+
+		// 3. 미구독 고객 총 인원 수 조회
+		Long totalCount = customerRepository.countFreeCustomers();
+
+		// 4. 래퍼 DTO 생성 및 반환
+		return FreeCustomerSliceResponseDTO.from(dtoSlice, totalCount);
 	}
 
 	/**

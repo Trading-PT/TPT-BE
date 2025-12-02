@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
@@ -174,18 +174,23 @@ public class AdminUserV1Controller {
 		summary = "미구독(무료) 고객 목록 조회",
 		description = """
 			미구독 상태의 무료 고객 목록을 조회합니다.
-			
+
 			미구독 고객 정의:
 			1. Subscription이 없거나 ACTIVE 상태가 아닌 고객
 			2. membershipLevel이 BASIC인 고객
 			3. 담당 트레이너가 없는 고객 (assignedTrainer IS NULL)
-			
+
 			조회 정보:
 			- 고객 ID, 이름, 전화번호
 			- 현재 투자 유형 (DAY, SWING)
 			- 보유 토큰 수
 			- 가입일시
-			
+
+			응답 정보:
+			- totalCount: 미구독 고객 총 인원 수
+			- content: 미구독 고객 목록
+			- sliceInfo: 페이징 정보
+
 			정렬 옵션 (sort 파라미터):
 			- createdAt,desc: 최근 가입 순 (기본값)
 			- createdAt,asc: 오래된 가입 순
@@ -193,12 +198,12 @@ public class AdminUserV1Controller {
 			- name,desc: 이름 내림차순
 			- tokenCount,desc: 토큰 많은 순
 			- tokenCount,asc: 토큰 적은 순
-			
+
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-			
+
 			예시:
 			- GET /api/v1/admin/users/free-customers
 			- GET /api/v1/admin/users/free-customers?page=0&size=20&sort=createdAt,desc
@@ -207,7 +212,7 @@ public class AdminUserV1Controller {
 	)
 	@GetMapping("/free-customers")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-	public BaseResponse<Slice<FreeCustomerResponseDTO>> getFreeCustomers(
+	public BaseResponse<FreeCustomerSliceResponseDTO> getFreeCustomers(
 		@Parameter(description = "페이징 정보 (page, size, sort)")
 		@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
 		Pageable pageable

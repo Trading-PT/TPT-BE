@@ -1,4 +1,4 @@
-package com.tradingpt.tpt_api.domain.subscription.dto.response;
+package com.tradingpt.tpt_api.domain.user.dto.response;
 
 import java.util.List;
 
@@ -14,21 +14,21 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 구독 고객 목록 슬라이스 응답 래퍼
- * 무한 스크롤 방식의 페이징 정보와 함께 반환
+ * 미구독(무료) 고객 목록 슬라이스 응답 래퍼
+ * 무한 스크롤 방식의 페이징 정보와 총 인원 수를 함께 반환
  */
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Schema(description = "구독 고객 목록 슬라이스 응답")
-public class SubscriptionCustomerSliceResponseDTO {
+@Schema(description = "미구독 고객 목록 슬라이스 응답")
+public class FreeCustomerSliceResponseDTO {
 
-    @Schema(description = "구독 고객 총 인원 수", example = "150")
+    @Schema(description = "미구독 고객 총 인원 수", example = "85")
     private Long totalCount;
 
-    @Schema(description = "구독 고객 목록")
-    private List<SubscriptionCustomerResponseDTO> content;
+    @Schema(description = "미구독 고객 목록")
+    private List<FreeCustomerResponseDTO> content;
 
     @Schema(description = "슬라이스 정보")
     private SliceInfo sliceInfo;
@@ -36,15 +36,15 @@ public class SubscriptionCustomerSliceResponseDTO {
     /**
      * Slice와 총 인원 수를 DTO로 변환하는 팩토리 메서드
      *
-     * @param slice 구독 고객 Slice
-     * @param totalCount 구독 고객 총 인원 수
-     * @return SubscriptionCustomerSliceResponseDTO
+     * @param slice 미구독 고객 Slice
+     * @param totalCount 미구독 고객 총 인원 수
+     * @return FreeCustomerSliceResponseDTO
      */
-    public static SubscriptionCustomerSliceResponseDTO from(
-        Slice<SubscriptionCustomerResponseDTO> slice,
+    public static FreeCustomerSliceResponseDTO from(
+        Slice<FreeCustomerResponseDTO> slice,
         Long totalCount
     ) {
-        return SubscriptionCustomerSliceResponseDTO.builder()
+        return FreeCustomerSliceResponseDTO.builder()
             .totalCount(totalCount)
             .content(slice.getContent())
             .sliceInfo(SliceInfo.of(slice))
