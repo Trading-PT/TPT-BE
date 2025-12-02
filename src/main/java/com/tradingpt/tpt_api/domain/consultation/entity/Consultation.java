@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -51,6 +52,11 @@ public class Consultation extends BaseEntity {
 
 	@Builder.Default
 	private Boolean isProcessed = false; // 기본값 false
+
+	@Version
+	@Column(name = "version")
+	@Builder.Default
+	private Long version = 0L;
 
 	public void accept() {
 		this.isProcessed = true;
