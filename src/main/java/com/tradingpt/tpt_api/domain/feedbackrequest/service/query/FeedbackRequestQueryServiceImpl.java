@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -348,19 +346,13 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
 		}
 
-		// ✅ 3. 트레이너/어드민 권한 확인
-		if (isTrainerOrAdmin()) {
-			log.debug("Trainer/Admin access allowed for feedbackId: {}", feedbackRequest.getId());
-			return;
-		}
-
-		// ✅ 4. 자신의 피드백인 경우 접근 허용
+		// ✅ 3. 자신의 피드백인 경우 접근 허용
 		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
 			log.debug("Owner access allowed for feedbackId: {}", feedbackRequest.getId());
 			return;
 		}
 
-		// ✅ 5. 구독자(PREMIUM)인 경우 모든 피드백 접근 가능
+		// ✅ 4. 구독자(PREMIUM)인 경우 모든 피드백 접근 가능
 		Customer customer = (Customer)userRepository.findById(currentUserId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
@@ -369,28 +361,9 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			return;
 		}
 
-		// ✅ 6. 그 외의 경우 접근 거부 (비구독자가 다른 사람의 피드백 조회 시도)
+		// ✅ 5. 그 외의 경우 접근 거부 (비구독자가 다른 사람의 피드백 조회 시도)
 		log.warn("Access denied for user {} to feedback {}", currentUserId, feedbackRequest.getId());
 		throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
-	}
-
-	/**
-	 * 현재 사용자가 트레이너 또는 어드민 권한을 가지고 있는지 확인
-	 *
-	 * @return 트레이너/어드민이면 true, 아니면 false
-	 */
-	private boolean isTrainerOrAdmin() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		if (authentication == null || !authentication.isAuthenticated()) {
-			return false;
-		}
-
-		return authentication.getAuthorities().stream()
-			.anyMatch(authority ->
-				authority.getAuthority().equals("ROLE_TRAINER") ||
-					authority.getAuthority().equals("ROLE_ADMIN")
-			);
 	}
 
 	@Override
