@@ -34,6 +34,7 @@ spring:
   # 공통 세션 설정
   servlet:
     session:
+      timeout: 24h
       store-type: redis
       tracking-modes: cookie
     multipart:

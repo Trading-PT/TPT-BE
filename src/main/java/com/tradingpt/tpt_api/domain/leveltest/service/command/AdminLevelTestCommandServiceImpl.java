@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.command;
 
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.enums.LeveltestStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -185,6 +187,8 @@ public class AdminLevelTestCommandServiceImpl implements AdminLevelTestCommandSe
 		LevelTestQuestion question = leveltestQuestionRepository.findById(questionId)
 			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.QUESTION_NOT_FOUND));
 
+		leveltestResponseRepository.deleteAllByLeveltestQuestion_Id(questionId);
+
 		String lastUrl = question.getImageUrl();
 		if (question.getImageKey() != null) {
 			s3FileService.delete(question.getImageKey());
@@ -232,5 +236,8 @@ public class AdminLevelTestCommandServiceImpl implements AdminLevelTestCommandSe
 
 		// 상태 변경
 		attempt.markGraded();
+
+		Customer customer = attempt.getCustomer();
+		customer.setLeveltestStatus(LeveltestStatus.COMPLETED);
 	}
 }

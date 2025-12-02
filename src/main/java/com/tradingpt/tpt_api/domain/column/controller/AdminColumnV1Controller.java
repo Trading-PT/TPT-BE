@@ -145,6 +145,14 @@ public class AdminColumnV1Controller {
         return ResponseEntity.ok(BaseResponse.onSuccess(id));
     }
 
+    @Operation(summary = "칼럼 베스트 해지(관리자)", description = "해당 칼럼의 베스트 지정을 해제합니다.")
+    @PatchMapping("/{columnId}/best/cancel")
+    public ResponseEntity<BaseResponse<Long>> unmarkBest(@PathVariable Long columnId) {
+        Long id = commandService.unmarkBest(columnId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
+
     @Operation(summary = "댓글 작성(관리자)", description = "특정 칼럼에 댓글을 작성하고 익명의 이름으로 댓글이 작성됩니다.")
     @PostMapping("/{columnId}/comments")
     public ResponseEntity<BaseResponse<Long>> createComment(
