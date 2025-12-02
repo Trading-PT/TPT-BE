@@ -226,12 +226,11 @@ public class SecurityConfig {
 				.authenticationEntryPoint(jsonAuthenticationEntryPoint)
 				.accessDeniedHandler(jsonAccessDeniedHandler)
 			)
-			.sessionManagement(sm -> sm
-				.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-				.sessionFixation(sf -> sf.migrateSession())
-				.sessionConcurrency(sc -> sc.maximumSessions(5)
-					.sessionRegistry(sessionRegistry))
-			)
+				.sessionManagement(sm -> sm
+						.sessionCreationPolicy(SessionCreationPolicy.NEVER) // 절대 자동으로 세션 만들지 말라
+						.sessionFixation(sf -> sf.migrateSession())
+						.sessionConcurrency(sc -> sc.maximumSessions(5).sessionRegistry(sessionRegistry))
+				)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/v1/admin/login").permitAll()
 				.anyRequest().hasAnyRole("ADMIN", "TRAINER")

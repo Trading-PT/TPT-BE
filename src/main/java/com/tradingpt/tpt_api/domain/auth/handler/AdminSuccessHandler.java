@@ -28,6 +28,8 @@ public class AdminSuccessHandler implements AuthenticationSuccessHandler {
                                         HttpServletResponse res,
                                         Authentication auth) throws IOException {
 
+        req.getSession(true);
+
         // (1) 세션 저장
         var cud = (CustomUserDetails) auth.getPrincipal();
         var sessionUser = new AuthSessionUser(cud.getId(), cud.getUsername(), cud.getRole().name());
