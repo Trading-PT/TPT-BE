@@ -120,9 +120,17 @@ public class FeedbackRequest extends BaseEntity {
 	 * 매매 관련 필드
 	 */
 	private Integer operatingFundsRatio; // 비중 (운용 자금 대비)
+
+	@Column(precision = 20, scale = 8)
 	private BigDecimal entryPrice; // 진입 가격
+
+	@Column(precision = 20, scale = 8)
 	private BigDecimal exitPrice; // 탈출 가격
+
+	@Column(precision = 20, scale = 8)
 	private BigDecimal settingStopLoss; // 설정 손절가
+
+	@Column(precision = 20, scale = 8)
 	private BigDecimal settingTakeProfit; // 설정 익절가
 
 	@Lob
