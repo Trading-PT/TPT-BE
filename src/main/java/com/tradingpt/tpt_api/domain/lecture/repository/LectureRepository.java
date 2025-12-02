@@ -39,4 +39,6 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
     int countProLectures();
 
    Optional<Lecture> findByChapter_ChapterTypeAndLectureOrder(ChapterType chapterType, int lectureOrder);
+
+    int countByChapter_ChapterType(ChapterType chapterType);
 }

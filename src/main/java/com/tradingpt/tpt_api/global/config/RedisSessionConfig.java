@@ -14,7 +14,7 @@ import org.springframework.session.web.http.*;
 import java.util.List;
 
 @Configuration
-@EnableRedisIndexedHttpSession(flushMode = FlushMode.IMMEDIATE)
+@EnableRedisIndexedHttpSession( maxInactiveIntervalInSeconds = 86400,flushMode = FlushMode.IMMEDIATE)
 public class RedisSessionConfig {
 
     private static final String ADMIN_PATH_PREFIX = "/api/v1/admin";

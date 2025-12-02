@@ -51,6 +51,17 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         User trainer = userRepository.findById(trainerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
 
+        if (chapter.getChapterType() == ChapterType.PRO) {
+
+            int totalProLectureCount = lectureRepository.countByChapter_ChapterType(ChapterType.PRO);
+            int expectedOrder = totalProLectureCount + 1;
+
+            // req.getLectureOrder()가 null이면 바로 예외 터지게 해도 됨
+            if (req.getLectureOrder() == null || req.getLectureOrder() != expectedOrder) {
+                throw new LectureException(LectureErrorStatus.INVALID_LECTURE_ORDER);
+            }
+        }
+
         // 3. Lecture 생성 (신규 필드 포함)
         Lecture lecture = Lecture.builder()
                 .chapter(chapter)
