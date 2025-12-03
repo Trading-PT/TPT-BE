@@ -49,13 +49,15 @@ spring:
 
   # 메일 설정
   mail:
-    host: smtp.gmail.com
+    host: smtp-relay.gmail.com
     port: 587
-    username: ${MAIL_NAME}
-    password: ${MAIL_PASSWORD}
+    username:
+    password:
     properties:
-      mail.smtp.auth: true
+      mail.smtp.auth: false
       mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+
 
   # OAuth2 설정
   security:
