@@ -188,4 +188,17 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         Comment saved = commentRepository.save(comment);
         return saved.getId();
     }
+
+    @Override
+    @Transactional
+    public Long deleteComment(Long commentId, Long adminUserId) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.COMMENT_NOT_FOUND));
+
+        commentRepository.delete(comment);
+
+        return commentId;
+    }
 }
+

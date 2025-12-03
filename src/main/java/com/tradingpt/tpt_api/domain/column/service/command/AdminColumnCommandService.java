@@ -19,4 +19,6 @@ public interface AdminColumnCommandService {
     Long createComment(Long columnId, Long userId, CommentRequestDTO request);
 
     Long unmarkBest(Long columnId);
+
+    Long deleteComment(Long commentId, Long adminUserId);
 }
