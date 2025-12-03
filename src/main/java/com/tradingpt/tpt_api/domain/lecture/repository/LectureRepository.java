@@ -41,4 +41,7 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
    Optional<Lecture> findByChapter_ChapterTypeAndLectureOrder(ChapterType chapterType, int lectureOrder);
 
     int countByChapter_ChapterType(ChapterType chapterType);
+
+    @Query("select l from Lecture l left join fetch l.attachments where l.id = :lectureId")
+    Optional<Lecture> findWithAttachments(@Param("lectureId") Long lectureId);
 }

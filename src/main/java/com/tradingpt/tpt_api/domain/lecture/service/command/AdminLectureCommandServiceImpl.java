@@ -95,14 +95,16 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         return saved.getId();
     }
 
-    /**
-     * 강의 삭제
-     */
     @Override
     @Transactional
     public void deleteLecture(Long lectureId) {
-        Lecture lecture = lectureRepository.findById(lectureId)
+
+        // attachments 미리 로딩
+        Lecture lecture = lectureRepository.findWithAttachments(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        // 0) progress 삭제
+        lectureProgressRepository.deleteByLectureId(lectureId);
 
         // 1) 비디오 삭제
         if (lecture.getVideoKey() != null) {
@@ -110,15 +112,13 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         }
 
         // 2) 첨부파일 삭제
-        if (lecture.getAttachments() != null) {
-            lecture.getAttachments().forEach(att -> {
-                if (att.getFileKey() != null) {
-                    s3FileService.delete(att.getFileKey());
-                }
-            });
-        }
+        lecture.getAttachments().forEach(att -> {
+            if (att.getFileKey() != null) {
+                s3FileService.delete(att.getFileKey());
+            }
+        });
 
-        // 3) DB에서 삭제
+        // 3) 강의 삭제
         lectureRepository.delete(lecture);
     }
 
