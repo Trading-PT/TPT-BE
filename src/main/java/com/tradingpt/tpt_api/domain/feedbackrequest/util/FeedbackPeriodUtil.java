@@ -98,8 +98,14 @@ public final class FeedbackPeriodUtil {
 				endOfWeek = firstDayOfMonth.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
 			}
 		} else {
-			// 2주차 이상: (week - 1)번째 월요일부터 일요일까지
-			startOfWeek = firstMonday.plusWeeks(week - 2);
+			// 2주차 이상: 첫 번째 월요일 기준으로 계산
+			// 월의 첫 날이 월요일인 경우: 1주차가 full week이므로 (week - 1)주 더함
+			// 월의 첫 날이 월요일이 아닌 경우: 1주차가 partial week이므로 (week - 2)주 더함
+			if (firstDayOfMonth.getDayOfWeek() == DayOfWeek.MONDAY) {
+				startOfWeek = firstMonday.plusWeeks(week - 1);
+			} else {
+				startOfWeek = firstMonday.plusWeeks(week - 2);
+			}
 			endOfWeek = startOfWeek.plusDays(6);
 		}
 
