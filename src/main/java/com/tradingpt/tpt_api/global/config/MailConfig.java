@@ -13,20 +13,21 @@ public class MailConfig {
     @Bean
     public JavaMailSender javaMailSender(
             @Value("${spring.mail.host}") String host,
-            @Value("${spring.mail.port}") int port,
-            @Value("${spring.mail.username}") String username,
-            @Value("${spring.mail.password}") String password
+            @Value("${spring.mail.port}") int port
     ) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(host);
         sender.setPort(port);
-        sender.setUsername(username);
-        sender.setPassword(password);
+
+        // username/password 절대 설정하지 않음 (무인증 relay)
+        // sender.setUsername(...);
+        // sender.setPassword(...);
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.auth", "false"); // 핵심
         props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.starttls.required", "true");
         props.put("mail.debug", "false");
 
         return sender;
