@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -141,19 +142,30 @@ public class VerificationServiceImpl implements VerificationService {
 		// 2) 메일 전송 (비동기)
 		mailExecutor.execute(() -> {
 			try {
-				SimpleMailMessage m = new SimpleMailMessage();
-				m.setFrom(mailFrom);
-				m.setTo(email);
-				m.setSubject("[TradingPT] 이메일 인증번호");
-				m.setText("[TradingPT] 인증번호는 " + code + " 입니다.");
-				mailSender.send(m);
+				// MIME 메일 생성
+				var message = mailSender.createMimeMessage();
+				var helper = new MimeMessageHelper(message, false, "UTF-8");
+
+				/**
+				 * Envelope-From + Header-From 둘 다 Gmail Relay가 인정하는 형식으로 들어감
+				 * (SimpleMailMessage는 Envelope-From을 설정하지 못하기 때문에 550 에러 발생)
+				 */
+				helper.setFrom(mailFrom, "TradingPT"); // mailFrom = no-reply@YOUR_DOMAIN
+
+				helper.setTo(email);
+				helper.setSubject("[TradingPT] 이메일 인증번호");
+				helper.setText("[TradingPT] 인증번호는 " + code + " 입니다.", false);
+
+				mailSender.send(message);
+
 				log.info("이메일 인증번호 전송 성공: {} (key={})", email, key);
+
 			} catch (Exception ex) {
-				// 전송 실패 시 코드 제거
 				redisTemplate.delete(key);
 				log.warn("이메일 전송 실패({}): {}", email, ex.getMessage(), ex);
 			}
 		});
+
 	}
 
 	@Override
