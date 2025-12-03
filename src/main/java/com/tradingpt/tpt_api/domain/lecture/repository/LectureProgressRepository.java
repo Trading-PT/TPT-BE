@@ -6,6 +6,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +32,8 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
     int countCompletedProLectures(@Param("customerId") Long customerId);
 
     boolean existsByCustomerAndLecture(Customer customer, Lecture lecture);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from LectureProgress lp where lp.lecture.id = :lectureId")
+    void deleteByLectureId(@Param("lectureId") Long lectureId);
 }
