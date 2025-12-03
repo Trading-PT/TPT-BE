@@ -51,12 +51,11 @@ spring:
   mail:
     host: smtp-relay.gmail.com
     port: 587
-    username:
-    password:
     properties:
       mail.smtp.auth: false
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
+      mail.debug: true
 
 
   # OAuth2 설정
