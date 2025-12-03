@@ -59,9 +59,10 @@ public class ColumnV1Controller {
     )
     @GetMapping("/{columnId}")
     public ResponseEntity<BaseResponse<ColumnDetailResponseDTO>> getColumnDetail(
-            @PathVariable Long columnId
+            @PathVariable Long columnId,
+            @AuthenticationPrincipal(expression = "id") Long userId
     ) {
-        ColumnDetailResponseDTO result = queryService.getColumnDetail(columnId);
+        ColumnDetailResponseDTO result = queryService.getColumnDetail(userId,columnId);
         return ResponseEntity.ok(BaseResponse.onSuccess(result));
     }
 

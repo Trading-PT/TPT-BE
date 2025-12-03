@@ -163,4 +163,18 @@ public class AdminColumnV1Controller {
         Long id = commandService.createComment(columnId, userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccess(id));
     }
+
+    @Operation(
+            summary = "댓글 삭제(관리자)",
+            description = "관리자가 특정 칼럼에 달린 댓글 한 개를 삭제합니다."
+    )
+    @DeleteMapping("/{columnId}/comments/{commentId}")
+    public ResponseEntity<BaseResponse<Long>> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal(expression = "id") Long adminUserId
+    ) {
+        Long id = commandService.deleteComment(commentId, adminUserId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
 }
