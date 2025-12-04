@@ -44,4 +44,7 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
 
     @Query("select l from Lecture l left join fetch l.attachments where l.id = :lectureId")
     Optional<Lecture> findWithAttachments(@Param("lectureId") Long lectureId);
+
+    // 챕터 기준으로 강의 전체 조회
+    List<Lecture> findAllByChapter_Id(Long chapterId);
 }

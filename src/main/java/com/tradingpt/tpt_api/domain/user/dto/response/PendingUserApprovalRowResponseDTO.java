@@ -38,6 +38,9 @@ public class PendingUserApprovalRowResponseDTO {
 	@Schema(description = "승인 상태 (UID_REVIEW_PENDING, UID_APPROVED, UID_REJECTED 등)")
 	private UserStatus status;
 
+	@Schema(description = "트레이너 이름")
+	private String trainerName;
+
 	/** Customer 엔티티 → 화면 응답 DTO */
 	public static PendingUserApprovalRowResponseDTO from(Customer c) {
 		if (c == null)
@@ -56,6 +59,7 @@ public class PendingUserApprovalRowResponseDTO {
 			.requestedAt(c.getCreatedAt())
 			.uid(uidDto)
 			.status(c.getUserStatus())
+		.trainerName(c.getAssignedTrainer().getName())
 			.build();
 	}
 }
