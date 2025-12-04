@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -178,6 +179,34 @@ public class AdminFeedbackRequestV1Controller {
 	) {
 		return BaseResponse.onSuccess(
 			feedbackRequestQueryService.getAdminFeedbackDetail(feedbackRequestId)
+		);
+	}
+
+	@Operation(
+		summary = "피드백 요청 삭제 (어드민 전용)",
+		description = """
+			특정 피드백 요청을 삭제합니다.
+
+			권한:
+			- **ROLE_ADMIN**: 모든 고객의 피드백 요청 삭제 가능
+			- **ROLE_TRAINER**: 삭제 권한 없음
+
+			주의사항:
+			- 삭제된 피드백은 복구할 수 없습니다
+			- 관련 응답(FeedbackResponse)도 함께 삭제됩니다
+
+			예시:
+			- DELETE /api/v1/admin/feedback-requests/123
+			"""
+	)
+	@DeleteMapping("/{feedbackRequestId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public BaseResponse<Void> deleteFeedbackRequestByAdmin(
+		@Parameter(description = "피드백 요청 ID", required = true)
+		@PathVariable Long feedbackRequestId
+	) {
+		return BaseResponse.onSuccessDelete(
+			feedbackRequestCommandService.deleteByAdmin(feedbackRequestId)
 		);
 	}
 
