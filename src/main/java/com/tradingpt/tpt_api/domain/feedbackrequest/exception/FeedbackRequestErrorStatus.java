@@ -25,8 +25,12 @@ public enum FeedbackRequestErrorStatus implements BaseCodeInterface {
 	FEEDBACK_REQUEST_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK_REQ_404_0", "피드백 요청을 찾을 수 없습니다."),
 	FEEDBACK_RESPONSE_NOT_FOUND(HttpStatus.NOT_FOUND, "FEEDBACK_REQ_404_1", "피드백 답변이 존재하지 않습니다."),
 
+	// 401 Unauthorized
+	LOGIN_REQUIRED(HttpStatus.UNAUTHORIZED, "FEEDBACK_REQ_401_0", "로그인이 필요합니다."),
+
 	// 403 Forbidden
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_0", "접근 권한이 없습니다."),
+	UID_NOT_APPROVED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_5", "UID 승인이 필요합니다."),
 	DELETE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_1", "자신의 피드백 요청만 삭제할 수 있습니다."),
 	RESPONSE_UPDATE_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_2", "답변 작성자만 수정할 수 있습니다."),
 	CANNOT_RESPOND_TO_NON_TOKEN_FEEDBACK_AS_UNASSIGNED_TRAINER(HttpStatus.FORBIDDEN, "FEEDBACK_REQ_403_3", "배정되지 않은 트레이너는 토큰 사용 피드백에만 응답할 수 있습니다."),

@@ -61,6 +61,12 @@ public class FeedbackCardResponseDTO {
 	 * FeedbackRequest 엔티티로부터 카드 DTO 생성
 	 */
 	public static FeedbackCardResponseDTO from(FeedbackRequest feedbackRequest) {
+		String customerName = feedbackRequest.getCustomer().getName();
+		if (Boolean.TRUE.equals((feedbackRequest.getIsBestFeedback()))
+			&& feedbackRequest.getCustomer().getNickname() != null) {
+			customerName = feedbackRequest.getCustomer().getNickname();
+		}
+
 		return FeedbackCardResponseDTO.builder()
 			.feedbackRequestId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
@@ -76,7 +82,7 @@ public class FeedbackCardResponseDTO {
 			.courseStatus(feedbackRequest.getCourseStatus())
 			.status(feedbackRequest.getStatus())
 			.isBestFeedback(feedbackRequest.getIsBestFeedback())
-			.customerName(feedbackRequest.getCustomer().getName())
+			.customerName(customerName)
 			.build();
 	}
 
