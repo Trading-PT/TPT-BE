@@ -17,7 +17,7 @@ public class GradingAsyncInvoker {
     public void trigger(Long attemptId, Customer customer) {
         log.info("[GradingAsyncInvoker] 채점 요청 수신 - attemptId={}", attemptId);
         try {
-            gradingService.gradeAttemptSafely(attemptId, customer);
+            gradingService.gradeAttemptSafely(attemptId);
             log.info("[GradingAsyncInvoker] 채점 완료 - attemptId={}", attemptId);
         } catch (Exception e) {
             log.error("[GradingAsyncInvoker] 채점 실패 - attemptId={}, message={}", attemptId, e.getMessage(), e);

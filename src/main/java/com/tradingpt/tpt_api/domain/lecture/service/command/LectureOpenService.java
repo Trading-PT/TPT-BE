@@ -10,6 +10,7 @@ import com.tradingpt.tpt_api.domain.subscription.enums.Status;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -37,21 +38,33 @@ public class LectureOpenService {
         }
     }
 
-    private void openWeeklyForSubscription(Subscription sub) {
+    @Transactional
+    public void openWeeklyForSubscription(Subscription sub) {
 
         Customer customer = sub.getCustomer();
         Long customerId = customer.getId();
 
-        // 0) 구독 시작 전이면 열지 않음 (방어)
+        // (0) 구독 시작 날짜
         LocalDate start = sub.getCurrentPeriodStart();
-        if (LocalDate.now().isBefore(start)) {
+        LocalDate today = LocalDate.now();
+        if (today.isBefore(start)) {
             return;
         }
 
-        // 1) PRO 챕터에 속한 강의들만, 순서대로 가져오기
-        List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
+        // (1) 경과 일수
+        long days = ChronoUnit.DAYS.between(start, today);
+//
+//        // (2) 경과 주차
+//        int weeksPassed = (int) (days / 7);
+//
+//        // (3) 열려 있어야 하는 총 강의 개수 = 주차 + 1
+//        int shouldOpenCount = weeksPassed + 1;
+        int shouldOpenCount = (int) days + 1;
 
+        // (4) PRO 강의 목록
+        List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
         List<Lecture> proLectures = new ArrayList<>();
+
         for (Lecture l : allLectures) {
             if (l.getChapter().getChapterType() == ChapterType.PRO) {
                 proLectures.add(l);
@@ -59,38 +72,34 @@ public class LectureOpenService {
         }
 
         if (proLectures.isEmpty()) {
-            return; // 열 PRO 강의가 없으면 끝
+            return;
         }
 
-        // 2) 지금까지 열린 PRO 강의 개수 (index 개념)
+        // (5) 현재 열린 개수
         int openedCount = (customer.getOpenChapterNumber() == null)
                 ? 0
                 : customer.getOpenChapterNumber();
 
-        // 이미 모든 PRO 강의가 열려 있으면 종료 (완강)
-        if (openedCount >= proLectures.size()) {
-            return;
+        // (6) 열려야 하는 것이 더 많을 때만 오픈
+        while (openedCount < shouldOpenCount && openedCount < proLectures.size()) {
+
+            Lecture next = proLectures.get(openedCount);
+
+            boolean exists = lectureProgressRepository.existsByLectureIdAndCustomerId(next.getId(), customerId);
+            if (!exists) {
+                lectureProgressRepository.save(
+                        LectureProgress.builder()
+                                .lecture(next)
+                                .customer(customer)
+                                .watchedSeconds(0)
+                                .isCompleted(false)
+                                .build()
+                );
+            }
+
+            openedCount++;
+            customer.updateOpenChapterNumber(openedCount);
         }
-
-        // 3) 이번 주에 열어줄 "다음 강의" = proLectures[openedCount]
-        Lecture nextLecture = proLectures.get(openedCount);
-
-        // 혹시 이미 열려 있다면(중복 방어) 그냥 skip
-        boolean exists = lectureProgressRepository
-                .existsByLectureIdAndCustomerId(nextLecture.getId(), customerId);
-        if (!exists) {
-            lectureProgressRepository.save(
-                    LectureProgress.builder()
-                            .lecture(nextLecture)
-                            .customer(customer)
-                            .watchedSeconds(0)
-                            .isCompleted(false)
-                            .build()
-            );
-        }
-
-        // 4) 열린 강의 개수 +1
-        customer.updateOpenChapterNumber(openedCount + 1);
     }
 }
 

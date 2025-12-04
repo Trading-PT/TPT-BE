@@ -11,6 +11,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminChapterCommandServiceImpl implements AdminChapterCommandService {
 
     private final ChapterRepository chapterRepository;
+    private final LectureRepository lectureRepository;              // 👈 추가
+    private final AdminLectureCommandService adminLectureCommandService;
 
     @Override
     @Transactional
@@ -34,12 +37,38 @@ public class AdminChapterCommandServiceImpl implements AdminChapterCommandServic
         return saved.getId();
     }
 
-    @Override
     @Transactional
-    public void deleteChapter(Long chapterId) {
+    public Long updateChapter(Long chapterId, ChapterCreateRequestDTO request) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
-        chapterRepository.deleteById(chapterId);
+        chapter.update(
+                request.getTitle(),
+                request.getDescription(),
+                request.getChapterOrder(),
+                request.getChapterType()
+        );
+
+        return chapter.getId();
+    }
+
+    @Override
+    @Transactional
+    public void deleteChapter(Long chapterId) {
+
+        // 1) 챕터 존재 여부 체크
+        Chapter chapter = chapterRepository.findById(chapterId)
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+
+        // 2) 챕터에 속한 강의들 조회
+        List<Lecture> lectures = lectureRepository.findAllByChapter_Id(chapterId);
+
+        // 3) 강의별로 기존 deleteLecture 로 FULL 삭제 (S3, progress, attachments 포함)
+        lectures.forEach(lecture ->
+                adminLectureCommandService.deleteLecture(lecture.getId())
+        );
+
+        // 4) 마지막으로 챕터 삭제
+        chapterRepository.delete(chapter);
     }
 }
