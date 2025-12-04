@@ -226,11 +226,11 @@ public class SecurityConfig {
 				.authenticationEntryPoint(jsonAuthenticationEntryPoint)
 				.accessDeniedHandler(jsonAccessDeniedHandler)
 			)
-				.sessionManagement(sm -> sm
-						.sessionCreationPolicy(SessionCreationPolicy.NEVER) // 절대 자동으로 세션 만들지 말라
-						.sessionFixation(sf -> sf.migrateSession())
-						.sessionConcurrency(sc -> sc.maximumSessions(5).sessionRegistry(sessionRegistry))
-				)
+			.sessionManagement(sm -> sm
+				.sessionCreationPolicy(SessionCreationPolicy.NEVER) // 절대 자동으로 세션 만들지 말라
+				.sessionFixation(sf -> sf.migrateSession())
+				.sessionConcurrency(sc -> sc.maximumSessions(5).sessionRegistry(sessionRegistry))
+			)
 			.authorizeHttpRequests(auth -> auth
 				.requestMatchers("/api/v1/admin/login").permitAll()
 				.anyRequest().hasAnyRole("ADMIN", "TRAINER")
@@ -294,6 +294,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.GET, "/api/v1/feedback-requests/*").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/columns").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/reviews").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/reviews/statistics").permitAll()
 				.anyRequest().authenticated()
 			)
 			.formLogin(AbstractHttpConfigurer::disable)
@@ -307,7 +308,7 @@ public class SecurityConfig {
 			.addFilterAt(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
 			.addFilterBefore(new CsrfTokenResponseHeaderBindingFilter(csrfTokenRepository),
 				UsernamePasswordAuthenticationFilter.class);
-
+		
 		return http.build();
 	}
 }
