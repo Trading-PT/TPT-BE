@@ -195,7 +195,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		}
 
 		if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
-			log.warn("Trainer {} tried to access customer {} who is assigned to trainer {}",
+			log.warn("Trainer {} tried to access customer {} who is assigned to user {}",
 				trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
 			throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
 		}

@@ -20,7 +20,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 	@Query("SELECT r " +
 		"FROM Review r " +
 		"LEFT JOIN FETCH r.customer " +
-		"LEFT JOIN FETCH r.trainer " +
+		"LEFT JOIN FETCH r.user " +
 		"WHERE r.status = :status")
 	Slice<Review> findByStatusSlice(@Param("status") Status status, Pageable pageable);
 

@@ -368,7 +368,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	@Override
 	public TrainerWrittenFeedbackListResponseDTO getTrainerWrittenFeedbacks(Pageable pageable) {
-		log.info("Fetching trainer-written feedback requests with page={}, size={}",
+		log.info("Fetching user-written feedback requests with page={}, size={}",
 			pageable.getPageNumber(), pageable.getPageSize());
 
 		// 1. Slice로 트레이너 작성 매매일지 조회
@@ -384,7 +384,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		// 3. SliceInfo 생성
 		SliceInfo sliceInfo = SliceInfo.of(feedbackSlice);
 
-		log.info("Found {} trainer-written feedback requests, hasNext={}",
+		log.info("Found {} user-written feedback requests, hasNext={}",
 			feedbackDTOs.size(), sliceInfo.getHasNext());
 
 		return TrainerWrittenFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);

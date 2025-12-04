@@ -169,7 +169,7 @@ public class FeedbackResponseCommandServiceImpl implements FeedbackResponseComma
 
 		// 토큰 사용 피드백이면 모든 트레이너 응답 가능
 		if (Boolean.TRUE.equals(feedbackRequest.getIsTokenUsed())) {
-			log.info("Token-used feedback, any trainer can respond");
+			log.info("Token-used feedback, any user can respond");
 			return;
 		}
 

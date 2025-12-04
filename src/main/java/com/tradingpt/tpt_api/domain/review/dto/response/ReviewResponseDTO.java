@@ -62,7 +62,7 @@ public class ReviewResponseDTO {
 		// 답변이 있는 경우 TrainerReply 추가
 		if (review.hasReply()) {
 			builder.trainerReply(TrainerReplyResponseDTO.builder()
-				.trainerId(review.getTrainer().getId())
+				.trainerId(review.getUser().getId())
 				.replyContent(review.getReplyContent())
 				.repliedAt(review.getRepliedAt())
 				.build());

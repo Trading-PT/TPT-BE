@@ -14,7 +14,6 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingS
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryErrorStatus;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryException;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
-import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
@@ -22,6 +21,7 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.content.ContentImageUploader;
 
 import lombok.RequiredArgsConstructor;
@@ -56,7 +56,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 
 		User trainer = customer.getAssignedTrainer();
 		if (trainer == null) {
-			log.error("Customer {} has no assigned trainer", customerId);
+			log.error("Customer {} has no assigned user", customerId);
 			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
 		}
 

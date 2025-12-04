@@ -254,7 +254,7 @@ public class FeedbackRequestV1Controller {
 			- 클릭 시 상세 조회 API로 이동
 			
 			예시:
-			- GET /api/v1/feedback-requests/trainer-written?page=0&size=12
+			- GET /api/v1/feedback-requests/user-written?page=0&size=12
 			"""
 	)
 	@GetMapping("/trainer-written")

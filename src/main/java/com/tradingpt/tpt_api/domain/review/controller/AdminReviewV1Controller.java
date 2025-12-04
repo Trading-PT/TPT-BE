@@ -87,9 +87,9 @@ public class AdminReviewV1Controller {
 	public BaseResponse<Void> createReply(
 		@PathVariable Long reviewId,
 		@RequestBody @Valid CreateReplyRequestDTO request,
-		@AuthenticationPrincipal(expression = "id") Long trainerId
+		@AuthenticationPrincipal(expression = "id") Long adminId
 	) {
-		return BaseResponse.onSuccessCreate(reviewCommandService.createReply(reviewId, trainerId, request));
+		return BaseResponse.onSuccessCreate(reviewCommandService.createReply(reviewId, adminId, request));
 	}
 
 	@Operation(
@@ -104,9 +104,9 @@ public class AdminReviewV1Controller {
 	public BaseResponse<Void> updateReply(
 		@PathVariable Long reviewId,
 		@RequestBody @Valid CreateReplyRequestDTO request,
-		@AuthenticationPrincipal(expression = "id") Long trainerId
+		@AuthenticationPrincipal(expression = "id") Long adminId
 	) {
-		return BaseResponse.onSuccess(reviewCommandService.updateReply(reviewId, trainerId, request));
+		return BaseResponse.onSuccess(reviewCommandService.updateReply(reviewId, adminId, request));
 	}
 
 	@Operation(

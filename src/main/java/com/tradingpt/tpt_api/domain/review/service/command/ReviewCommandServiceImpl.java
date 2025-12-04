@@ -22,12 +22,13 @@ import com.tradingpt.tpt_api.domain.review.repository.ReviewRepository;
 import com.tradingpt.tpt_api.domain.review.repository.ReviewTagRepository;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.global.infrastructure.content.ContentImageUploader;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 	private final TrainerRepository trainerRepository;
 	private final CustomerRepository customerRepository;
 	private final SubscriptionRepository subscriptionRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public Void createReview(Long customerId, CreateReviewRequestDTO request) {
@@ -122,7 +124,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 	}
 
 	@Override
-	public Void createReply(Long reviewId, Long trainerId, CreateReplyRequestDTO request) {
+	public Void createReply(Long reviewId, Long adminId, CreateReplyRequestDTO request) {
 
 		// 리뷰 검색
 		Review review = reviewRepository.findById(reviewId)
@@ -133,9 +135,9 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 			throw new ReviewException(ReviewErrorStatus.REVIEW_ALREADY_HAS_REPLY);
 		}
 
-		// 트레이너 검색
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 어드민 검색
+		User admin = userRepository.findById(adminId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
 		// 답변 작성
 		String processedContent = contentImageUploader.processContent(
@@ -144,7 +146,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		);
 
 		// 더티 체킹을 통한 리뷰 응답 저장
-		review.addReply(trainer, processedContent);
+		review.addReply(admin, processedContent);
 
 		return null;
 	}
@@ -171,9 +173,9 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 			throw new ReviewException(ReviewErrorStatus.REVIEW_HAS_NO_REPLY);
 		}
 
-		// 트레이너 검색
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 어드민 검색
+		User user = userRepository.findById(trainerId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
 		// 답변 작성
 		String processedContent = contentImageUploader.processContent(
@@ -182,7 +184,7 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		);
 
 		// 더티 체킹을 통한 리뷰 응답 저장
-		review.addReply(trainer, processedContent);
+		review.addReply(user, processedContent);
 
 		return null;
 	}
