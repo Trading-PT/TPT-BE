@@ -53,25 +53,30 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public FindIdResponseDTO findUserId(String email) {
-		// email 기준으로 여러 User 가져오기
+
+		// 1) email 기준으로 전체 유저 조회
 		List<User> users = userRepository.findAllByEmail(email);
 
-		// LOCAL 계정만 필터링
-		User localUser = users.stream()
-			.filter(u -> u.getProvider() == Provider.LOCAL)
-			.findFirst()
-			.orElse(null); // 없으면 null 반환
+		// 2) LOCAL 계정만 필터링
+		List<User> localUsers = users.stream()
+				.filter(u -> u.getProvider() == Provider.LOCAL)
+				.toList();
 
-		// LOCAL 계정이 없을 경우 → null 반환
-		if (localUser == null) {
+		// 3) LOCAL 계정이 하나도 없으면 null 또는 빈 DTO 반환
+		if (localUsers.isEmpty()) {
 			return null;
 		}
 
-		// LOCAL 유저 존재 시 DTO 반환
+		// 4) LOCAL 계정들의 username 리스트로 반환
+		List<String> usernames = localUsers.stream()
+				.map(User::getUsername)
+				.toList();
+
 		return FindIdResponseDTO.builder()
-			.userName(localUser.getUsername())
-			.build();
+				.usernames(usernames)   // ← 변경
+				.build();
 	}
+
 
 	@Override
 	@Transactional(readOnly = true)

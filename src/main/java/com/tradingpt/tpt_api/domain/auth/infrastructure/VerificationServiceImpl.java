@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -40,7 +39,7 @@ public class VerificationServiceImpl implements VerificationService {
 	@Qualifier("mailExecutor")
 	private final Executor mailExecutor;
 
-	@Value("${app.mail.from:no-reply@tpt.ai}")
+	@Value("${app.mail.from}")
 	private String mailFrom;
 
 	// ===== Redis Key 헬퍼 =====
@@ -162,6 +161,7 @@ public class VerificationServiceImpl implements VerificationService {
 
 			} catch (Exception ex) {
 				redisTemplate.delete(key);
+				log.info("mailFrom='{}'", mailFrom);
 				log.warn("이메일 전송 실패({}): {}", email, ex.getMessage(), ex);
 			}
 		});

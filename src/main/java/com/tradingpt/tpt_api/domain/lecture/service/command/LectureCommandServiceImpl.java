@@ -12,6 +12,7 @@ import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -56,6 +57,22 @@ public class LectureCommandServiceImpl implements LectureCommandService {
 
         if (alreadyPurchased) {
             throw new LectureException(LectureErrorStatus.ALREADY_PURCHASED);
+        }
+
+        if(customer.getMembershipLevel() == MembershipLevel.PREMIUM){
+
+            LectureProgress progress = LectureProgress.builder()
+                    .lecture(lecture)
+                    .customer(customer)
+                    .watchedSeconds(0)
+                    .lastPositionSeconds(0)
+                    .isCompleted(false)
+                    .dueDate(LocalDateTime.now().plusDays(7))
+                    .build();
+
+            lectureProgressRepository.save(progress);
+
+            return customer.getId();
         }
 
         // 5) 유저 토큰 보유량 체크
