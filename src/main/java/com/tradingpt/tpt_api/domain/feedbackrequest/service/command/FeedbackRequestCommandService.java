@@ -51,4 +51,15 @@ public interface FeedbackRequestCommandService {
 	 * @throws FeedbackRequestException 피드백을 찾을 수 없거나, 최대 개수 초과 시
 	 */
 	Void updateBestFeedbacks(List<Long> feedbackIds);
+
+	/**
+	 * 피드백 요청 삭제 (Admin 전용)
+	 * - 관리자는 모든 고객의 피드백 요청을 삭제할 수 있음
+	 * - 소유권 검증 없이 삭제 가능
+	 *
+	 * @param feedbackRequestId 피드백 요청 ID
+	 * @return null
+	 * @throws FeedbackRequestException 피드백 요청을 찾을 수 없는 경우
+	 */
+	Void deleteByAdmin(Long feedbackRequestId);
 }

@@ -18,6 +18,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -143,7 +144,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 	 */
 
 	/**
-	 * 월간 매매일지 트레이너 평가 Upsert (트레이너/관리자용 - 완강 후)
+	 * 월간 매매일지 평가 Upsert (ADMIN/TRAINER용 - 완강 후)
 	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
@@ -152,28 +153,34 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 		Integer year,
 		Integer month,
 		Long customerId,
-		Long trainerId,
+		Long evaluatorId,
 		UpsertMonthlyEvaluationRequestDTO request
 	) {
-		log.info("Trainer upserting monthly evaluation for customerId={}, year={}, month={}, trainerId={}",
-			customerId, year, month, trainerId);
+		log.info("Upserting monthly evaluation for customerId={}, year={}, month={}, evaluatorId={}",
+			customerId, year, month, evaluatorId);
 
 		// 1. 고객 조회
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 2. 트레이너 조회
-		User trainer = userRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 2. 평가 작성자 조회 (ADMIN 또는 TRAINER)
+		User evaluator = userRepository.findById(evaluatorId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 3. 해당 연/월의 투자 타입 조회
+		// 3. 권한 검증 (ADMIN 또는 TRAINER만 작성 가능)
+		if (evaluator.getRole() != Role.ROLE_ADMIN && evaluator.getRole() != Role.ROLE_TRAINER) {
+			log.warn("User is not ADMIN or TRAINER: evaluatorId={}, role={}", evaluatorId, evaluator.getRole());
+			throw new UserException(UserErrorStatus.USER_NOT_FOUND);
+		}
+
+		// 4. 해당 연/월의 투자 타입 조회
 		InvestmentType investmentType = investmentTypeHistoryRepository
 			.findActiveHistoryForMonth(customerId, year, month)
 			.orElseThrow(() -> new InvestmentHistoryException(
 				InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
 			.getInvestmentType();
 
-		// 4. 콘텐츠 처리
+		// 5. 콘텐츠 처리
 		String processedEvaluation = contentImageUploader.processContent(
 			request.getMonthlyEvaluation(),
 			"monthly-summaries"
@@ -183,7 +190,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 			"monthly-summaries"
 		);
 
-		// 5. 기존 요약 조회 (Upsert 패턴)
+		// 6. 기존 요약 조회 (Upsert 패턴)
 		MonthlyTradingSummary summary = monthlyTradingSummaryRepository
 			.findByCustomer_IdAndPeriod_YearAndPeriod_Month(customerId, year, month)
 			.orElse(null);
@@ -191,22 +198,22 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 		if (summary != null) {
 			// UPDATE: Entity의 DDD 비즈니스 메서드 호출 (내부에서 검증)
 			summary.updateTrainerEvaluation(processedEvaluation, processedGoal);
-			log.info("Trainer updated monthly evaluation");
+			log.info("Updated monthly evaluation by evaluatorId={}", evaluatorId);
 		} else {
 			// CREATE: 완강 검증 후 새 Entity 생성
 			validateCourseCompletion(customerId, year, month);
 
-			summary = MonthlyTradingSummary.createForTrainerEvaluation(
+			summary = MonthlyTradingSummary.createForEvaluation(
 				processedEvaluation,
 				processedGoal,
 				customer,
-				trainer,
+				evaluator,
 				investmentType,
 				year,
 				month
 			);
 			monthlyTradingSummaryRepository.save(summary);
-			log.info("Trainer created monthly evaluation");
+			log.info("Created monthly evaluation by evaluatorId={}", evaluatorId);
 		}
 
 		// JPA Dirty Checking으로 자동 UPDATE (save() 불필요)

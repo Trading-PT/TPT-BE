@@ -810,6 +810,30 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	}
 
 	@Override
+	public Slice<FeedbackRequest> findAllNewPremiumFeedbackRequests(Pageable pageable) {
+		List<FeedbackRequest> content = queryFactory
+			.selectFrom(feedbackRequest)
+			.join(feedbackRequest.customer, customer).fetchJoin()
+			.where(
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.PREMIUM)
+			)
+			.orderBy(feedbackRequest.createdAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize() + 1)
+			.fetch();
+
+		boolean hasNext = content.size() > pageable.getPageSize();
+
+		if (hasNext) {
+			content = content.subList(0, pageable.getPageSize());
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
 	public List<Integer> findWeeksByCustomerIdAndYearAndMonth(
 		Long customerId,
 		Integer year,

@@ -1,16 +1,16 @@
 package com.tradingpt.tpt_api.domain.monthlytradingsummary.entity;
 
-import com.tradingpt.tpt_api.domain.user.entity.User;
 import java.time.LocalDateTime;
 
-import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
-import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
-import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
-import com.tradingpt.tpt_api.global.common.BaseEntity;
+import org.hibernate.annotations.DynamicUpdate;
 
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryErrorStatus;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradingSummaryException;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
+import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -31,7 +31,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Getter
@@ -55,8 +54,8 @@ public class MonthlyTradingSummary extends BaseEntity {
 	private Customer customer;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "trainer_id")
-	private User trainer;
+	@JoinColumn(name = "evaluator_id", nullable = true)
+	private User evaluator;
 
 	/**
 	 * 필드
@@ -88,7 +87,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 	 * @param processedEvaluation 처리된 평가 내용
 	 * @param processedGoal 처리된 목표 내용
 	 * @param customer 고객
-	 * @param trainer 트레이너
+	 * @param evaluator 평가 작성자 (ADMIN 또는 TRAINER)
 	 * @param year 연도
 	 * @param month 월
 	 * @param investmentType 투자 타입 (반드시 DAY 또는 SWING)
@@ -98,7 +97,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 		String processedEvaluation,
 		String processedGoal,
 		Customer customer,
-		User trainer,
+		User evaluator,
 		Integer year,
 		Integer month,
 		InvestmentType investmentType
@@ -107,7 +106,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 
 		return MonthlyTradingSummary.builder()
 			.customer(customer)
-			.trainer(trainer)
+			.evaluator(evaluator)
 			.period(monthlyPeriod)
 			.investmentType(investmentType)
 			.monthlyEvaluation(processedEvaluation)
@@ -115,6 +114,44 @@ public class MonthlyTradingSummary extends BaseEntity {
 			.evaluatedAt(LocalDateTime.now())
 			.build();
 	}
+
+	/**
+	 * 평가 작성용 월간 요약 생성 (AFTER_COMPLETION)
+	 * ADMIN 또는 TRAINER가 평가를 작성할 때 사용
+	 *
+	 * @param processedEvaluation 처리된 월간 평가
+	 * @param processedGoal       처리된 다음 달 목표
+	 * @param customer            고객
+	 * @param evaluator           평가 작성자 (ADMIN 또는 TRAINER)
+	 * @param investmentType      투자 타입
+	 * @param year                연도
+	 * @param month               월
+	 * @return 새로운 MonthlyTradingSummary 엔티티
+	 */
+	public static MonthlyTradingSummary createForEvaluation(
+		String processedEvaluation,
+		String processedGoal,
+		Customer customer,
+		User evaluator,
+		InvestmentType investmentType,
+		Integer year,
+		Integer month
+	) {
+		return MonthlyTradingSummary.builder()
+			.customer(customer)
+			.evaluator(evaluator)
+			.courseStatus(CourseStatus.AFTER_COMPLETION)
+			.investmentType(investmentType)
+			.period(MonthlyPeriod.of(year, month))
+			.monthlyEvaluation(processedEvaluation)
+			.nextMonthGoal(processedGoal)
+			.evaluatedAt(LocalDateTime.now())
+			.build();
+	}
+
+	// ========================================
+	// DDD 비즈니스 규칙 메서드 (Tell, Don't Ask)
+	// ========================================
 
 	/**
 	 * 평가 수정 (레거시 - 검증 없음)
@@ -126,7 +163,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 	}
 
 	// ========================================
-	// DDD 비즈니스 규칙 메서드 (Tell, Don't Ask)
+	// DDD 비즈니스 메서드 (상태 변경 캡슐화)
 	// ========================================
 
 	/**
@@ -140,7 +177,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 	}
 
 	// ========================================
-	// DDD 비즈니스 메서드 (상태 변경 캡슐화)
+	// 정적 팩토리 메서드 (DDD 패턴)
 	// ========================================
 
 	/**
@@ -160,43 +197,6 @@ public class MonthlyTradingSummary extends BaseEntity {
 		this.monthlyEvaluation = processedEvaluation;
 		this.nextMonthGoal = processedGoal;
 		this.evaluatedAt = LocalDateTime.now();
-	}
-
-	// ========================================
-	// 정적 팩토리 메서드 (DDD 패턴)
-	// ========================================
-
-	/**
-	 * 트레이너 평가용 월간 요약 생성 (AFTER_COMPLETION)
-	 *
-	 * @param processedEvaluation 처리된 월간 평가
-	 * @param processedGoal       처리된 다음 달 목표
-	 * @param customer            고객
-	 * @param trainer             담당 트레이너
-	 * @param investmentType      투자 타입
-	 * @param year                연도
-	 * @param month               월
-	 * @return 새로운 MonthlyTradingSummary 엔티티
-	 */
-	public static MonthlyTradingSummary createForTrainerEvaluation(
-		String processedEvaluation,
-		String processedGoal,
-		Customer customer,
-		User trainer,
-		InvestmentType investmentType,
-		Integer year,
-		Integer month
-	) {
-		return MonthlyTradingSummary.builder()
-			.customer(customer)
-			.trainer(trainer)
-			.courseStatus(CourseStatus.AFTER_COMPLETION)
-			.investmentType(investmentType)
-			.period(MonthlyPeriod.of(year, month))
-			.monthlyEvaluation(processedEvaluation)
-			.nextMonthGoal(processedGoal)
-			.evaluatedAt(LocalDateTime.now())
-			.build();
 	}
 
 }

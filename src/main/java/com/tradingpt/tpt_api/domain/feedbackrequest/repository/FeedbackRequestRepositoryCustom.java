@@ -237,6 +237,18 @@ public interface FeedbackRequestRepositoryCustom {
 	);
 
 	/**
+	 * ✅ 모든 고객의 새로운 프리미엄 피드백 요청 목록 조회 (무한 스크롤) - ADMIN 전용
+	 * - status가 N (피드백 대기)인 것만 조회
+	 * - isTokenUsed가 true인 것만 조회
+	 * - membershipLevel이 PREMIUM인 것만 조회
+	 * - 최신순 정렬
+	 *
+	 * @param pageable 페이징 정보
+	 * @return 새로운 프리미엄 피드백 요청 Slice
+	 */
+	Slice<FeedbackRequest> findAllNewPremiumFeedbackRequests(Pageable pageable);
+
+	/**
 	 * ✅ 특정 고객의 특정 연/월에 피드백 요청이 존재하는 주차 목록 조회
 	 *
 	 * @param customerId 고객 ID
