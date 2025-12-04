@@ -73,13 +73,13 @@ public class LectureQueryServiceImpl implements LectureQueryService {
     @Transactional(readOnly = true)
     public LecturePlayResponseDTO getLecturePlayUrl(Long userId, Long lectureId, String clientIp) {
 
-        Customer customer = customerRepository.findById(userId)
-                .orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
-
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
-        LectureProgress lectureProgress = lectureProgressRepository.findById(lectureId)
+        // 시청 권한 확인: LectureProgress가 있어야 시청 가능
+        // - PRO 강의: 스케줄러가 자동 생성
+        // - 무료 강의: /purchase API로 토큰 구매 시 생성
+        LectureProgress lectureProgress = lectureProgressRepository.findByLectureIdAndCustomerId(lectureId, userId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.PROGRESS_NOT_FOUND));
 
         Duration duration = Duration.ofHours(3);

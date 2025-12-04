@@ -97,7 +97,7 @@ server:
         secure: true
         same-site: Lax
         path: /
-        domain: .tradingpt.kr
+#        domain: .tradingpt.kr
 
 app:
   frontend:
