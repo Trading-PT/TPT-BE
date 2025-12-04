@@ -290,7 +290,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 
 		// 상세 평가 3개가 모두 있어야 함
 		if (!hasEvaluation || !hasProfitAnalysis || !hasLossAnalysis) {
-			log.warn("All detailed evaluations are required for trainer");
+			log.warn("All detailed evaluations are required for user");
 			throw new WeeklyTradingSummaryException(
 				WeeklyTradingSummaryErrorStatus.DETAILED_EVALUATION_INCOMPLETE);
 		}

@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "trainer")
+@Table(name = "user")
 @Getter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -37,9 +37,10 @@ public class Trainer extends User {
 	public Role getRole() {
 		return Role.ROLE_TRAINER;
 	}
+
 	//변경 메서드
 	public void changeProfileImage(String key, String url) {
-		super.changeProfileImage(key,url); // 부모 User가 key 필드를 가지고 있을 경우
+		super.changeProfileImage(key, url); // 부모 User가 key 필드를 가지고 있을 경우
 	}
 
 	public void changePhoneNumber(String phoneNumber) {

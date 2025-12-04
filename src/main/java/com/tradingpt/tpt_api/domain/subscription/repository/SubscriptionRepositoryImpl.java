@@ -52,7 +52,7 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 		Pageable pageable
 	) {
 		// Trainer alias 생성 (고객에게 배정된 트레이너 조회용)
-		QUser trainer = new QUser("trainer");
+		QUser trainer = new QUser("user");
 
 		// 기본 구독 정보 조회 (limit + 1 방식으로 hasNext 판단)
 		List<SubscriptionCustomerResponseDTO> content = queryFactory
@@ -103,7 +103,7 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 	@Override
 	public Long countActiveSubscriptionCustomers(Long trainerId) {
 		// Trainer alias 생성 (trainerIdFilter에서 사용)
-		QUser trainer = new QUser("trainer");
+		QUser trainer = new QUser("user");
 
 		Long count = queryFactory
 			.select(subscription.count())
