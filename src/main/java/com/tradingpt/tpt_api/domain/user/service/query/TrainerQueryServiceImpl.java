@@ -32,11 +32,11 @@ public class TrainerQueryServiceImpl implements TrainerQueryService {
 
 		return customerPage.map(customer -> {
 			MonthlyTradingSummary latestMonthly = monthlyTradingSummaryRepository
-				.findTopByTrainer_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(trainerId, customer.getId())
+				.findTopByEvaluator_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(trainerId, customer.getId())
 				.orElse(null);
 
 			WeeklyTradingSummary latestWeekly = weeklyTradingSummaryRepository
-				.findTopByTrainer_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(trainerId,
+				.findTopByEvaluator_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(trainerId,
 					customer.getId())
 				.orElse(null);
 

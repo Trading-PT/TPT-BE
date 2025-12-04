@@ -174,6 +174,20 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 	}
 
 	@Override
+	public Void deleteByAdmin(Long feedbackRequestId) {
+		FeedbackRequest feedbackRequest = feedbackRequestRepository.findById(feedbackRequestId)
+			.orElseThrow(() -> new FeedbackRequestException(FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND));
+
+		// Admin은 소유권 검증 없이 모든 피드백 삭제 가능
+		feedbackRequestRepository.delete(feedbackRequest);
+
+		log.info("Feedback deleted by admin: feedbackRequestId={}, customerId={}",
+			feedbackRequestId, feedbackRequest.getCustomer().getId());
+
+		return null;
+	}
+
+	@Override
 	public Void updateBestFeedbacks(List<Long> feedbackIds) {
 		// 1. 개수 검증 (최대 개수는 FeedbackRequest.MAX_BEST_FEEDBACK_COUNT)
 		if (feedbackIds.size() > FeedbackRequest.MAX_BEST_FEEDBACK_COUNT) {

@@ -33,6 +33,8 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
 
     public final DateTimePath<java.time.LocalDateTime> evaluatedAt = createDateTime("evaluatedAt", java.time.LocalDateTime.class);
 
+    public final com.tradingpt.tpt_api.domain.user.entity.QUser evaluator;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.InvestmentType> investmentType = createEnum("investmentType", com.tradingpt.tpt_api.domain.user.enums.InvestmentType.class);
@@ -40,8 +42,6 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
     public final StringPath memo = createString("memo");
 
     public final QWeeklyPeriod period;
-
-    public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
@@ -71,8 +71,8 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
     public QWeeklyTradingSummary(Class<? extends WeeklyTradingSummary> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
+        this.evaluator = inits.isInitialized("evaluator") ? new com.tradingpt.tpt_api.domain.user.entity.QUser(forProperty("evaluator")) : null;
         this.period = inits.isInitialized("period") ? new QWeeklyPeriod(forProperty("period")) : null;
-        this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QTrainer(forProperty("trainer")) : null;
     }
 
 }
