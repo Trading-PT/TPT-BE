@@ -1,5 +1,11 @@
 package com.tradingpt.tpt_api.domain.user.service.command;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
+import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
+import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +29,8 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 
 	private final CustomerRepository customerRepository;
 	private final UidRepository uidRepository;
+	private final LectureRepository lectureRepository;
+	private final LectureProgressRepository lectureProgressRepository;
 
 	@Transactional
 	@Override
@@ -37,6 +45,9 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 
 		customer.setUserStatus(newStatus);
 
+		if (newStatus == UserStatus.UID_APPROVED) {
+			createFreeOTLectures(customer);
+		}
 	}
 
 	@Override
@@ -65,4 +76,34 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 
 		// JPA 변경감지로 자동 flush
 	}
+
+	private void createFreeOTLectures(Customer customer) {
+		Long customerId = customer.getId();
+
+		// 1) OT 무료 강의 조회 (ChapterType.FREE + requiredToken = 0)
+		List<Lecture> otLectures = lectureRepository
+				.findFreeLecturesByChapterType(ChapterType.REGULAR);
+
+		if (otLectures.isEmpty()) {
+			return;
+		}
+
+		// 2) 각 강의별 LectureProgress가 없으면 생성
+		for (Lecture lecture : otLectures) {
+			boolean exists = lectureProgressRepository
+					.existsByLectureIdAndCustomerId(lecture.getId(), customerId);
+
+			if (!exists) {
+				lectureProgressRepository.save(
+						LectureProgress.builder()
+								.lecture(lecture)
+								.customer(customer)
+								.watchedSeconds(0)
+								.isCompleted(false)
+								.build()
+				);
+			}
+		}
+	}
+
 }

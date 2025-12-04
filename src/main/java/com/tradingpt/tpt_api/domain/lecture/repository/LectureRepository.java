@@ -56,4 +56,7 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
         where l.id = :lectureId
         """)
     Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
+
+    @Query("SELECT l FROM Lecture l WHERE l.requiredTokens = 0 AND l.chapter.chapterType = :chapterType")
+    List<Lecture> findFreeLecturesByChapterType(@Param("chapterType") ChapterType chapterType);
 }
