@@ -113,21 +113,24 @@ public class AdminFeedbackRequestV1Controller {
 			내 담당 고객들의 새로운 피드백 요청 목록을 무한 스크롤 방식으로 조회합니다.
 			
 			특징:
-			- 트레이너가 담당하는 고객들의 피드백만 조회
+			- ADMIN: 모든 고객의 새로운 프리미엄 피드백 요청 조회
+			- TRAINER: 담당 고객의 새로운 피드백 요청만 조회
 			- status가 N (피드백 대기)인 것만 조회
+			- isTokenUsed가 true이고 membershipLevel이 PREMIUM인 것만 조회
 			- 최신순 정렬
 			- 모든 투자 유형(DAY, SWING) 포함
 			- Slice 기반 무한 스크롤 지원
-			
+
 			사용 시나리오:
+			- 어드민이 모든 프리미엄 회원의 대기 중인 피드백 확인
 			- 트레이너가 아직 응답하지 않은 피드백 확인
 			- 담당 고객의 새로운 피드백 알림 표시
 			- 우선 순위로 응답할 피드백 파악
-			
+
 			페이징 파라미터:
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 12)
-			
+
 			예시:
 			- GET /api/v1/admin/feedback-requests/my-customers/new
 			- GET /api/v1/admin/feedback-requests/my-customers/new?page=0&size=12
@@ -138,13 +141,13 @@ public class AdminFeedbackRequestV1Controller {
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public BaseResponse<MyCustomerNewFeedbackListResponseDTO> getMyCustomerNewFeedbackRequests(
 		@Parameter(hidden = true)
-		@AuthenticationPrincipal(expression = "id") Long trainerId,
+		@AuthenticationPrincipal(expression = "id") Long userId,
 		@PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC)
 		Pageable pageable
 
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(trainerId, pageable)
+			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(userId, pageable)
 		);
 	}
 

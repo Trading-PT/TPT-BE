@@ -35,6 +35,8 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -227,15 +229,22 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	}
 
 	@Override
-	public MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(Long trainerId, Pageable pageable) {
-		// 1. 트레이너 존재 여부 확인
-		if (!userRepository.existsById(trainerId)) {
-			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
-		}
+	public MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(Long userId, Pageable pageable) {
+		// 1. 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 2. Slice로 새로운 피드백 요청 조회
-		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
-			.findNewFeedbackRequestsByTrainer(trainerId, pageable);
+		// 2. Role에 따라 다른 조회 로직 실행
+		Slice<FeedbackRequest> feedbackSlice;
+		if (user.getRole() == Role.ROLE_ADMIN) {
+			// ADMIN: 모든 고객의 새로운 프리미엄 피드백 요청 조회
+			feedbackSlice = feedbackRequestRepository.findAllNewPremiumFeedbackRequests(pageable);
+			log.info("Admin user (ID: {}) fetching all new premium feedback requests", userId);
+		} else {
+			// TRAINER: 담당 고객의 새로운 피드백 요청만 조회
+			feedbackSlice = feedbackRequestRepository.findNewFeedbackRequestsByTrainer(userId, pageable);
+			log.info("Trainer (ID: {}) fetching assigned customers' new feedback requests", userId);
+		}
 
 		// 3. DTO 변환
 		List<MyCustomerNewFeedbackListItemDTO> feedbackDTOs = feedbackSlice.getContent()
