@@ -887,7 +887,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				feedbackRequest.feedbackYear.eq(year),
 				feedbackRequest.feedbackMonth.eq(month),
 				feedbackRequest.feedbackWeek.eq(week),
-				feedbackRequest.pnl.gt(BigDecimal.ZERO)
+				feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO)
 			)
 			.orderBy(feedbackRequest.feedbackRequestDate.desc())
 			.fetch();

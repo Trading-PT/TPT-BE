@@ -562,7 +562,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 손실 매매 피드백 목록 조회 (완강 전, pnl < 0)
+		// 3. 손실 매매 피드백 목록 조회 (완강 전, pnl <= 0)
 		List<FeedbackRequest> lossFeedbacks = feedbackRequestRepository
 			.findLossFeedbacksByCustomerAndYearAndMonthAndWeek(customerId, year, month, week);
 
