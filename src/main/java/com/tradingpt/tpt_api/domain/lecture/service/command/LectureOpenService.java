@@ -59,7 +59,14 @@ public class LectureOpenService {
 //
 //        // (3) 열려 있어야 하는 총 강의 개수 = 주차 + 1
 //        int shouldOpenCount = weeksPassed + 1;
-        int shouldOpenCount = (int) days + 1;
+//        int shouldOpenCount = (int) days + 1;
+
+        // 👉 스케줄러 실행 시마다 딱 1개씩만 열리게 강제
+        int openedCount = (customer.getOpenChapterNumber() == null)
+                ? 0
+                : customer.getOpenChapterNumber();
+
+        int shouldOpenCount = openedCount + 1;  // 딱 1개만 증가
 
         // (4) PRO 강의 목록
         List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
@@ -76,7 +83,7 @@ public class LectureOpenService {
         }
 
         // (5) 현재 열린 개수
-        int openedCount = (customer.getOpenChapterNumber() == null)
+        openedCount = (customer.getOpenChapterNumber() == null)
                 ? 0
                 : customer.getOpenChapterNumber();
 
