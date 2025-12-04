@@ -9,8 +9,8 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingS
 public interface MonthlyTradingSummaryRepository
 	extends JpaRepository<MonthlyTradingSummary, Long>, MonthlyTradingSummaryRepositoryCustom {
 
-	Optional<MonthlyTradingSummary> findTopByTrainer_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(
-		Long trainerId,
+	Optional<MonthlyTradingSummary> findTopByEvaluator_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(
+		Long evaluatorId,
 		Long customerId
 	);
 
