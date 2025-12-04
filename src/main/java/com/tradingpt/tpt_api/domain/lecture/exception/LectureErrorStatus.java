@@ -22,7 +22,7 @@ public enum LectureErrorStatus implements BaseCodeInterface {
     ASSIGNMENT_NOT_SUBMITTED(HttpStatus.NOT_FOUND, "LECTURE_404_1", "해당 과제를 찾을 수 없습니다."),
     VIDEO_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_2", "해당 강의를 찾을 수 없습니다."),
     ATTACHMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_3", "해당 첨부파일을 찾을 수 없습니다."),
-    PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_0", "해당 강의를 찾을 수 없습니다."),
+    PROGRESS_NOT_FOUND(HttpStatus.NOT_FOUND, "LECTURE_404_4", "해당 강의를 찾을 수 없습니다."),
 
     // 400 Bad Request
     DELETE_FAILED(HttpStatus.BAD_REQUEST, "LECTURE_400_0", "강의 삭제 중 오류가 발생했습니다."),

@@ -79,7 +79,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
-        LectureProgress lectureProgress = lectureProgressRepository.findById(lectureId)
+        LectureProgress lectureProgress = lectureProgressRepository. findByLectureIdAndCustomerId(userId, lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.PROGRESS_NOT_FOUND));
 
         Duration duration = Duration.ofHours(3);
