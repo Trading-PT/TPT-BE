@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.query;
 
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestErrorStatus;
+import com.tradingpt.tpt_api.domain.leveltest.exception.LevelTestException;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -53,7 +55,7 @@ public class LevelTestQueryServiceImpl implements LevelTestQueryService {
 	@Override
 	public LeveltestAttemptDetailResponseDTO getAttemptDetail(Long attemptId) {
 		LevelTestAttempt attempt = attemptRepository.findById(attemptId)
-			.orElseThrow(() -> new IllegalArgumentException("Attempt not found: " + attemptId));
+			.orElseThrow(() -> new LevelTestException(LevelTestErrorStatus.ATTEMPT_NOT_FOUND));
 
 		List<LevelTestResponse> responses =
 			responseRepository.findAllByAttemptIdFetchQuestion(attemptId);

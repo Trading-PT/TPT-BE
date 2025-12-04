@@ -131,7 +131,7 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
         try {
             recurringPaymentService.executePaymentForSubscription(subscription);
             log.info("신규 구독 첫 결제 성공: subscriptionId={}", subscription.getId());
-            customer.setUserStatus(UserStatus.TRAINER_ASSIGNED);  //결제후, 트레이너 배정
+            customer.setUserStatus(UserStatus.PAID_BEFORE_TRAINER_ASSIGNING);  //결제후, 트레이너 배정 중
         } catch (NicePayException e) {
             log.error("신규 구독 첫 결제 실패 (NicePay 오류): subscriptionId={}, errorCode={}",
                 subscription.getId(), e.getErrorStatus().getCode(), e);

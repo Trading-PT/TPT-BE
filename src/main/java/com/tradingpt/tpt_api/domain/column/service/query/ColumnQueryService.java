@@ -13,5 +13,5 @@ public interface ColumnQueryService {
 
     Page<ColumnListResponseDTO> getColumnList(String category,  Pageable pageable);
 
-    ColumnDetailResponseDTO getColumnDetail(Long columnId);
+    ColumnDetailResponseDTO getColumnDetail(Long userId,Long columnId);
 }

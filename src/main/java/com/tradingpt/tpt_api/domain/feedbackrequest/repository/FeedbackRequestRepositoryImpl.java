@@ -33,6 +33,7 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.Monthly
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.WeeklyRawData;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
@@ -94,7 +95,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			return new SliceImpl<>(combined, pageable, hasNext);
 		} else {
 			// 2페이지 이후: 일반 피드백만 (베스트 피드백 제외)
-			long regularOffset = (long) pageNumber * pageSize - actualBestCount;
+			long regularOffset = (long)pageNumber * pageSize - actualBestCount;
 
 			List<FeedbackRequest> regularFeedbacks = queryFactory
 				.selectFrom(feedbackRequest)
@@ -311,7 +312,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		NumberExpression<Double> winningRnrCase = new CaseBuilder()
 			.when(feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO))
 			.then(feedbackRequest.rnr)
-			.otherwise((Double) null);
+			.otherwise((Double)null);
 
 		// ⚠️ BooleanBuilder는 mutable이므로 각 쿼리마다 새로 생성해야 함
 		var reverseStats = queryFactory
@@ -761,7 +762,11 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	public Slice<FeedbackRequest> findTokenUsedFeedbackRequests(Pageable pageable) {
 		List<FeedbackRequest> content = queryFactory
 			.selectFrom(feedbackRequest)
-			.where(feedbackRequest.isTokenUsed.isTrue())
+			.where(
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.BASIC)
+			)
 			.orderBy(feedbackRequest.createdAt.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize() + 1)
@@ -786,7 +791,33 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			.join(feedbackRequest.customer, customer).fetchJoin()
 			.where(
 				customer.assignedTrainer.id.eq(trainerId),
-				feedbackRequest.status.eq(Status.N)
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.PREMIUM)
+			)
+			.orderBy(feedbackRequest.createdAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize() + 1)
+			.fetch();
+
+		boolean hasNext = content.size() > pageable.getPageSize();
+
+		if (hasNext) {
+			content = content.subList(0, pageable.getPageSize());
+		}
+
+		return new SliceImpl<>(content, pageable, hasNext);
+	}
+
+	@Override
+	public Slice<FeedbackRequest> findAllNewPremiumFeedbackRequests(Pageable pageable) {
+		List<FeedbackRequest> content = queryFactory
+			.selectFrom(feedbackRequest)
+			.join(feedbackRequest.customer, customer).fetchJoin()
+			.where(
+				feedbackRequest.status.eq(Status.N),
+				feedbackRequest.isTokenUsed.isTrue(),
+				feedbackRequest.membershipLevel.eq(MembershipLevel.PREMIUM)
 			)
 			.orderBy(feedbackRequest.createdAt.desc())
 			.offset(pageable.getOffset())
@@ -856,7 +887,7 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 				feedbackRequest.feedbackYear.eq(year),
 				feedbackRequest.feedbackMonth.eq(month),
 				feedbackRequest.feedbackWeek.eq(week),
-				feedbackRequest.pnl.gt(BigDecimal.ZERO)
+				feedbackRequest.totalAssetPnl.gt(BigDecimal.ZERO)
 			)
 			.orderBy(feedbackRequest.feedbackRequestDate.desc())
 			.fetch();

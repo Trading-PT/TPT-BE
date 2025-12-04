@@ -65,6 +65,20 @@ public class AdminLectureV1Controller {
         return ResponseEntity.ok(BaseResponse.onSuccess(chapters));
     }
 
+    @Operation(
+            summary = "챕터 수정(어드민)",
+            description = "기존 챕터의 정보를 수정합니다. chapterOrder, 제목, 설명 등 변경 가능합니다."
+    )
+    @PutMapping("/chapters/{chapterId}")
+    public ResponseEntity<BaseResponse<Long>> updateChapter(
+            @PathVariable Long chapterId,
+            @Valid @RequestBody ChapterCreateRequestDTO request
+    ) {
+        Long updatedId = adminChapterCommandService.updateChapter(chapterId, request);
+        return ResponseEntity.ok(BaseResponse.onSuccess(updatedId));
+    }
+
+
     @Operation(summary = "챕터 삭제(어드민)",
             description = "해당 챕터를 삭제합니다. 운영정책에 따라 물리삭제/소프트삭제를 서비스에서 결정하세요.")
     @PreAuthorize("hasRole('ROLE_ADMIN')")

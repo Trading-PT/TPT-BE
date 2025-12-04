@@ -89,11 +89,13 @@ public class ColumnDetailResponseDTO {
         private String content;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private String nickName;
 
         // Comment 엔티티 → DTO 변환
         public static CommentItem from(Comment comment) {
             return CommentItem.builder()
                     .commentId(comment.getId())
+                    .nickName(comment.getUser().getNickname())
                     .writerName(comment.getWriterName())
                     .content(comment.getContent())
                     .createdAt(comment.getCreatedAt())

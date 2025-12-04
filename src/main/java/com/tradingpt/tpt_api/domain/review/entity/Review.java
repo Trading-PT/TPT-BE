@@ -9,12 +9,14 @@ import org.hibernate.annotations.DynamicUpdate;
 
 import com.tradingpt.tpt_api.domain.review.enums.Status;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -55,7 +57,7 @@ public class Review extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "trainer_id")
-	private Trainer trainer;
+	private User user;
 
 	@Builder.Default
 	@OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -82,6 +84,7 @@ public class Review extends BaseEntity {
 	private LocalDateTime repliedAt; // 답변 일시
 
 	@Builder.Default
+	@Enumerated(EnumType.STRING)
 	private Status status = Status.PRIVATE; // 공개 여부
 
 	@Column(nullable = false)
@@ -102,7 +105,7 @@ public class Review extends BaseEntity {
 	 * 사용자 편의 메서드
 	 */
 	public boolean hasReply() {
-		return this.trainer != null && this.replyContent != null;
+		return this.user != null && this.replyContent != null;
 	}
 
 	public boolean isPublic() {
@@ -113,8 +116,8 @@ public class Review extends BaseEntity {
 		this.status = status;
 	}
 
-	public void addReply(Trainer trainer, String content) {
-		this.trainer = trainer;
+	public void addReply(User user, String content) {
+		this.user = user;
 		this.replyContent = content;
 		this.repliedAt = LocalDateTime.now();
 	}

@@ -8,7 +8,11 @@ import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
 import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
 import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
+import com.tradingpt.tpt_api.domain.lecture.repository.AssignmentAttachmentRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.ChapterRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.CustomerAssignmentRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureAttachmentDownloadHistoryRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureAttachmentRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
 import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
@@ -33,6 +37,10 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
     private final ChapterRepository chapterRepository;
     private final LectureRepository lectureRepository;
     private final LectureProgressRepository lectureProgressRepository;
+    private final CustomerAssignmentRepository customerAssignmentRepository;
+    private final AssignmentAttachmentRepository assignmentAttachmentRepository;
+    private final LectureAttachmentRepository lectureAttachmentRepository;
+    private final LectureAttachmentDownloadHistoryRepository lectureAttachmentDownloadHistoryRepository;
     private final CustomerRepository customerRepository;
     private final UserRepository userRepository;
     private final S3FileService s3FileService;
@@ -50,6 +58,17 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         // 2. 업로더(트레이너) 조회
         User trainer = userRepository.findById(trainerId)
                 .orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+        if (chapter.getChapterType() == ChapterType.PRO) {
+
+            int totalProLectureCount = lectureRepository.countByChapter_ChapterType(ChapterType.PRO);
+            int expectedOrder = totalProLectureCount + 1;
+
+            // req.getLectureOrder()가 null이면 바로 예외 터지게 해도 됨
+            if (req.getLectureOrder() == null || req.getLectureOrder() != expectedOrder) {
+                throw new LectureException(LectureErrorStatus.INVALID_LECTURE_ORDER);
+            }
+        }
 
         // 3. Lecture 생성 (신규 필드 포함)
         Lecture lecture = Lecture.builder()
@@ -84,31 +103,51 @@ public class AdminLectureCommandServiceImpl implements AdminLectureCommandServic
         return saved.getId();
     }
 
-    /**
-     * 강의 삭제
-     */
+
     @Override
     @Transactional
     public void deleteLecture(Long lectureId) {
-        Lecture lecture = lectureRepository.findById(lectureId)
+
+        // 0) 강의 + videoKey 조회 (존재 확인 + S3 삭제용)
+        Lecture lecture = lectureRepository.findByIdForDelete(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
-        // 1) 비디오 삭제
+        // 0-1) 강의 첨부파일 fileKey만 미리 가져오기 (S3 삭제용)
+        List<String> attachmentFileKeys = lectureAttachmentRepository.findFileKeysByLectureId(lectureId);
+
+        // ========= DB 삭제 (FK 순서 주의) =========
+
+        // 1) 수강 기록 삭제
+        lectureProgressRepository.deleteByLectureId(lectureId);
+
+        // 2) 과제 첨부 삭제
+        assignmentAttachmentRepository.deleteByLectureId(lectureId);
+
+        // 3) 유저 과제 삭제
+        customerAssignmentRepository.deleteByLectureId(lectureId);
+
+        // 4) 강의 첨부 다운로드 히스토리 삭제
+        lectureAttachmentDownloadHistoryRepository.deleteByLectureId(lectureId);
+
+        // 5) 강의 첨부 삭제
+        lectureAttachmentRepository.deleteByLectureId(lectureId);
+
+        // 6) 마지막으로 강의 삭제
+        lectureRepository.delete(lecture);
+
+        // ========= S3 삭제 (DB와 별개, 실패해도 롤백 X 원하면 try-catch) =========
+
+        // 7) 강의 비디오 삭제
         if (lecture.getVideoKey() != null) {
             s3FileService.delete(lecture.getVideoKey());
         }
 
-        // 2) 첨부파일 삭제
-        if (lecture.getAttachments() != null) {
-            lecture.getAttachments().forEach(att -> {
-                if (att.getFileKey() != null) {
-                    s3FileService.delete(att.getFileKey());
-                }
-            });
+        // 8) 강의 첨부파일 삭제
+        for (String key : attachmentFileKeys) {
+            if (key != null) {
+                s3FileService.delete(key);
+            }
         }
-
-        // 3) DB에서 삭제
-        lectureRepository.delete(lecture);
     }
 
     @Override

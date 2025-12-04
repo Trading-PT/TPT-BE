@@ -11,13 +11,14 @@ import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHi
 import com.tradingpt.tpt_api.domain.investmenttypehistory.exception.InvestmentHistoryException;
 import com.tradingpt.tpt_api.domain.investmenttypehistory.repository.InvestmentTypeHistoryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
-import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.CreateWeeklyTradingSummaryRequestDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.UpsertWeeklyEvaluationRequestDTO;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.request.UpsertWeeklyMemoRequestDTO;
@@ -43,11 +44,11 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final ContentImageUploader contentImageUploader;
-	private final TrainerRepository trainerRepository;
+	private final UserRepository userRepository;
 
 	/**
 	 * =============================
-	 * TRAINER가 작성
+	 * ADMIN/TRAINER가 작성
 	 * =============================
 	 */
 	@Override
@@ -56,11 +57,11 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		Integer month,
 		Integer week,
 		Long customerId,
-		Long trainerId,
+		Long evaluatorId,
 		CreateWeeklyTradingSummaryRequestDTO request
 	) {
-		log.info("Trainer creating weekly summary for customerId={}, year={}, month={}, week={}",
-			customerId, year, month, week);
+		log.info("Evaluator creating weekly summary for customerId={}, year={}, month={}, week={}, evaluatorId={}",
+			customerId, year, month, week, evaluatorId);
 
 		// 1. 날짜 검증
 		DateValidationUtil.validateYearMonthWeek(year, month, week);
@@ -69,38 +70,44 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 트레이너 조회
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 3. 평가 작성자 조회 (ADMIN 또는 TRAINER)
+		User evaluator = userRepository.findById(evaluatorId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 4. 해당 주의 투자 타입 조회
+		// 4. 권한 검증 (ADMIN 또는 TRAINER만 작성 가능)
+		if (evaluator.getRole() != Role.ROLE_ADMIN && evaluator.getRole() != Role.ROLE_TRAINER) {
+			log.warn("User is not ADMIN or TRAINER: evaluatorId={}, role={}", evaluatorId, evaluator.getRole());
+			throw new UserException(UserErrorStatus.USER_NOT_FOUND);
+		}
+
+		// 5. 해당 주의 투자 타입 조회
 		InvestmentType investmentType = getInvestmentTypeForWeek(customerId, year, month, week);
 
-		// 5. 해당 주의 코스 상태 조회
+		// 6. 해당 주의 코스 상태 조회
 		CourseStatus courseStatus = getCourseStatusForWeek(customerId, year, month, week);
 
-		// 6. ✅ 완강 전인 경우 트레이너는 작성 불가
+		// 7. ✅ 완강 전인 경우 평가 작성 불가
 		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
-			log.warn("Trainer cannot create summary for BEFORE_COMPLETION: trainerId={}", trainerId);
+			log.warn("Evaluator cannot create summary for BEFORE_COMPLETION: evaluatorId={}", evaluatorId);
 			throw new WeeklyTradingSummaryException(
 				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_BEFORE_COMPLETION);
 		}
 
-		// 7. ✅ 완강 후 + SWING인 경우 생성 불가
+		// 8. ✅ 완강 후 + SWING인 경우 생성 불가
 		if (courseStatus == CourseStatus.AFTER_COMPLETION && investmentType != InvestmentType.DAY) {
-			log.warn("Trainer cannot create summary for AFTER_COMPLETION + non-DAY: investmentType={}",
+			log.warn("Evaluator cannot create summary for AFTER_COMPLETION + non-DAY: investmentType={}",
 				investmentType);
 			throw new WeeklyTradingSummaryException(
 				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_NON_DAY_AFTER_COMPLETION);
 		}
 
-		// 8. 중복 체크
+		// 9. 중복 체크
 		checkDuplicateSummary(customerId, year, month, week, investmentType);
 
-		// 9. ✅ 입력 데이터 검증 (트레이너용)
+		// 10. ✅ 입력 데이터 검증 (평가자용)
 		validateTrainerRequestData(request);
 
-		// 10. ✅ 콘텐츠 처리 및 저장 (상세 평가만)
+		// 11. ✅ 콘텐츠 처리 및 저장 (상세 평가만)
 		String processedEvaluation = contentImageUploader.processContent(
 			request.getWeeklyEvaluation(),
 			"weekly-summaries"
@@ -122,7 +129,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			processedProfitAnalysis,
 			processedLossAnalysis,
 			customer,
-			trainer,
+			evaluator,
 			courseStatus,
 			investmentType,
 			year,
@@ -132,7 +139,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 
 		weeklyTradingSummaryRepository.save(summary);
 
-		log.info("Trainer created weekly summary successfully");
+		log.info("Evaluator created weekly summary successfully");
 		return null;
 	}
 
@@ -184,20 +191,14 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			"weekly-summaries"
 		);
 
-		// 9. 트레이너 조회 (멤버십 미가입 고객은 트레이너가 없을 수 있음)
-		Trainer trainer = null;
-		if (customer.getAssignedTrainer() != null) {
-			trainer = trainerRepository.findById(customer.getAssignedTrainer().getId())
-				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
-		}
-
+		// 9. 고객 메모 생성 시 evaluator는 null (평가 작성자가 없음)
 		WeeklyTradingSummary summary = WeeklyTradingSummary.createFromProcessed(
 			processedMemo,
 			null,  // 상세 평가는 null
 			null,
 			null,
 			customer,
-			trainer,
+			null,  // evaluator는 null (고객 메모이므로)
 			courseStatus,
 			investmentType,
 			year,
@@ -290,7 +291,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 
 		// 상세 평가 3개가 모두 있어야 함
 		if (!hasEvaluation || !hasProfitAnalysis || !hasLossAnalysis) {
-			log.warn("All detailed evaluations are required for trainer");
+			log.warn("All detailed evaluations are required for user");
 			throw new WeeklyTradingSummaryException(
 				WeeklyTradingSummaryErrorStatus.DETAILED_EVALUATION_INCOMPLETE);
 		}
@@ -373,17 +374,11 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			summary.updateCustomerMemo(processedMemo);
 			log.info("Customer updated weekly memo");
 		} else {
-			// CREATE: 트레이너 조회 후 새 Entity 생성
-			Trainer trainer = null;
-			if (customer.getAssignedTrainer() != null) {
-				trainer = trainerRepository.findById(customer.getAssignedTrainer().getId())
-					.orElse(null);
-			}
-
+			// CREATE: 새 Entity 생성 (evaluator는 null)
 			summary = WeeklyTradingSummary.createForCustomerMemo(
 				processedMemo,
 				customer,
-				trainer,
+				null,  // evaluator는 null (고객 메모이므로)
 				investmentType,
 				year,
 				month,
@@ -398,7 +393,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 	}
 
 	/**
-	 * 주간 매매일지 트레이너 평가 Upsert (트레이너/관리자용 - 완강 후 + DAY 타입)
+	 * 주간 매매일지 평가 Upsert (ADMIN/TRAINER용 - 완강 후 + DAY 타입)
 	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
@@ -408,11 +403,11 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		Integer month,
 		Integer week,
 		Long customerId,
-		Long trainerId,
+		Long evaluatorId,
 		UpsertWeeklyEvaluationRequestDTO request
 	) {
-		log.info("Trainer upserting weekly evaluation for customerId={}, year={}, month={}, week={}, trainerId={}",
-			customerId, year, month, week, trainerId);
+		log.info("Evaluator upserting weekly evaluation for customerId={}, year={}, month={}, week={}, evaluatorId={}",
+			customerId, year, month, week, evaluatorId);
 
 		// 1. 날짜 검증
 		DateValidationUtil.validateYearMonthWeek(year, month, week);
@@ -421,14 +416,20 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 트레이너 조회
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 3. 평가 작성자 조회 (ADMIN 또는 TRAINER)
+		User evaluator = userRepository.findById(evaluatorId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 4. 해당 주의 투자 타입 조회
+		// 4. 권한 검증 (ADMIN 또는 TRAINER만 작성 가능)
+		if (evaluator.getRole() != Role.ROLE_ADMIN && evaluator.getRole() != Role.ROLE_TRAINER) {
+			log.warn("User is not ADMIN or TRAINER: evaluatorId={}, role={}", evaluatorId, evaluator.getRole());
+			throw new UserException(UserErrorStatus.USER_NOT_FOUND);
+		}
+
+		// 5. 해당 주의 투자 타입 조회
 		InvestmentType investmentType = getInvestmentTypeForWeek(customerId, year, month, week);
 
-		// 5. 콘텐츠 처리
+		// 6. 콘텐츠 처리
 		String processedEvaluation = contentImageUploader.processContent(
 			request.getWeeklyEvaluation(),
 			"weekly-summaries"
@@ -442,7 +443,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			"weekly-summaries"
 		);
 
-		// 6. 기존 요약 조회 (Upsert 패턴)
+		// 7. 기존 요약 조회 (Upsert 패턴)
 		WeeklyTradingSummary summary = weeklyTradingSummaryRepository
 			.findByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
 				customerId, year, month, week)
@@ -455,22 +456,22 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 				processedProfitAnalysis,
 				processedLossAnalysis
 			);
-			log.info("Trainer updated weekly evaluation");
+			log.info("Evaluator updated weekly evaluation");
 		} else {
 			// CREATE: 새 Entity 생성
-			summary = WeeklyTradingSummary.createForTrainerEvaluation(
+			summary = WeeklyTradingSummary.createForEvaluation(
 				processedEvaluation,
 				processedProfitAnalysis,
 				processedLossAnalysis,
 				customer,
-				trainer,
+				evaluator,
 				investmentType,
 				year,
 				month,
 				week
 			);
 			weeklyTradingSummaryRepository.save(summary);
-			log.info("Trainer created weekly evaluation");
+			log.info("Evaluator created weekly evaluation");
 		}
 
 		// JPA Dirty Checking으로 자동 UPDATE (save() 불필요)

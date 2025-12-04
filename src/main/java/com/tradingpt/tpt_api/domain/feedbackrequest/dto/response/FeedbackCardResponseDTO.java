@@ -61,6 +61,12 @@ public class FeedbackCardResponseDTO {
 	 * FeedbackRequest 엔티티로부터 카드 DTO 생성
 	 */
 	public static FeedbackCardResponseDTO from(FeedbackRequest feedbackRequest) {
+		String customerName = feedbackRequest.getCustomer().getName();
+		if (Boolean.TRUE.equals((feedbackRequest.getIsBestFeedback()))
+			&& feedbackRequest.getCustomer().getNickname() != null) {
+			customerName = feedbackRequest.getCustomer().getNickname();
+		}
+
 		return FeedbackCardResponseDTO.builder()
 			.feedbackRequestId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
@@ -76,29 +82,16 @@ public class FeedbackCardResponseDTO {
 			.courseStatus(feedbackRequest.getCourseStatus())
 			.status(feedbackRequest.getStatus())
 			.isBestFeedback(feedbackRequest.getIsBestFeedback())
-			.customerName(feedbackRequest.getCustomer().getName())
+			.customerName(customerName)
 			.build();
 	}
 
 	/**
-	 * 조건에 따라 적절한 내용을 미리보기로 생성
-	 *
-	 * 규칙:
-	 * 1. BEFORE_COMPLETION: tradingReview
-	 * 2. AFTER_COMPLETION + (DAY or SWING): trainerFeedbackRequestContent
+	 * tradingReview 내용을 미리보기로 생성
+	 * 완강 상태와 관계없이 항상 tradingReview 사용
 	 */
 	private static String generatePreview(FeedbackRequest feedbackRequest) {
-		String contentToPreview = null;
-
-		// BEFORE_COMPLETION이면 무조건 tradingReview
-		if (feedbackRequest.getCourseStatus() == CourseStatus.BEFORE_COMPLETION
-			|| feedbackRequest.getCourseStatus() == CourseStatus.PENDING_COMPLETION) {
-			contentToPreview = feedbackRequest.getTradingReview();
-		}
-		// AFTER_COMPLETION: DAY or SWING이면 trainerFeedbackRequestContent
-		else if (feedbackRequest.getCourseStatus() == CourseStatus.AFTER_COMPLETION) {
-			contentToPreview = feedbackRequest.getTrainerFeedbackRequestContent();
-		}
+		String contentToPreview = feedbackRequest.getTradingReview();
 
 		// 내용이 없으면 기본 메시지
 		if (contentToPreview == null || contentToPreview.isBlank()) {

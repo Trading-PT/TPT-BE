@@ -29,7 +29,7 @@ public class WeeklyFeedbackListItemDTO {
 	private LocalDate feedbackRequestDate;
 
 	@Schema(description = "손익 (P&L)", example = "150.50")
-	private BigDecimal pnl;
+	private BigDecimal totalAssetPnl;
 
 	@Schema(description = "투자 타입", example = "DAY")
 	private InvestmentType investmentType;
@@ -45,7 +45,7 @@ public class WeeklyFeedbackListItemDTO {
 			.feedbackId(feedbackRequest.getId())
 			.title(feedbackRequest.getTitle())
 			.feedbackRequestDate(feedbackRequest.getFeedbackRequestDate())
-			.pnl(feedbackRequest.getPnl())
+			.totalAssetPnl(feedbackRequest.getTotalAssetPnl())
 			.investmentType(feedbackRequest.getInvestmentType())
 			.status(feedbackRequest.getStatus())
 			.hasResponse(feedbackRequest.getFeedbackResponse() != null)

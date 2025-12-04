@@ -46,6 +46,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<BaseResponse<String>> handleRestApiException(BaseException e) {
 		BaseCodeInterface errorCode = e.getErrorCodeInterface();
 		log.error("[handleRestApiException] Domain Exception: {}", e.getMessage(), e);
+
+		// PG사 에러 등 외부 시스템의 구체적인 에러 메시지가 있는 경우 우선 사용
+		if (e.hasCustomMessage()) {
+			return handleExceptionInternal(errorCode, e.getCustomMessage());
+		}
+
 		return handleExceptionInternal(errorCode);
 	}
 

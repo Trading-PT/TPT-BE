@@ -5,6 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -113,21 +114,24 @@ public class AdminFeedbackRequestV1Controller {
 			내 담당 고객들의 새로운 피드백 요청 목록을 무한 스크롤 방식으로 조회합니다.
 			
 			특징:
-			- 트레이너가 담당하는 고객들의 피드백만 조회
+			- ADMIN: 모든 고객의 새로운 프리미엄 피드백 요청 조회
+			- TRAINER: 담당 고객의 새로운 피드백 요청만 조회
 			- status가 N (피드백 대기)인 것만 조회
+			- isTokenUsed가 true이고 membershipLevel이 PREMIUM인 것만 조회
 			- 최신순 정렬
 			- 모든 투자 유형(DAY, SWING) 포함
 			- Slice 기반 무한 스크롤 지원
-			
+
 			사용 시나리오:
+			- 어드민이 모든 프리미엄 회원의 대기 중인 피드백 확인
 			- 트레이너가 아직 응답하지 않은 피드백 확인
 			- 담당 고객의 새로운 피드백 알림 표시
 			- 우선 순위로 응답할 피드백 파악
-			
+
 			페이징 파라미터:
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 12)
-			
+
 			예시:
 			- GET /api/v1/admin/feedback-requests/my-customers/new
 			- GET /api/v1/admin/feedback-requests/my-customers/new?page=0&size=12
@@ -138,13 +142,13 @@ public class AdminFeedbackRequestV1Controller {
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public BaseResponse<MyCustomerNewFeedbackListResponseDTO> getMyCustomerNewFeedbackRequests(
 		@Parameter(hidden = true)
-		@AuthenticationPrincipal(expression = "id") Long trainerId,
+		@AuthenticationPrincipal(expression = "id") Long userId,
 		@PageableDefault(size = 12, sort = "createdAt", direction = Sort.Direction.DESC)
 		Pageable pageable
 
 	) {
 		return BaseResponse.onSuccess(
-			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(trainerId, pageable)
+			feedbackRequestQueryService.getMyCustomerNewFeedbackRequests(userId, pageable)
 		);
 	}
 
@@ -178,8 +182,36 @@ public class AdminFeedbackRequestV1Controller {
 		);
 	}
 
+	@Operation(
+		summary = "피드백 요청 삭제 (어드민 전용)",
+		description = """
+			특정 피드백 요청을 삭제합니다.
+
+			권한:
+			- **ROLE_ADMIN**: 모든 고객의 피드백 요청 삭제 가능
+			- **ROLE_TRAINER**: 삭제 권한 없음
+
+			주의사항:
+			- 삭제된 피드백은 복구할 수 없습니다
+			- 관련 응답(FeedbackResponse)도 함께 삭제됩니다
+
+			예시:
+			- DELETE /api/v1/admin/feedback-requests/123
+			"""
+	)
+	@DeleteMapping("/{feedbackRequestId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public BaseResponse<Void> deleteFeedbackRequestByAdmin(
+		@Parameter(description = "피드백 요청 ID", required = true)
+		@PathVariable Long feedbackRequestId
+	) {
+		return BaseResponse.onSuccessDelete(
+			feedbackRequestCommandService.deleteByAdmin(feedbackRequestId)
+		);
+	}
+
 	// TODO: 트레이너 작성 매매일지 플래그 업데이트 API 구현 필요
-	// TODO: POST /api/v1/admin/feedback-requests/{id}/trainer-written
+	// TODO: POST /api/v1/admin/feedback-requests/{id}/user-written
 	// TODO: 현재는 DataGrip으로 수동 업데이트 중이나, 향후 Admin UI에서 직접 설정할 수 있도록 구현 예정
 	// TODO: 베스트 피드백 설정 API (updateBestFeedbackStatus)와 유사한 구조로 구현
 	// TODO: Request DTO: { isTrainerWritten: boolean }

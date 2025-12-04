@@ -1,7 +1,9 @@
 package com.tradingpt.tpt_api.domain.lecture.repository;
 
 import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import com.tradingpt.tpt_api.domain.lecture.enums.LectureExposure;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -35,4 +37,23 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
     WHERE l.chapter.chapterType = com.tradingpt.tpt_api.domain.lecture.enums.ChapterType.PRO
     """)
     int countProLectures();
+
+   Optional<Lecture> findByChapter_ChapterTypeAndLectureOrder(ChapterType chapterType, int lectureOrder);
+
+    int countByChapter_ChapterType(ChapterType chapterType);
+
+    @Query("select l from Lecture l left join fetch l.attachments where l.id = :lectureId")
+    Optional<Lecture> findWithAttachments(@Param("lectureId") Long lectureId);
+
+    // 챕터 기준으로 강의 전체 조회
+    List<Lecture> findAllByChapter_Id(Long chapterId);
+
+
+    // S3 삭제 + 존재 여부 확인용
+    @Query("""
+        select l from Lecture l
+        left join fetch l.chapter
+        where l.id = :lectureId
+        """)
+    Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
 }

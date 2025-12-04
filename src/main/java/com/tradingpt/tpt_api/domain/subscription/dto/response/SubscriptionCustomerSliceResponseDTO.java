@@ -24,6 +24,9 @@ import lombok.NoArgsConstructor;
 @Schema(description = "구독 고객 목록 슬라이스 응답")
 public class SubscriptionCustomerSliceResponseDTO {
 
+    @Schema(description = "구독 고객 총 인원 수", example = "150")
+    private Long totalCount;
+
     @Schema(description = "구독 고객 목록")
     private List<SubscriptionCustomerResponseDTO> content;
 
@@ -31,10 +34,18 @@ public class SubscriptionCustomerSliceResponseDTO {
     private SliceInfo sliceInfo;
 
     /**
-     * Slice를 DTO로 변환하는 팩토리 메서드
+     * Slice와 총 인원 수를 DTO로 변환하는 팩토리 메서드
+     *
+     * @param slice 구독 고객 Slice
+     * @param totalCount 구독 고객 총 인원 수
+     * @return SubscriptionCustomerSliceResponseDTO
      */
-    public static SubscriptionCustomerSliceResponseDTO from(Slice<SubscriptionCustomerResponseDTO> slice) {
+    public static SubscriptionCustomerSliceResponseDTO from(
+        Slice<SubscriptionCustomerResponseDTO> slice,
+        Long totalCount
+    ) {
         return SubscriptionCustomerSliceResponseDTO.builder()
+            .totalCount(totalCount)
             .content(slice.getContent())
             .sliceInfo(SliceInfo.of(slice))
             .build();

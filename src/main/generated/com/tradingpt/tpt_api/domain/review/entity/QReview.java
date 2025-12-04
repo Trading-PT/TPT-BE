@@ -47,10 +47,10 @@ public class QReview extends EntityPathBase<Review> {
 
     public final DateTimePath<java.time.LocalDateTime> submittedAt = createDateTime("submittedAt", java.time.LocalDateTime.class);
 
-    public final com.tradingpt.tpt_api.domain.user.entity.QTrainer trainer;
-
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
+
+    public final com.tradingpt.tpt_api.domain.user.entity.QUser user;
 
     public QReview(String variable) {
         this(Review.class, forVariable(variable), INITS);
@@ -71,7 +71,7 @@ public class QReview extends EntityPathBase<Review> {
     public QReview(Class<? extends Review> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.customer = inits.isInitialized("customer") ? new com.tradingpt.tpt_api.domain.user.entity.QCustomer(forProperty("customer"), inits.get("customer")) : null;
-        this.trainer = inits.isInitialized("trainer") ? new com.tradingpt.tpt_api.domain.user.entity.QTrainer(forProperty("trainer")) : null;
+        this.user = inits.isInitialized("user") ? new com.tradingpt.tpt_api.domain.user.entity.QUser(forProperty("user")) : null;
     }
 
 }

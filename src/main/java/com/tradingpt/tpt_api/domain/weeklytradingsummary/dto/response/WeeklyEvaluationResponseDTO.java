@@ -24,11 +24,11 @@ public class WeeklyEvaluationResponseDTO {
 	@Schema(description = "고객 닉네임")
 	private String customerNickname;
 
-	@Schema(description = "트레이너 ID")
-	private Long trainerId;
+	@Schema(description = "평가 작성자 ID (ADMIN 또는 TRAINER)")
+	private Long evaluatorId;
 
-	@Schema(description = "트레이너 닉네임")
-	private String trainerNickname;
+	@Schema(description = "평가 작성자 닉네임")
+	private String evaluatorNickname;
 
 	@Schema(description = "연도")
 	private Integer year;
@@ -71,8 +71,8 @@ public class WeeklyEvaluationResponseDTO {
 			.id(entity.getId())
 			.customerId(entity.getCustomer().getId())
 			.customerNickname(entity.getCustomer().getNickname())
-			.trainerId(entity.getTrainer() != null ? entity.getTrainer().getId() : null)
-			.trainerNickname(entity.getTrainer() != null ? entity.getTrainer().getNickname() : null)
+			.evaluatorId(entity.getEvaluator() != null ? entity.getEvaluator().getId() : null)
+			.evaluatorNickname(entity.getEvaluator() != null ? entity.getEvaluator().getNickname() : null)
 			.year(entity.getPeriod().getYear())
 			.month(entity.getPeriod().getMonth())
 			.week(entity.getPeriod().getWeek())

@@ -42,6 +42,8 @@ public class QConsultation extends EntityPathBase<Consultation> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
 
+    public final NumberPath<Long> version = createNumber("version", Long.class);
+
     public QConsultation(String variable) {
         this(Consultation.class, forVariable(variable), INITS);
     }

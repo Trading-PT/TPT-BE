@@ -145,6 +145,14 @@ public class AdminColumnV1Controller {
         return ResponseEntity.ok(BaseResponse.onSuccess(id));
     }
 
+    @Operation(summary = "칼럼 베스트 해지(관리자)", description = "해당 칼럼의 베스트 지정을 해제합니다.")
+    @PatchMapping("/{columnId}/best/cancel")
+    public ResponseEntity<BaseResponse<Long>> unmarkBest(@PathVariable Long columnId) {
+        Long id = commandService.unmarkBest(columnId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
+
     @Operation(summary = "댓글 작성(관리자)", description = "특정 칼럼에 댓글을 작성하고 익명의 이름으로 댓글이 작성됩니다.")
     @PostMapping("/{columnId}/comments")
     public ResponseEntity<BaseResponse<Long>> createComment(
@@ -155,4 +163,18 @@ public class AdminColumnV1Controller {
         Long id = commandService.createComment(columnId, userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccess(id));
     }
+
+    @Operation(
+            summary = "댓글 삭제(관리자)",
+            description = "관리자가 특정 칼럼에 달린 댓글 한 개를 삭제합니다."
+    )
+    @DeleteMapping("/{columnId}/comments/{commentId}")
+    public ResponseEntity<BaseResponse<Long>> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal(expression = "id") Long adminUserId
+    ) {
+        Long id = commandService.deleteComment(commentId, adminUserId);
+        return ResponseEntity.ok(BaseResponse.onSuccess(id));
+    }
+
 }

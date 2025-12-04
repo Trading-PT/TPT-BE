@@ -73,14 +73,16 @@ public interface FeedbackRequestQueryService {
 	TokenUsedFeedbackListResponseDTO getTokenUsedFeedbackRequests(Pageable pageable);
 
 	/**
-	 * ✅ 내 담당 고객의 새로운 피드백 요청 목록 조회 (무한 스크롤)
+	 * ✅ 새로운 피드백 요청 목록 조회 (무한 스크롤)
+	 * - ADMIN: 모든 고객의 새로운 프리미엄 피드백 요청 조회
+	 * - TRAINER: 담당 고객의 새로운 피드백 요청만 조회
 	 *
-	 * @param trainerId 트레이너 ID
+	 * @param userId 사용자 ID (ADMIN 또는 TRAINER)
 	 * @param pageable 페이징 정보
 	 * @return 새로운 피드백 요청 목록 (Slice)
 	 */
 	MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(
-		Long trainerId,
+		Long userId,
 		Pageable pageable
 	);
 

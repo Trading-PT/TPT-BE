@@ -19,4 +19,12 @@ public interface SubscriptionRepositoryCustom {
      * @return 구독 고객 슬라이스
      */
     Slice<SubscriptionCustomerResponseDTO> findActiveSubscriptionCustomers(Long trainerId, Pageable pageable);
+
+    /**
+     * 활성 구독 고객 총 인원 수 조회
+     *
+     * @param trainerId 트레이너 ID (null이면 전체 조회)
+     * @return 활성 구독 고객 총 인원 수
+     */
+    Long countActiveSubscriptionCustomers(Long trainerId);
 }

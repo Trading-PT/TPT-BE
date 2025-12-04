@@ -33,4 +33,26 @@ public class Chapter extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "chapter_type", nullable = false)
     private ChapterType chapterType;
+
+    public void update(String title,
+                       String description,
+                       Integer chapterOrder,
+                       ChapterType chapterType) {
+
+        if (title != null) {
+            this.title = title;
+        }
+
+        if (description != null) {
+            this.description = description;
+        }
+
+        if (chapterOrder != null) {
+            this.chapterOrder = chapterOrder;
+        }
+
+        if (chapterType != null) {
+            this.chapterType = chapterType;
+        }
+    }
 }

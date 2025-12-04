@@ -146,12 +146,23 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         // 이미 베스트면 그냥 종료(멱등)
         if (column.getIsBest()) return columnId;
 
-        Long categoryId = column.getCategory().getId();
-
-        long current = columnsRepository.countByCategory_IdAndIsBestTrue(categoryId);
-        if (current >= 3) throw new ColumnException(ColumnErrorStatus.BEST_LIMIT_EXCEEDED);
-
         column.markBest(); // 엔티티 상태 변경
+
+        return columnId;
+    }
+
+    @Override
+    @Transactional
+    public Long unmarkBest(Long columnId) {
+        Columns column = columnsRepository.findById(columnId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));
+
+        // 이미 베스트가 아니면 멱등 처리
+        if (!column.getIsBest()) {
+            return columnId;
+        }
+
+        column.unmarkBest(); // 엔티티 메서드에서 isBest = false 처리
 
         return columnId;
     }
@@ -177,4 +188,17 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         Comment saved = commentRepository.save(comment);
         return saved.getId();
     }
+
+    @Override
+    @Transactional
+    public Long deleteComment(Long commentId, Long adminUserId) {
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ColumnException(ColumnErrorStatus.COMMENT_NOT_FOUND));
+
+        commentRepository.delete(comment);
+
+        return commentId;
+    }
 }
+

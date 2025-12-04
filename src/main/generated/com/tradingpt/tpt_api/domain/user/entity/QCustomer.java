@@ -26,10 +26,14 @@ public class QCustomer extends EntityPathBase<Customer> {
 
     public final QUser assignedTrainer;
 
+    public final DateTimePath<java.time.LocalDateTime> completedAt = createDateTime("completedAt", java.time.LocalDateTime.class);
+
     public final EnumPath<com.tradingpt.tpt_api.domain.user.enums.CourseStatus> courseStatus = createEnum("courseStatus", com.tradingpt.tpt_api.domain.user.enums.CourseStatus.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
+
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = createDateTime("deletedAt", java.time.LocalDateTime.class);
 
     //inherited
     public final StringPath email = _super.email;

@@ -80,7 +80,14 @@ aws:
     access-key: ${AWS_ACCESS_KEY_ID}
     secret-key: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
-    bucket-name: ${S3_BUCKET_NAME}
+    public-bucket: ${S3_BUCKET_NAME}
+    private-bucket: ${S3_PRIVATE_BUCKET_NAME}
+
+# CloudFront 운영 환경 설정
+cloudfront:
+  domain: ${CLOUDFRONT_DOMAIN}
+  keyPairId: ${CLOUDFRONT_KEY_PAIR_ID}
+  privateKey: ${CLOUDFRONT_PRIVATE_KEY}
 
 server:
   servlet:
@@ -90,7 +97,7 @@ server:
         secure: true
         same-site: Lax
         path: /
-#        domain: .tradingpt.kr
+        domain: .tradingpt.kr
 
 app:
   frontend:

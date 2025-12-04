@@ -111,6 +111,16 @@ public class Customer extends User {
 	@Enumerated(EnumType.STRING)
 	private CourseStatus courseStatus = CourseStatus.BEFORE_COMPLETION;
 
+	/**
+	 * 완강 시점 (AFTER_COMPLETION으로 상태 변경된 시각)
+	 * 완강 월/연도 확인 및 평가 대상 기간 판별에 사용
+	 */
+	@Column(name = "completed_at")
+	private LocalDateTime completedAt;
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;   //회원탈퇴 날짜, soft delete를 위한 필드, 30일 뒤에 자동 삭제
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	@Builder.Default
@@ -322,6 +332,21 @@ public class Customer extends User {
 		this.courseStatus = status;
 	}
 
+	/**
+	 * 완강 처리 (AFTER_COMPLETION 상태로 변경 + 완강 시점 기록)
+	 * JPA Dirty Checking을 활용하여 자동 UPDATE
+	 *
+	 * 비즈니스 규칙:
+	 * - PENDING_COMPLETION -> AFTER_COMPLETION 전환 시 호출
+	 * - 완강 시점을 기록하여 평가 대상 기간 판별에 활용
+	 *
+	 * @param completedAt 완강 시각 (보통 스케줄러 실행 시점)
+	 */
+	public void completeTraining(LocalDateTime completedAt) {
+		this.courseStatus = CourseStatus.AFTER_COMPLETION;
+		this.completedAt = completedAt;
+	}
+
 	// ========================================
 	// 피드백 카운트 및 토큰 보상 비즈니스 메서드
 	// ========================================
@@ -399,22 +424,21 @@ public class Customer extends User {
 	 * - BASIC 멤버십: 토큰 사용 선택 가능
 	 *   - useToken=true → 토큰 차감 후 트레이너가 볼 수 있음
 	 *   - useToken=false → 기록용으로만 생성 (트레이너가 볼 수 없음)
-	 * - PREMIUM 멤버십: 토큰 사용 불가
+	 * - PREMIUM 멤버십:
+	 *   - useToken=true → 토큰 차감 없이 사용 기록만 남김 (트레이너가 볼 수 있음)
+	 *   - useToken=false → 기록도 남기지 않음 (트레이너가 볼 수 없음)
 	 *
 	 * @param useToken       토큰 사용 여부
 	 * @param requiredTokens 차감할 토큰 개수 (서버에서 고정된 값)
-	 * @return 실제로 토큰이 차감되었는지 여부
-	 * @throws FeedbackRequestException PREMIUM이 토큰 사용 시도 또는 토큰 부족 시
+	 * @return 토큰 사용 기록 여부 (PREMIUM은 차감 없이 true 반환 가능, BASIC은 실제 차감 시에만 true)
+	 * @throws FeedbackRequestException BASIC 멤버십에서 토큰 부족 시
 	 */
 	public boolean validateAndConsumeTokenForFeedback(Boolean useToken, int requiredTokens) {
 		// PREMIUM 멤버십인 경우
 		if (this.membershipLevel == MembershipLevel.PREMIUM) {
-			if (Boolean.TRUE.equals(useToken)) {
-				throw new FeedbackRequestException(
-					FeedbackRequestErrorStatus.TOKEN_NOT_ALLOWED_FOR_PREMIUM_MEMBERSHIP);
-			}
-			// PREMIUM은 토큰 없이 자유롭게 생성 가능
-			return false;
+			// PREMIUM은 토큰 차감 없이 자유롭게 생성 가능
+			// useToken=true면 기록상으로만 토큰 사용으로 표시 (실제 차감은 없음)
+			return Boolean.TRUE.equals(useToken);
 		}
 
 		// BASIC 멤버십인 경우
@@ -437,5 +461,13 @@ public class Customer extends User {
 
 	public void setLeveltestStatus(LeveltestStatus leveltestStatus) {
 		this.leveltestStatus = leveltestStatus;
+	}
+
+	public void markAsDeleted() {  // 탈퇴처리, 소프트 딜리트
+		this.deletedAt = LocalDateTime.now();
+	}
+
+	public boolean isDeleted() {
+		return this.deletedAt != null;
 	}
 }

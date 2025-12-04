@@ -103,7 +103,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 				return buildAfterCompletionDaySummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			} else {
-				return buildAfterCompletionGeneralSummary(
+				return buildAfterCompletionSwingSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			}
 		}
@@ -195,7 +195,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		}
 
 		if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
-			log.warn("Trainer {} tried to access customer {} who is assigned to trainer {}",
+			log.warn("Trainer {} tried to access customer {} who is assigned to user {}",
 				trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
 			throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
 		}
@@ -366,7 +366,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	/**
 	 * 완강 후 스윙 주간 요약 생성
 	 */
-	private AfterCompletedSwingWeeklySummaryDTO buildAfterCompletionGeneralSummary(
+	private AfterCompletedSwingWeeklySummaryDTO buildAfterCompletionSwingSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -562,7 +562,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 손실 매매 피드백 목록 조회 (완강 전, pnl < 0)
+		// 3. 손실 매매 피드백 목록 조회 (완강 전, pnl <= 0)
 		List<FeedbackRequest> lossFeedbacks = feedbackRequestRepository
 			.findLossFeedbacksByCustomerAndYearAndMonthAndWeek(customerId, year, month, week);
 

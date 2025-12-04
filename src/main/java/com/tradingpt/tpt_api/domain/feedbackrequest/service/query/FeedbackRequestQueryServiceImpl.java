@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,7 +35,9 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -229,15 +229,22 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	}
 
 	@Override
-	public MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(Long trainerId, Pageable pageable) {
-		// 1. 트레이너 존재 여부 확인
-		if (!userRepository.existsById(trainerId)) {
-			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
-		}
+	public MyCustomerNewFeedbackListResponseDTO getMyCustomerNewFeedbackRequests(Long userId, Pageable pageable) {
+		// 1. 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 2. Slice로 새로운 피드백 요청 조회
-		Slice<FeedbackRequest> feedbackSlice = feedbackRequestRepository
-			.findNewFeedbackRequestsByTrainer(trainerId, pageable);
+		// 2. Role에 따라 다른 조회 로직 실행
+		Slice<FeedbackRequest> feedbackSlice;
+		if (user.getRole() == Role.ROLE_ADMIN) {
+			// ADMIN: 모든 고객의 새로운 프리미엄 피드백 요청 조회
+			feedbackSlice = feedbackRequestRepository.findAllNewPremiumFeedbackRequests(pageable);
+			log.info("Admin user (ID: {}) fetching all new premium feedback requests", userId);
+		} else {
+			// TRAINER: 담당 고객의 새로운 피드백 요청만 조회
+			feedbackSlice = feedbackRequestRepository.findNewFeedbackRequestsByTrainer(userId, pageable);
+			log.info("Trainer (ID: {}) fetching assigned customers' new feedback requests", userId);
+		}
 
 		// 3. DTO 변환
 		List<MyCustomerNewFeedbackListItemDTO> feedbackDTOs = feedbackSlice.getContent()
@@ -320,10 +327,10 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	 *
 	 * 접근 규칙:
 	 * 1. 베스트 피드백: 누구나 조회 가능 (로그인/비로그인 무관)
-	 * 2. 트레이너/어드민: 모든 피드백 조회 가능
-	 * 3. 일반 피드백 + 구독자(PREMIUM): 모든 피드백 조회 가능
-	 * 4. 일반 피드백 + 비구독자: 자신의 피드백만 조회 가능
-	 * 5. 비로그인 + 일반 피드백: 접근 불가
+	 * 2. 트레이너가 작성한 피드백: 누구나 조회 가능 (로그인/비로그인 무관)
+	 * 3. 일반 피드백 + 비로그인: 접근 불가
+	 * 4. 일반 피드백 + UID 승인된 사용자: 모든 피드백 조회 가능 (BASIC/PREMIUM 무관)
+	 * 5. 일반 피드백 + UID 미승인 사용자: 접근 불가
 	 *
 	 * @param feedbackRequest 조회할 피드백
 	 * @param currentUserId 현재 사용자 ID (null 가능)
@@ -336,61 +343,46 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			return;
 		}
 
+		// ✅ 2. 트레이너가 작성한 피드백도 누구나 접근 가능
+		if (Boolean.TRUE.equals(feedbackRequest.getIsTrainerWritten())) {
+			log.debug("Trainer written feedback access allowed for feedbackId: {}", feedbackRequest.getId());
+			return;
+		}
+
 		// 일반 피드백일 경우
-		// ✅ 2. 비로그인 사용자는 일반 피드백 접근 불가
+		// ✅ 3. 비로그인 사용자는 일반 피드백 접근 불가
 		if (currentUserId == null) {
 			log.warn("Unauthorized access attempt to feedback: {}", feedbackRequest.getId());
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.LOGIN_REQUIRED);
 		}
 
-		// ✅ 3. 트레이너/어드민 권한 확인
-		if (isTrainerOrAdmin()) {
-			log.debug("Trainer/Admin access allowed for feedbackId: {}", feedbackRequest.getId());
-			return;
-		}
-
-		// ✅ 4. 자신의 피드백인 경우 접근 허용
-		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
-			log.debug("Owner access allowed for feedbackId: {}", feedbackRequest.getId());
-			return;
-		}
-
-		// ✅ 5. 구독자(PREMIUM)인 경우 모든 피드백 접근 가능
+		// ✅ 4. UID 승인된 사용자만 모든 피드백 접근 가능
 		Customer customer = (Customer)userRepository.findById(currentUserId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		if (customer.getMembershipLevel() == MembershipLevel.PREMIUM) {
-			log.debug("Premium member access allowed for feedbackId: {}", feedbackRequest.getId());
+		if (isUidApproved(customer.getUserStatus())) {
+			log.debug("UID approved user access allowed for feedbackId: {}", feedbackRequest.getId());
 			return;
 		}
 
-		// ✅ 6. 그 외의 경우 접근 거부 (비구독자가 다른 사람의 피드백 조회 시도)
-		log.warn("Access denied for user {} to feedback {}", currentUserId, feedbackRequest.getId());
-		throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+		// ✅ 5. UID 미승인 사용자는 접근 거부
+		log.warn("Access denied for UID unapproved user {} to feedback {}", currentUserId, feedbackRequest.getId());
+		throw new FeedbackRequestException(FeedbackRequestErrorStatus.UID_NOT_APPROVED);
 	}
 
 	/**
-	 * 현재 사용자가 트레이너 또는 어드민 권한을 가지고 있는지 확인
-	 *
-	 * @return 트레이너/어드민이면 true, 아니면 false
+	 * UID 승인 상태 확인
+	 * UID_APPROVED, PAID_BEFORE_TRAINER_ASSIGNING, TRAINER_ASSIGNED 상태가 승인된 상태
 	 */
-	private boolean isTrainerOrAdmin() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		if (authentication == null || !authentication.isAuthenticated()) {
-			return false;
-		}
-
-		return authentication.getAuthorities().stream()
-			.anyMatch(authority ->
-				authority.getAuthority().equals("ROLE_TRAINER") ||
-					authority.getAuthority().equals("ROLE_ADMIN")
-			);
+	private boolean isUidApproved(UserStatus userStatus) {
+		return userStatus == UserStatus.UID_APPROVED
+			|| userStatus == UserStatus.PAID_BEFORE_TRAINER_ASSIGNING
+			|| userStatus == UserStatus.TRAINER_ASSIGNED;
 	}
 
 	@Override
 	public TrainerWrittenFeedbackListResponseDTO getTrainerWrittenFeedbacks(Pageable pageable) {
-		log.info("Fetching trainer-written feedback requests with page={}, size={}",
+		log.info("Fetching user-written feedback requests with page={}, size={}",
 			pageable.getPageNumber(), pageable.getPageSize());
 
 		// 1. Slice로 트레이너 작성 매매일지 조회
@@ -406,7 +398,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		// 3. SliceInfo 생성
 		SliceInfo sliceInfo = SliceInfo.of(feedbackSlice);
 
-		log.info("Found {} trainer-written feedback requests, hasNext={}",
+		log.info("Found {} user-written feedback requests, hasNext={}",
 			feedbackDTOs.size(), sliceInfo.getHasNext());
 
 		return TrainerWrittenFeedbackListResponseDTO.of(feedbackDTOs, sliceInfo);

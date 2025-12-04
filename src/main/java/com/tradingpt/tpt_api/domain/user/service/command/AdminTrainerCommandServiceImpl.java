@@ -8,6 +8,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -229,6 +230,8 @@ public class AdminTrainerCommandServiceImpl implements AdminTrainerCommandServic
 
 		// 3) 트레이너 재배정
 		customer.setAssignedTrainer(trainer);
+
+		customer.setUserStatus(UserStatus.TRAINER_ASSIGNED);
 
 		// 5) 반환: 성공적으로 변경된 고객 ID
 		return customer.getId();

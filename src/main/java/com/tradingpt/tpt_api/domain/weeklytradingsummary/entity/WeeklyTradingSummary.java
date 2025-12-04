@@ -3,7 +3,7 @@ package com.tradingpt.tpt_api.domain.weeklytradingsummary.entity;
 import java.time.LocalDateTime;
 
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
@@ -53,8 +53,8 @@ public class WeeklyTradingSummary extends BaseEntity {
 	private Customer customer;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "trainer_id", nullable = true)  // 멤버십 미가입 고객은 트레이너가 없을 수 있음
-	private Trainer trainer;
+	@JoinColumn(name = "evaluator_id", nullable = true)  // 평가 작성자 (ADMIN 또는 TRAINER, nullable)
+	private User evaluator;
 
 	/**
 	 * 필드
@@ -103,7 +103,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	 * @param processedProfitAnalysis 처리된 수익 분석 (nullable)
 	 * @param processedLossAnalysis   처리된 손실 분석 (nullable)
 	 * @param customer                고객
-	 * @param trainer                 트레이너
+	 * @param evaluator               평가 작성자 (ADMIN 또는 TRAINER, nullable)
 	 * @param courseStatus            코스 상태
 	 * @param investmentType          투자 타입
 	 * @param year                    연도
@@ -117,7 +117,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 		String processedProfitAnalysis,
 		String processedLossAnalysis,
 		Customer customer,
-		Trainer trainer,
+		User evaluator,
 		CourseStatus courseStatus,
 		InvestmentType investmentType,
 		Integer year,
@@ -128,7 +128,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 
 		return WeeklyTradingSummary.builder()
 			.customer(customer)
-			.trainer(trainer)
+			.evaluator(evaluator)
 			.courseStatus(courseStatus)
 			.investmentType(investmentType)
 			.period(weeklyPeriod)
@@ -251,7 +251,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	 *
 	 * @param processedMemo  처리된 메모 내용
 	 * @param customer       고객
-	 * @param trainer        담당 트레이너 (nullable)
+	 * @param evaluator      평가 작성자 (nullable, 고객 메모 생성 시에는 보통 null)
 	 * @param investmentType 투자 타입
 	 * @param year           연도
 	 * @param month          월
@@ -261,7 +261,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	public static WeeklyTradingSummary createForCustomerMemo(
 		String processedMemo,
 		Customer customer,
-		Trainer trainer,
+		User evaluator,
 		InvestmentType investmentType,
 		Integer year,
 		Integer month,
@@ -269,7 +269,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	) {
 		return WeeklyTradingSummary.builder()
 			.customer(customer)
-			.trainer(trainer)
+			.evaluator(evaluator)
 			.courseStatus(CourseStatus.BEFORE_COMPLETION)
 			.investmentType(investmentType)
 			.period(WeeklyPeriod.of(year, month, week))
@@ -278,25 +278,26 @@ public class WeeklyTradingSummary extends BaseEntity {
 	}
 
 	/**
-	 * 트레이너 평가용 주간 요약 생성 (AFTER_COMPLETION + DAY)
+	 * 평가 작성용 주간 요약 생성 (AFTER_COMPLETION + DAY)
+	 * ADMIN 또는 TRAINER가 평가를 작성할 때 사용
 	 *
 	 * @param processedEvaluation     처리된 주간 평가
 	 * @param processedProfitAnalysis 처리된 수익 매매 분석
 	 * @param processedLossAnalysis   처리된 손실 매매 분석
 	 * @param customer                고객
-	 * @param trainer                 담당 트레이너
+	 * @param evaluator               평가 작성자 (ADMIN 또는 TRAINER)
 	 * @param investmentType          투자 타입
 	 * @param year                    연도
 	 * @param month                   월
 	 * @param week                    주
 	 * @return 새로운 WeeklyTradingSummary 엔티티
 	 */
-	public static WeeklyTradingSummary createForTrainerEvaluation(
+	public static WeeklyTradingSummary createForEvaluation(
 		String processedEvaluation,
 		String processedProfitAnalysis,
 		String processedLossAnalysis,
 		Customer customer,
-		Trainer trainer,
+		User evaluator,
 		InvestmentType investmentType,
 		Integer year,
 		Integer month,
@@ -304,7 +305,7 @@ public class WeeklyTradingSummary extends BaseEntity {
 	) {
 		return WeeklyTradingSummary.builder()
 			.customer(customer)
-			.trainer(trainer)
+			.evaluator(evaluator)
 			.courseStatus(CourseStatus.AFTER_COMPLETION)
 			.investmentType(investmentType)
 			.period(WeeklyPeriod.of(year, month, week))

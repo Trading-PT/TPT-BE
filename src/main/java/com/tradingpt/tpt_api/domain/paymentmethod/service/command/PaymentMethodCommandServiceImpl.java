@@ -2,6 +2,13 @@ package com.tradingpt.tpt_api.domain.paymentmethod.service.command;
 
 import static com.tradingpt.tpt_api.domain.subscription.enums.Status.*;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
+import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureErrorStatus;
+import com.tradingpt.tpt_api.domain.lecture.exception.LectureException;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureProgressRepository;
+import com.tradingpt.tpt_api.domain.lecture.repository.LectureRepository;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -58,6 +65,9 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 	private final SubscriptionPlanRepository subscriptionPlanRepository;
 	private final SubscriptionCommandService subscriptionCommandService;
 	private final PaymentMethodTransactionService paymentMethodTransactionService;
+	private final LectureRepository lectureRepository;
+	private final LectureProgressRepository lectureProgressRepository;
+
 
 	@Override
 	public BillingKeyInitResponseDTO initBillingKeyRegistration(Long customerId) {
@@ -184,6 +194,7 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 					activePlan.getId(),
 					paymentMethod
 				);
+				createProLectureProgressOnSubscribe(customer);
 
 				log.info("신규 구독 생성 및 첫 결제 완료: customerId={}, subscriptionId={}, status={}",
 					customerId, subscription.getId(), subscription.getStatus());
@@ -303,10 +314,19 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 		} catch (Exception e) {
 			log.error("빌키 삭제 API 호출 실패", e);
 
-			paymentMethod.setPgResponseCode("통신 실패", e.getMessage());
+			// PG사 에러 응답을 DB에 저장 (별도 트랜잭션으로 커밋 - 메인 트랜잭션 롤백과 독립적)
+			// REQUIRES_NEW 전파로 에러 정보는 메인 트랜잭션 실패 시에도 DB에 보존됨
+			paymentMethodTransactionService.updatePgResponseInNewTransaction(
+				paymentMethodId,
+				"통신 실패",
+				e.getMessage()
+			);
 
+			// PG사의 구체적인 에러 메시지를 사용자에게 전달
+			String userMessage = e.getMessage() != null ? e.getMessage() : "빌링키 삭제에 실패했습니다.";
 			throw new PaymentMethodException(
-				PaymentMethodErrorStatus.BILLING_KEY_DELETION_FAILED
+				PaymentMethodErrorStatus.BILLING_KEY_DELETION_FAILED,
+				userMessage
 			);
 		}
 
@@ -338,4 +358,55 @@ public class PaymentMethodCommandServiceImpl implements PaymentMethodCommandServ
 
 		return prefix + "*".repeat(maskedLength) + suffix;
 	}
+
+	/**
+	 * 구독 시 PRO 강의에 대한 초기/다음 progress 생성
+	 * - openChapterNumber == null 또는 0 -> 1로 설정, PRO lecture_order = 1 에 대해 progress 생성
+	 * - openChapterNumber >= 1           -> (openChapterNumber + 1) lecture_order 에 대해 progress 생성
+	 */
+	private void createProLectureProgressOnSubscribe(Customer customer) {
+
+		Integer openChapterNumber = customer.getOpenChapterNumber(); // Integer 또는 Long 가정
+		int targetLectureOrder;
+
+		if (openChapterNumber == null || openChapterNumber < 1) {
+			// 처음 구독하는 경우
+			targetLectureOrder = 1;
+		} else {
+			// 이미 열려있는 PRO 강의가 있는 경우 → 그 다음 강의
+			targetLectureOrder = openChapterNumber + 1;
+		}
+
+		// PRO 챕터 + 해당 lecture_order 의 강의 찾기
+		// ChapterType / MembershipLevel 이름은 프로젝트에 맞게 맞춰줘
+		Lecture targetLecture = lectureRepository
+				.findByChapter_ChapterTypeAndLectureOrder(ChapterType.PRO, targetLectureOrder)
+				.orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
+		// customer 의 openChapterNumber 갱신
+		customer.updateOpenChapterNumber(targetLectureOrder); // 없으면 setter 사용: customer.setOpenChapterNumber(targetLectureOrder);
+
+		// 이미 progress 가 있다면 중복 생성 방지
+		boolean exists = lectureProgressRepository.existsByCustomerAndLecture(customer, targetLecture);
+		if (exists) {
+			log.info("이미 존재하는 PRO lecture_progress: customerId={}, lectureId={}",
+					customer.getId(), targetLecture.getId());
+			return;
+		}
+
+		// watchedSeconds = 0, lastPositionedSeconds = 0 으로 초기 progress 생성
+		LectureProgress progress = LectureProgress.builder()
+				.customer(customer)
+				.lecture(targetLecture)
+				.watchedSeconds(0)
+				.lastPositionSeconds(0)
+				.isCompleted(false)
+				.lastWatchedAt(null)
+				.build();
+
+		lectureProgressRepository.save(progress);
+
+		log.info("PRO 강의 progress 생성 완료: customerId={}, lectureId={}, targetLectureOrder={}",
+				customer.getId(), targetLecture.getId(), targetLectureOrder);
+	}
+
 }

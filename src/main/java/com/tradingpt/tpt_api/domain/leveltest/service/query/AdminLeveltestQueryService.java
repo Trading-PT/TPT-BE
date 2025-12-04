@@ -1,5 +1,7 @@
 package com.tradingpt.tpt_api.domain.leveltest.service.query;
 
+import com.tradingpt.tpt_api.domain.leveltest.dto.response.AdminLeveltestAttemptHistoryResponseDTO;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -18,4 +20,6 @@ public interface AdminLeveltestQueryService {
 	Page<AdminLeveltestAttemptListResponseDTO> getAttemptsByStatus(LevelTestStaus status, Pageable pageable);
 
 	AdminLeveltestAttemptDetailResponseDTO getAttemptDetail(Long attemptId);
+
+	List<AdminLeveltestAttemptHistoryResponseDTO> getAttemptHistoryByUser(Long userId);
 }

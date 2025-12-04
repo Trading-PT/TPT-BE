@@ -6,4 +6,6 @@ public interface AdminChapterCommandService {
     Long createChapter(ChapterCreateRequestDTO req);
 
     void deleteChapter(Long chapterId);
+
+    Long updateChapter(Long chapterId, ChapterCreateRequestDTO request);
 }

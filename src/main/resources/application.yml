@@ -5,10 +5,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE}
 
-  session:
-    store-type: redis
-    timeout: 7d
-
   # 공통 데이터소스 설정
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -38,8 +34,8 @@ spring:
   # 공통 세션 설정
   servlet:
     session:
+      timeout: 24h
       store-type: redis
-      timeout: 7d
       tracking-modes: cookie
     multipart:
       enabled: true
@@ -53,13 +49,14 @@ spring:
 
   # 메일 설정
   mail:
-    host: smtp.gmail.com
+    host: smtp-relay.gmail.com
     port: 587
-    username: ${MAIL_NAME}
-    password: ${MAIL_PASSWORD}
     properties:
-      mail.smtp.auth: true
+      mail.smtp.auth: false
       mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.debug: true
+
 
   # OAuth2 설정
   security:
@@ -134,12 +131,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus  # metrics 추가
   endpoint:
     health:
       show-details: when-authorized
-  info:
-    env:
+    metrics:
       enabled: true
 
 # 애플리케이션 설정

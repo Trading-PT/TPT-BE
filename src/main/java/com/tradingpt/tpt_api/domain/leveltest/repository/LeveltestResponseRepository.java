@@ -22,4 +22,6 @@ public interface LeveltestResponseRepository extends JpaRepository<LevelTestResp
     order by r.id
   """)
 	List<LevelTestResponse> findAllByAttemptIdFetchQuestion(@Param("attemptId") Long attemptId);
+
+	void deleteAllByLeveltestQuestion_Id(Long questionId);
 }

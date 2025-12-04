@@ -120,7 +120,7 @@ public class CreateFeedbackRequestDTO {
 	@Schema(description = "매매 복기")
 	private String tradingReview;
 
-	@Schema(description = "토큰 사용 여부 (BASIC 멤버십 전용)", example = "true")
+	@Schema(description = "토큰 사용 여부", example = "true")
 	private Boolean useToken;
 
 	// ========================================
@@ -228,41 +228,112 @@ public class CreateFeedbackRequestDTO {
 			&& calculatedPeriod.week() == feedbackWeek;
 	}
 
-	/**
-	 * 완강 전 필드 검증
-	 */
-	@AssertTrue(message = "완강 전 요청은 완강 전 필드 입력이 필요합니다.")
+	// ========================================
+	// 완강 전 전용 필드 개별 검증
+	// ========================================
+
+	@AssertTrue(message = "포지션 진입 근거 입력이 필요합니다.")
 	@JsonIgnore
-	public boolean isBeforeCompletionFieldsValid() {
-		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
-			return positionStartReason != null && !positionStartReason.isBlank()
-				&& positionEndReason != null && !positionEndReason.isBlank();
+	public boolean isPositionStartReasonValid() {
+		if (courseStatus != CourseStatus.BEFORE_COMPLETION) {
+			return true;
 		}
-		return true;
+		return positionStartReason != null && !positionStartReason.isBlank();
 	}
 
-	/**
-	 * 완강 후 필드 검증 (DAY/SWING 공통)
-	 */
-	@AssertTrue(message = "완강 후 요청은 완강 후 필드 입력이 필요합니다.")
+	@AssertTrue(message = "포지션 탈출 근거 입력이 필요합니다.")
 	@JsonIgnore
-	public boolean isAfterCompletionFieldsValid() {
-		if (courseStatus == CourseStatus.AFTER_COMPLETION) {
-			boolean commonValid = directionFrameExists != null
-				&& directionFrame != null && !directionFrame.isBlank()
-				&& mainFrame != null && !mainFrame.isBlank()
-				&& subFrame != null && !subFrame.isBlank()
-				&& trendAnalysis != null && !trendAnalysis.isBlank()
-				&& entryPoint != null;
-
-			// SWING 타입은 추가로 포지션 날짜 필드가 필요
-			if (investmentType == InvestmentType.SWING) {
-				return commonValid && positionStartDate != null && positionEndDate != null;
-			}
-
-			return commonValid;
+	public boolean isPositionEndReasonValid() {
+		if (courseStatus != CourseStatus.BEFORE_COMPLETION) {
+			return true;
 		}
-		return true;
+		return positionEndReason != null && !positionEndReason.isBlank();
+	}
+
+	// ========================================
+	// 완강 후 전용 필드 개별 검증 (DAY/SWING 공통)
+	// ========================================
+
+	@AssertTrue(message = "디렉션 프레임 존재 여부 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isDirectionFrameExistsValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return directionFrameExists != null;
+	}
+
+	@AssertTrue(message = "디렉션 프레임 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isDirectionFrameValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return directionFrame != null && !directionFrame.isBlank();
+	}
+
+	@AssertTrue(message = "메인 프레임 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isMainFrameValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return mainFrame != null && !mainFrame.isBlank();
+	}
+
+	@AssertTrue(message = "서브 프레임 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isSubFrameValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return subFrame != null && !subFrame.isBlank();
+	}
+
+	@AssertTrue(message = "추세 분석 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isTrendAnalysisValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return trendAnalysis != null && !trendAnalysis.isBlank();
+	}
+
+	@AssertTrue(message = "진입 타점 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isEntryPointValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		return entryPoint != null;
+	}
+
+	// ========================================
+	// SWING 전용 필드 개별 검증
+	// ========================================
+
+	@AssertTrue(message = "포지션 시작 날짜 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isPositionStartDateValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		if (investmentType != InvestmentType.SWING) {
+			return true;
+		}
+		return positionStartDate != null;
+	}
+
+	@AssertTrue(message = "포지션 종료 날짜 입력이 필요합니다.")
+	@JsonIgnore
+	public boolean isPositionEndDateValid() {
+		if (courseStatus != CourseStatus.AFTER_COMPLETION) {
+			return true;
+		}
+		if (investmentType != InvestmentType.SWING) {
+			return true;
+		}
+		return positionEndDate != null;
 	}
 
 	/**

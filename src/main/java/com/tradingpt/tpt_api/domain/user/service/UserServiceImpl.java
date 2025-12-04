@@ -53,25 +53,30 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public FindIdResponseDTO findUserId(String email) {
-		// email 기준으로 여러 User 가져오기
+
+		// 1) email 기준으로 전체 유저 조회
 		List<User> users = userRepository.findAllByEmail(email);
 
-		// LOCAL 계정만 필터링
-		User localUser = users.stream()
-			.filter(u -> u.getProvider() == Provider.LOCAL)
-			.findFirst()
-			.orElse(null); // 없으면 null 반환
+		// 2) LOCAL 계정만 필터링
+		List<User> localUsers = users.stream()
+				.filter(u -> u.getProvider() == Provider.LOCAL)
+				.toList();
 
-		// LOCAL 계정이 없을 경우 → null 반환
-		if (localUser == null) {
+		// 3) LOCAL 계정이 하나도 없으면 null 또는 빈 DTO 반환
+		if (localUsers.isEmpty()) {
 			return null;
 		}
 
-		// LOCAL 유저 존재 시 DTO 반환
+		// 4) LOCAL 계정들의 username 리스트로 반환
+		List<String> usernames = localUsers.stream()
+				.map(User::getUsername)
+				.toList();
+
 		return FindIdResponseDTO.builder()
-			.userName(localUser.getUsername())
-			.build();
+				.usernames(usernames)   // ← 변경
+				.build();
 	}
+
 
 	@Override
 	@Transactional(readOnly = true)
@@ -126,11 +131,17 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void deleteAccount(Long userId) {
 		Customer customer = customerRepository.findById(userId)
-			.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
+				.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
 
-		customerRepository.delete(customer);
+		// 이미 탈퇴 처리된 계정이면 그냥 리턴하거나 예외 던질지 선택
+		if (customer.isDeleted()) {
+			return;
+		}
 
+		// 실제 삭제 대신 "탈퇴 상태 + 삭제 예정일 기록"
+		customer.markAsDeleted();
 	}
+
 
 	@Transactional
 	@Override

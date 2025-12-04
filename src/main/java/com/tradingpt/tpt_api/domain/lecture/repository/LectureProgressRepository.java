@@ -1,9 +1,12 @@
 package com.tradingpt.tpt_api.domain.lecture.repository;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import com.tradingpt.tpt_api.domain.lecture.entity.LectureProgress;
+import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -27,4 +30,18 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
           AND lp.isCompleted = true
         """)
     int countCompletedProLectures(@Param("customerId") Long customerId);
+
+    boolean existsByCustomerAndLecture(Customer customer, Lecture lecture);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("delete from LectureProgress lp where lp.lecture.id = :lectureId")
+    void deleteByLectureId(@Param("lectureId") Long lectureId);
+
+    // S3 삭제 + 존재 여부 확인용
+    @Query("""
+        select l from Lecture l
+        left join fetch l.chapter
+        where l.id = :lectureId
+        """)
+    Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
 }

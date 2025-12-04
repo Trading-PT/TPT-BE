@@ -11,7 +11,9 @@ public enum Grade {
 	S("S"),
 	A("A"),
 	B("B"),
+	C("C"),
+	FREE("재량"),
 	NONE("*");
-	
+
 	private final String description;
 }
