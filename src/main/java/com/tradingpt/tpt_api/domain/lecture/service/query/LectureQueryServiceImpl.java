@@ -79,6 +79,9 @@ public class LectureQueryServiceImpl implements LectureQueryService {
         Lecture lecture = lectureRepository.findById(lectureId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
+        LectureProgress lectureProgress = lectureProgressRepository.findById(lectureId)
+                .orElseThrow(() -> new LectureException(LectureErrorStatus.PROGRESS_NOT_FOUND));
+
         Duration duration = Duration.ofHours(3);
 
         String signedUrl = cloudFrontService.createSignedUrl(
