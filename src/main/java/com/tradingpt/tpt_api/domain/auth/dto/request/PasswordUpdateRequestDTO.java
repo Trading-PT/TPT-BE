@@ -24,7 +24,7 @@ public class PasswordUpdateRequestDTO {
             regexp = "^(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,11}$",
             message = "비밀번호는 6~11자이며 숫자와 특수문자를 각각 1개 이상 포함해야 합니다."
     )
-    private String NewPassword;
+    private String newPassword;
 
     @Schema(description = "새로운 비밀번호 확인")
     @NotBlank(message = "password가 필요합니다.")
@@ -32,5 +32,5 @@ public class PasswordUpdateRequestDTO {
             regexp = "^(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,11}$",
             message = "비밀번호는 6~11자이며 숫자와 특수문자를 각각 1개 이상 포함해야 합니다."
     )
-    private String NewPasswordCheck;
+    private String newPasswordCheck;
 }
