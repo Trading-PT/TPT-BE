@@ -131,12 +131,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus  # metrics 추가
   endpoint:
     health:
       show-details: when-authorized
-  info:
-    env:
+    metrics:
       enabled: true
 
 # 애플리케이션 설정
