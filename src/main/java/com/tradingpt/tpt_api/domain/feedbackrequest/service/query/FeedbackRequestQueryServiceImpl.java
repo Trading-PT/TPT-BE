@@ -35,7 +35,7 @@ import com.tradingpt.tpt_api.domain.feedbackrequest.repository.FeedbackRequestRe
 import com.tradingpt.tpt_api.domain.feedbackrequest.util.DateValidationUtil;
 import com.tradingpt.tpt_api.domain.feedbackresponse.entity.FeedbackResponse;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -318,10 +318,10 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 	 *
 	 * 접근 규칙:
 	 * 1. 베스트 피드백: 누구나 조회 가능 (로그인/비로그인 무관)
-	 * 2. 트레이너/어드민: 모든 피드백 조회 가능
-	 * 3. 일반 피드백 + 구독자(PREMIUM): 모든 피드백 조회 가능
-	 * 4. 일반 피드백 + 비구독자: 자신의 피드백만 조회 가능
-	 * 5. 비로그인 + 일반 피드백: 접근 불가
+	 * 2. 트레이너가 작성한 피드백: 누구나 조회 가능 (로그인/비로그인 무관)
+	 * 3. 일반 피드백 + 비로그인: 접근 불가
+	 * 4. 일반 피드백 + UID 승인된 사용자: 모든 피드백 조회 가능 (BASIC/PREMIUM 무관)
+	 * 5. 일반 피드백 + UID 미승인 사용자: 접근 불가
 	 *
 	 * @param feedbackRequest 조회할 피드백
 	 * @param currentUserId 현재 사용자 ID (null 가능)
@@ -334,36 +334,41 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 			return;
 		}
 
-		// 트레이너가 작성한 피드백도 누구나 접근 가능
+		// ✅ 2. 트레이너가 작성한 피드백도 누구나 접근 가능
 		if (Boolean.TRUE.equals(feedbackRequest.getIsTrainerWritten())) {
+			log.debug("Trainer written feedback access allowed for feedbackId: {}", feedbackRequest.getId());
 			return;
 		}
 
 		// 일반 피드백일 경우
-		// ✅ 2. 비로그인 사용자는 일반 피드백 접근 불가
+		// ✅ 3. 비로그인 사용자는 일반 피드백 접근 불가
 		if (currentUserId == null) {
 			log.warn("Unauthorized access attempt to feedback: {}", feedbackRequest.getId());
-			throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+			throw new FeedbackRequestException(FeedbackRequestErrorStatus.LOGIN_REQUIRED);
 		}
 
-		// ✅ 3. 자신의 피드백인 경우 접근 허용
-		if (feedbackRequest.getCustomer().getId().equals(currentUserId)) {
-			log.debug("Owner access allowed for feedbackId: {}", feedbackRequest.getId());
-			return;
-		}
-
-		// ✅ 4. 구독자(PREMIUM)인 경우 모든 피드백 접근 가능
+		// ✅ 4. UID 승인된 사용자만 모든 피드백 접근 가능
 		Customer customer = (Customer)userRepository.findById(currentUserId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		if (customer.getMembershipLevel() == MembershipLevel.PREMIUM) {
-			log.debug("Premium member access allowed for feedbackId: {}", feedbackRequest.getId());
+		if (isUidApproved(customer.getUserStatus())) {
+			log.debug("UID approved user access allowed for feedbackId: {}", feedbackRequest.getId());
 			return;
 		}
 
-		// ✅ 5. 그 외의 경우 접근 거부 (비구독자가 다른 사람의 피드백 조회 시도)
-		log.warn("Access denied for user {} to feedback {}", currentUserId, feedbackRequest.getId());
-		throw new FeedbackRequestException(FeedbackRequestErrorStatus.ACCESS_DENIED);
+		// ✅ 5. UID 미승인 사용자는 접근 거부
+		log.warn("Access denied for UID unapproved user {} to feedback {}", currentUserId, feedbackRequest.getId());
+		throw new FeedbackRequestException(FeedbackRequestErrorStatus.UID_NOT_APPROVED);
+	}
+
+	/**
+	 * UID 승인 상태 확인
+	 * UID_APPROVED, PAID_BEFORE_TRAINER_ASSIGNING, TRAINER_ASSIGNED 상태가 승인된 상태
+	 */
+	private boolean isUidApproved(UserStatus userStatus) {
+		return userStatus == UserStatus.UID_APPROVED
+			|| userStatus == UserStatus.PAID_BEFORE_TRAINER_ASSIGNING
+			|| userStatus == UserStatus.TRAINER_ASSIGNED;
 	}
 
 	@Override

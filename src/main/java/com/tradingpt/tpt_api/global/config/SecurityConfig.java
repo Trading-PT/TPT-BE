@@ -295,6 +295,7 @@ public class SecurityConfig {
 				.requestMatchers(HttpMethod.GET, "/api/v1/columns").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/reviews").permitAll()
 				.requestMatchers(HttpMethod.GET, "/api/v1/reviews/statistics").permitAll()
+				.requestMatchers(HttpMethod.GET, "/api/v1/subscription-plans/active").permitAll()
 				.anyRequest().authenticated()
 			)
 			.formLogin(AbstractHttpConfigurer::disable)
