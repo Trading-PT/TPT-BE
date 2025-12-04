@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.response;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,12 +32,20 @@ public class WeeklyProfitFeedbackListResponseDTO {
 	@Schema(description = "이익 매매 피드백 목록")
 	private List<WeeklyFeedbackListItemDTO> profitFeedbacks;
 
+	@Schema(description = "totalAssetPnl 합계", example = "1500000.00")
+	private BigDecimal totalAssetPnlSum;
+
 	public static WeeklyProfitFeedbackListResponseDTO of(
 		Integer year,
 		Integer month,
 		Integer week,
 		List<FeedbackRequest> feedbackRequests
 	) {
+		BigDecimal sum = feedbackRequests.stream()
+			.map(FeedbackRequest::getTotalAssetPnl)
+			.filter(pnl -> pnl != null)
+			.reduce(BigDecimal.ZERO, BigDecimal::add);
+
 		return WeeklyProfitFeedbackListResponseDTO.builder()
 			.year(year)
 			.month(month)
@@ -46,6 +55,7 @@ public class WeeklyProfitFeedbackListResponseDTO {
 					.map(WeeklyFeedbackListItemDTO::from)
 					.collect(Collectors.toList())
 			)
+			.totalAssetPnlSum(sum)
 			.build();
 	}
 }
