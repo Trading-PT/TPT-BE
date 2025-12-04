@@ -47,4 +47,13 @@ public interface LectureRepository extends JpaRepository<Lecture, Long>, Lecture
 
     // 챕터 기준으로 강의 전체 조회
     List<Lecture> findAllByChapter_Id(Long chapterId);
+
+
+    // S3 삭제 + 존재 여부 확인용
+    @Query("""
+        select l from Lecture l
+        left join fetch l.chapter
+        where l.id = :lectureId
+        """)
+    Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
 }

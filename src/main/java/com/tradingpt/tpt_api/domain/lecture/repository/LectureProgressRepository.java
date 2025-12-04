@@ -36,4 +36,12 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from LectureProgress lp where lp.lecture.id = :lectureId")
     void deleteByLectureId(@Param("lectureId") Long lectureId);
+
+    // S3 삭제 + 존재 여부 확인용
+    @Query("""
+        select l from Lecture l
+        left join fetch l.chapter
+        where l.id = :lectureId
+        """)
+    Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
 }
