@@ -118,9 +118,12 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
 
             ChapterBlockDTO chapterDTO = chapterMap.get(chapterId);
 
-            // 무료/유료 판별
+            // 토큰 정보
             Integer requiredTokens = t.get(lecture.requiredTokens);
-            boolean isPaid = (requiredTokens != null && requiredTokens == 0);
+
+            // 유료/무료 판별 - ChapterType 기준 (REGULAR=무료, PRO=유료)
+            var chapterType = t.get(chapter.chapterType);
+            boolean isPaid = chapterType != null && chapterType.isPaid();
 
             // Progress 정보
             Integer watchedSeconds = t.get(lectureProgress.watchedSeconds);
@@ -128,8 +131,8 @@ public class LectureRepositoryImpl implements LectureRepositoryCustom {
             LocalDateTime lastWatchedAt = t.get(lectureProgress.lastWatchedAt);
             LocalDateTime dueDate = t.get(lectureProgress.dueDate);
 
-            // PRO 강의 여부
-            boolean isProLecture = (requiredTokens != null && requiredTokens == 0);
+            // PRO 강의 여부 - ChapterType 기준
+            boolean isProLecture = chapterType != null && chapterType.isPaid();
             if (isProLecture) {
                 totalProLectures += 1;
                 if (Boolean.TRUE.equals(completed)) {
