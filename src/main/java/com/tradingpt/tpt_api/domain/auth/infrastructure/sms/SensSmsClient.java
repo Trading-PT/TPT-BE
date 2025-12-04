@@ -35,15 +35,19 @@ public class SensSmsClient {
         messageService.sendOne(new SingleMessageSendingRequest(m));
     }
 
-    /** 한국 번호 정규화: 하이픈 제거, +82/82 → 0 치환 */
     private static String normalizeKr(String raw) {
         if (raw == null) return null;
+
         String digits = raw.replaceAll("[^0-9+]", "");
+
+        // 한국 번호 (+82 or 82로 시작)
         if (digits.startsWith("+82")) {
             return "0" + digits.substring(3);
-        } else if (digits.startsWith("82")) {
+        }
+        if (digits.startsWith("82")) {
             return "0" + digits.substring(2);
         }
-        return digits;
+
+        return digits;  // +1, +81 등 국제 번호 유지
     }
 }
