@@ -64,8 +64,4 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 	Page<Customer> findByUidUidStartingWithIgnoreCase(String uidPrefix, Pageable pageable);
 
 	Page<Customer> findByNameContainingIgnoreCase(String name, Pageable pageable);
-
-	int countAllByDeletedAtBefore(LocalDateTime time);
-
-	void deleteAllByDeletedAtBefore(LocalDateTime time);
 }
