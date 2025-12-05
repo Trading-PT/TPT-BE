@@ -26,6 +26,9 @@ public class SubscriptionCustomerResponseDTO {
 	@Schema(description = "전화번호")
 	private String phoneNumber;
 
+	@Schema(description = "고객 UID (미등록 시 null)", example = "123456789")
+	private String uid;
+
 	@Schema(description = "배정된 트레이너 이름 (미배정 시 null)")
 	private String trainerName;
 
