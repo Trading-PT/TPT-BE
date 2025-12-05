@@ -85,7 +85,7 @@ public class Review extends BaseEntity {
 
 	@Builder.Default
 	@Enumerated(EnumType.STRING)
-	private Status status = Status.PRIVATE; // 공개 여부
+	private Status status = Status.PUBLIC; // 공개 여부
 
 	@Column(nullable = false)
 	private Integer rating; // 별점 (1-5)
