@@ -13,11 +13,17 @@ public interface WeeklyTradingSummaryQueryService {
 	/**
 	 * 특정 주의 피드백이 존재하는 날짜 목록 조회
 	 *
+	 * <p>권한:
+	 * <ul>
+	 *   <li>ROLE_ADMIN: 모든 고객의 피드백 조회 가능</li>
+	 *   <li>ROLE_TRAINER: 담당 고객의 피드백만 조회 가능</li>
+	 * </ul>
+	 *
 	 * @param year 연도
 	 * @param month 월
 	 * @param week 주차
 	 * @param customerId 고객 ID
-	 * @param trainerId 트레이너 ID
+	 * @param userId 사용자 ID (Admin 또는 Trainer)
 	 * @return 피드백이 존재하는 날짜 목록
 	 */
 	WeeklyDayFeedbackResponseDTO getWeeklyDayFeedback(
@@ -25,18 +31,24 @@ public interface WeeklyTradingSummaryQueryService {
 		Integer month,
 		Integer week,
 		Long customerId,
-		Long trainerId
+		Long userId
 	);
 
 	/**
 	 * 특정 날짜의 피드백 목록 조회
+	 *
+	 * <p>권한:
+	 * <ul>
+	 *   <li>ROLE_ADMIN: 모든 고객의 피드백 조회 가능</li>
+	 *   <li>ROLE_TRAINER: 담당 고객의 피드백만 조회 가능</li>
+	 * </ul>
 	 *
 	 * @param year 연도
 	 * @param month 월
 	 * @param week 주차
 	 * @param day 일
 	 * @param customerId 고객 ID
-	 * @param trainerId 트레이너 ID
+	 * @param userId 사용자 ID (Admin 또는 Trainer)
 	 * @return 특정 날짜의 피드백 목록
 	 */
 	DailyFeedbackListResponseDTO getDailyFeedbackList(
@@ -45,7 +57,7 @@ public interface WeeklyTradingSummaryQueryService {
 		Integer week,
 		Integer day,
 		Long customerId,
-		Long trainerId
+		Long userId
 	);
 
 	/**

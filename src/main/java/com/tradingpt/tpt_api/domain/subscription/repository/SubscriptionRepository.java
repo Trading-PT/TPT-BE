@@ -40,8 +40,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
 
     /**
      * 다음 결제일이 오늘 이전인 활성 구독 조회 (정기 결제 대상)
+     * N+1 쿼리 방지를 위해 customer, paymentMethod를 fetch join
      */
-    @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' " +
+    @Query("SELECT s FROM Subscription s " +
+           "JOIN FETCH s.customer " +
+           "JOIN FETCH s.paymentMethod " +
+           "WHERE s.status = 'ACTIVE' " +
            "AND s.nextBillingDate <= :targetDate " +
            "AND s.paymentMethod IS NOT NULL")
     List<Subscription> findSubscriptionsDueForPayment(@Param("targetDate") LocalDate targetDate);

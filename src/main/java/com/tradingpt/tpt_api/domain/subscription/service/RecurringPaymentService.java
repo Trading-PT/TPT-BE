@@ -64,12 +64,16 @@ public class RecurringPaymentService {
 
 		log.info("정기 결제 대상 구독 수: {}", dueSubscriptions.size());
 
+		// N+1 쿼리 방지: 루프 밖에서 활성 플랜 1회만 조회
+		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
+			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+
 		int successCount = 0;
 		int failureCount = 0;
 
 		for (Subscription subscription : dueSubscriptions) {
 			try {
-				executePaymentForSubscription(subscription);
+				executePaymentForSubscription(subscription, activePlan);
 				successCount++;
 			} catch (Exception e) {
 				log.error("구독 결제 처리 실패: subscriptionId={}", subscription.getId(), e);
@@ -82,16 +86,26 @@ public class RecurringPaymentService {
 	}
 
 	/**
-	 * 단일 구독에 대한 결제 실행
+	 * 단일 구독에 대한 결제 실행 (단일 호출용)
+	 * 구독 생성 시 첫 결제 등 단일 호출 시 사용
 	 *
 	 * @param subscription 구독 엔티티
 	 */
 	public void executePaymentForSubscription(Subscription subscription) {
-		log.info("구독 결제 실행: subscriptionId={}", subscription.getId());
-
-		// 활성화된 구독 플랜 조회
 		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
 			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+		executePaymentForSubscription(subscription, activePlan);
+	}
+
+	/**
+	 * 단일 구독에 대한 결제 실행 (배치 처리용)
+	 * processRecurringPayments()에서 N+1 쿼리 방지를 위해 activePlan을 외부에서 전달
+	 *
+	 * @param subscription 구독 엔티티
+	 * @param activePlan 활성 구독 플랜 (N+1 쿼리 방지를 위해 외부에서 조회하여 전달)
+	 */
+	public void executePaymentForSubscription(Subscription subscription, SubscriptionPlan activePlan) {
+		log.info("구독 결제 실행: subscriptionId={}", subscription.getId());
 
 		// ✅ 결제 수단 검증 (Payment 생성 전에 확인)
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
