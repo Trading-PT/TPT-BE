@@ -40,6 +40,9 @@ public class QLevelTestQuestion extends EntityPathBase<LevelTestQuestion> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final StringPath imageKey = createString("imageKey");

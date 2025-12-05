@@ -10,7 +10,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,7 +25,7 @@ import com.tradingpt.tpt_api.domain.user.dto.request.GiveUserTokenRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.request.UidUpdateRequestDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.PendingUserApprovalRowResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.UserStatusUpdateResponseDTO;
 import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
@@ -79,6 +81,7 @@ public class AdminUserV1Controller {
 			- GET /api/v1/admin/users/search-by-uid?uid=abc&page=0&size=20
 			"""
 	)
+	@Transactional(readOnly = true)
 	@GetMapping("/search-by-uid")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByUid(
@@ -103,6 +106,7 @@ public class AdminUserV1Controller {
 	)
 	@GetMapping("/search-by-name")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	@Transactional(readOnly = true)
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByName(
 		@RequestParam("name") String nameKeyword,
 		@PageableDefault(size = 20) Pageable pageable
@@ -224,32 +228,37 @@ public class AdminUserV1Controller {
 		summary = "신규 구독 고객 목록 조회",
 		description = """
 			신규로 구독한 고객 목록을 조회합니다.
-			
+
 			신규 구독 고객 정의:
 			- ACTIVE 상태의 Subscription 보유
 			- 다음 중 하나에 해당:
 			  1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
 			  2. 트레이너가 아직 배정되지 않은 구독 고객
-			
+
 			조회 정보:
-			- 고객 기본 정보 (ID, 이름, 전화번호)
+			- 고객 기본 정보 (ID, UID, 이름, 전화번호)
 			- 레벨테스트 정보 (응시 여부, 상태, 채점 결과)
 			- 상담 여부
 			- 배정된 트레이너 정보
-			
+
 			레벨테스트 상태:
 			- SUBMITTED: 제출됨
 			- GRADING: 채점 중
 			- GRADED: 채점 완료
-			
+
 			정렬:
 			- 구독 시작일 내림차순 (최신순)
-			
+
+			응답 정보:
+			- totalCount: 신규 구독 고객 총 인원 수
+			- content: 신규 구독 고객 목록
+			- sliceInfo: 페이징 정보
+
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-			
+
 			예시:
 			- GET /api/v1/admin/users/new-subscription-customers
 			- GET /api/v1/admin/users/new-subscription-customers?page=0&size=20
@@ -257,11 +266,21 @@ public class AdminUserV1Controller {
 	)
 	@GetMapping("/new-subscription-customers")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-	public BaseResponse<Slice<NewSubscriptionCustomerResponseDTO>> getNewSubscriptionCustomers(
+	public BaseResponse<NewSubscriptionCustomerSliceResponseDTO> getNewSubscriptionCustomers(
 		@Parameter(description = "페이징 정보 (page, size)")
 		@PageableDefault(size = 20)
 		Pageable pageable
 	) {
 		return BaseResponse.onSuccess(customerQueryService.getNewSubscriptionCustomers(pageable));
+	}
+
+	@Operation(summary = "회원 하드 딜리트(관리자 전용)", description = "고객 및 모든 연관 데이터를 영구 삭제합니다.")
+	@DeleteMapping("/{userId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public BaseResponse<Void> deleteUserHard(
+			@PathVariable Long userId
+	) {
+		adminUserCommandService.deleteUserHard(userId);
+		return BaseResponse.onSuccess(null);
 	}
 }

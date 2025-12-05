@@ -12,4 +12,11 @@ public interface CustomerAssignmentRepository extends JpaRepository<CustomerAssi
     @Modifying
     @Query("delete from CustomerAssignment ca where ca.lecture.id = :lectureId")
     void deleteByLectureId(@Param("lectureId") Long lectureId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM CustomerAssignment ca
+        WHERE ca.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
 }

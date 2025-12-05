@@ -25,12 +25,15 @@ import com.tradingpt.tpt_api.domain.investmenttypehistory.repository.InvestmentT
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.response.PerformanceComparison;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DailyRawData;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.DirectionStatistics;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.dto.projection.WeeklyPerformanceSnapshot;
@@ -61,6 +64,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 
 	private final CustomerRepository customerRepository;
 	private final TrainerRepository trainerRepository;
+	private final UserRepository userRepository;
 	private final FeedbackRequestRepository feedbackRequestRepository;
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final WeeklyTradingSummaryRepository weeklyTradingSummaryRepository;
@@ -115,7 +119,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		Integer month,
 		Integer week,
 		Long customerId,
-		Long trainerId
+		Long userId
 	) {
 		log.info("Fetching days with feedback for customerId={}, year={}, month={}, week={}",
 			customerId, year, month, week);
@@ -127,12 +131,18 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 트레이너 조회
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 3. 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 4. 트레이너 배정 검증
-		validateTrainerAssignment(customer, trainer);
+		// 4. ADMIN이 아닌 경우 (TRAINER인 경우) 담당 고객 검증
+		if (user.getRole() != Role.ROLE_ADMIN) {
+			Trainer trainer = trainerRepository.findById(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+			validateTrainerAssignment(customer, trainer);
+		} else {
+			log.info("Admin user (ID: {}) accessing customer {} weekly day feedback", userId, customerId);
+		}
 
 		// 5. 피드백이 존재하는 날짜 목록 조회
 		List<Integer> days = feedbackRequestRepository
@@ -151,7 +161,7 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		Integer week,
 		Integer day,
 		Long customerId,
-		Long trainerId
+		Long userId
 	) {
 		log.info("Fetching feedbacks for customerId={}, date={}-{}-{} (week {})",
 			customerId, year, month, day, week);
@@ -164,12 +174,18 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 3. 트레이너 조회
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 3. 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 4. 트레이너 배정 검증
-		validateTrainerAssignment(customer, trainer);
+		// 4. ADMIN이 아닌 경우 (TRAINER인 경우) 담당 고객 검증
+		if (user.getRole() != Role.ROLE_ADMIN) {
+			Trainer trainer = trainerRepository.findById(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+			validateTrainerAssignment(customer, trainer);
+		} else {
+			log.info("Admin user (ID: {}) accessing customer {} daily feedback list", userId, customerId);
+		}
 
 		// 5. 특정 날짜의 피드백 목록 조회
 		List<FeedbackRequest> feedbackRequests = feedbackRequestRepository

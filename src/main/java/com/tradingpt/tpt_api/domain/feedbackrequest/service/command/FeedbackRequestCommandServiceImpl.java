@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.UpdateTrainerWrittenResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
 import com.tradingpt.tpt_api.domain.feedbackrequest.exception.FeedbackRequestErrorStatus;
@@ -229,6 +230,30 @@ public class FeedbackRequestCommandServiceImpl implements FeedbackRequestCommand
 		log.info("Best feedbacks updated: {} feedbacks selected", newBestFeedbacks.size());
 
 		return null;
+	}
+
+	@Override
+	public UpdateTrainerWrittenResponseDTO updateTrainerWrittenFeedbacks(List<Long> feedbackRequestIds) {
+		// 1. 피드백 일괄 조회
+		List<FeedbackRequest> feedbacks = feedbackRequestRepository.findAllById(feedbackRequestIds);
+
+		// 2. 요청된 ID가 모두 존재하는지 확인
+		if (feedbacks.size() != feedbackRequestIds.size()) {
+			throw new FeedbackRequestException(
+				FeedbackRequestErrorStatus.FEEDBACK_REQUEST_NOT_FOUND
+			);
+		}
+
+		// 3. 트레이너 작성으로 표시 (Entity 비즈니스 메서드 활용)
+		List<Long> updatedIds = feedbacks.stream()
+			.peek(FeedbackRequest::markAsTrainerWritten)
+			.map(FeedbackRequest::getId)
+			.toList();
+
+		log.info("Trainer-written feedbacks updated: {} feedbacks marked", updatedIds.size());
+
+		// JPA Dirty Checking이 자동으로 UPDATE 처리 (save() 불필요)
+		return UpdateTrainerWrittenResponseDTO.from(updatedIds);
 	}
 
 	// ========================================

@@ -38,12 +38,15 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.entity.MonthlyTradingS
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.Trainer;
+import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +62,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	private final InvestmentTypeHistoryRepository investmentTypeHistoryRepository;
 	private final MonthlyTradingSummaryRepository monthlyTradingSummaryRepository;
 	private final TrainerRepository trainerRepository;
+	private final UserRepository userRepository;
 
 	@Override
 	public YearlySummaryResponseDTO getYearlySummaryResponse(Integer year, Long customerId) {
@@ -108,7 +112,7 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 
 	@Override
 	public MonthlyWeekFeedbackResponseDTO getMonthlyWeekFeedbackResponse(Integer year, Integer month,
-		Long customerId, Long trainerId) {
+		Long customerId, Long userId) {
 
 		// 연도/월 검증
 		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
@@ -117,22 +121,31 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 트레이너 조회
-		Trainer trainer = trainerRepository.findById(trainerId)
-			.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+		// 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 해당 트레이너의 고객이 아니라면 접근할 수 없다.
-		if (customer.getAssignedTrainer() == null) {
-			throw new UserException(UserErrorStatus.TRAINER_NOT_ASSIGNED);
+		// ADMIN이 아닌 경우 (TRAINER인 경우) 담당 고객 검증
+		if (user.getRole() != Role.ROLE_ADMIN) {
+			// 트레이너 조회
+			Trainer trainer = trainerRepository.findById(userId)
+				.orElseThrow(() -> new UserException(UserErrorStatus.TRAINER_NOT_FOUND));
+
+			// 해당 트레이너의 고객이 아니라면 접근할 수 없다.
+			if (customer.getAssignedTrainer() == null) {
+				throw new UserException(UserErrorStatus.TRAINER_NOT_ASSIGNED);
+			}
+
+			if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
+				log.warn("Trainer {} tried to access customer {} who is assigned to user {}",
+					trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
+				throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
+			}
+		} else {
+			log.info("Admin user (ID: {}) accessing customer {} monthly week feedback", userId, customerId);
 		}
 
-		if (!customer.getAssignedTrainer().getId().equals(trainer.getId())) {
-			log.warn("Trainer {} tried to access customer {} who is assigned to user {}",
-				trainer.getId(), customer.getId(), customer.getAssignedTrainer().getId());
-			throw new UserException(UserErrorStatus.NOT_TRAINERS_CUSTOMER);
-		}
-
-		// 5. 피드백이 존재하는 주차 목록 조회
+		// 피드백이 존재하는 주차 목록 조회
 		List<Integer> weeks = feedbackRequestRepository
 			.findWeeksByCustomerIdAndYearAndMonth(customerId, year, month);
 

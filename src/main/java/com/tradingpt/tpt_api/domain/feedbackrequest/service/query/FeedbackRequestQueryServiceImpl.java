@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
@@ -73,9 +74,10 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 
 	@Override
 	public AdminFeedbackResponseDTO getAdminFeedbackListSlice(Pageable pageable) {
-		// 1. 베스트 피드백 3개 조회 및 변환
+		// 1. 베스트 피드백 조회 및 변환 (상수로 개수 제어)
 		List<FeedbackRequest> bestFeedbacks = feedbackRequestRepository
-			.findTop3ByIsBestFeedbackTrueOrderByCreatedAtDesc();
+			.findByIsBestFeedbackTrueOrderByCreatedAtDesc(
+				PageRequest.of(0, FeedbackRequest.MAX_BEST_FEEDBACK_COUNT));
 
 		List<AdminFeedbackCardResponseDTO> bestFeedbackCards = bestFeedbacks.stream()
 			.map(this::toAdminFeedbackCardDTO)
@@ -276,6 +278,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		return AdminFeedbackCardResponseDTO.of(
 			feedback.getId(),
 			feedback.getIsBestFeedback(),
+			feedback.getIsTrainerWritten(),
 			feedback.getCustomer().getUsername(),
 			feedback.getCustomer().getAssignedTrainer() != null ?
 				feedback.getCustomer().getAssignedTrainer().getUsername() : null,

@@ -58,7 +58,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
         LectureProgress progress = lectureProgressRepository
-                .findByLectureIdAndCustomerId(lectureId, userId)
+                .findByLecture_IdAndCustomer_Id(lectureId, userId)
                 .orElse(null);   //소유한 강의가 아닌경우에 progress가 없으므로 null반환(예외 터뜨리면 안됌)
 
         if (progress != null && progress.getDueDate() != null &&
@@ -79,7 +79,7 @@ public class LectureQueryServiceImpl implements LectureQueryService {
         // 시청 권한 확인: LectureProgress가 있어야 시청 가능
         // - PRO 강의: 스케줄러가 자동 생성
         // - 무료 강의: /purchase API로 토큰 구매 시 생성
-        LectureProgress lectureProgress = lectureProgressRepository.findByLectureIdAndCustomerId(lectureId, userId)
+        LectureProgress lectureProgress = lectureProgressRepository.findByLecture_IdAndCustomer_Id(lectureId, userId)
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.PROGRESS_NOT_FOUND));
 
         Duration duration = Duration.ofHours(3);

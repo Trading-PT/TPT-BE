@@ -10,4 +10,6 @@ public interface AdminUserCommandService {
 	void giveUserTokens(Long userId, GiveUserTokenRequestDTO request);
 
 	void updateUserUid(Long userId, String uid);
+
+	void deleteUserHard(Long customerId);
 }

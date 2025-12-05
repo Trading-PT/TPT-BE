@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -62,4 +63,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.subscription.id = :subscriptionId " +
            "AND p.status = 'SUCCESS' ORDER BY p.paidAt DESC LIMIT 1")
     Optional<Payment> findLastSuccessPaymentBySubscriptionId(@Param("subscriptionId") Long subscriptionId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM Payment p
+        WHERE p.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
 }
+

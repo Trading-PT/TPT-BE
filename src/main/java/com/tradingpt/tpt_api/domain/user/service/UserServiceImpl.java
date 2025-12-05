@@ -130,16 +130,16 @@ public class UserServiceImpl implements UserService {
 	@Transactional
 	@Override
 	public void deleteAccount(Long userId) {
-		Customer customer = customerRepository.findById(userId)
+		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new AuthException(AuthErrorStatus.USER_NOT_FOUND));
 
 		// 이미 탈퇴 처리된 계정이면 그냥 리턴하거나 예외 던질지 선택
-		if (customer.isDeleted()) {
+		if (user.isDeleted()) {
 			return;
 		}
 
 		// 실제 삭제 대신 "탈퇴 상태 + 삭제 예정일 기록"
-		customer.markAsDeleted();
+		user.delete();
 	}
 
 

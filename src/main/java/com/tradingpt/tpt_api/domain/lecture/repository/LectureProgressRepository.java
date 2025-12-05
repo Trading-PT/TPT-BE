@@ -20,7 +20,7 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
 
     List<LectureProgress> findByCustomerId(Long customerId);
 
-    Optional<LectureProgress> findByLectureIdAndCustomerId(Long lectureId, Long customerId);
+    Optional<LectureProgress> findByLecture_IdAndCustomer_Id(Long lectureId, Long customerId);
 
     @Query("""
         SELECT COUNT(lp)
@@ -44,4 +44,11 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
         where l.id = :lectureId
         """)
     Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM LectureProgress lp
+        WHERE lp.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
 }

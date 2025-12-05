@@ -21,8 +21,8 @@ public class CourseStatusScheduler {
 
 	private final CustomerRepository customerRepository;
 
-	// 매달 1일 00시
-	@Scheduled(cron = "0 0 0 1 * *")
+	// 매달 1일 00:10 (다른 스케줄러와 시간 분산)
+	@Scheduled(cron = "0 10 0 1 * *")
 	@SchedulerLock(
 		name = "courseStatusMonthlyJob",
 		lockAtLeastFor = "PT1M",

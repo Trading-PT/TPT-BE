@@ -29,6 +29,9 @@ public class QLectureAttachment extends EntityPathBase<LectureAttachment> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final StringPath fileKey = createString("fileKey");
 
     public final StringPath fileUrl = createString("fileUrl");

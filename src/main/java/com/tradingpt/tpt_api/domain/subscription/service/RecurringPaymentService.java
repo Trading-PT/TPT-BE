@@ -17,7 +17,6 @@ import com.tradingpt.tpt_api.domain.paymentmethod.repository.PaymentMethodReposi
 import com.tradingpt.tpt_api.domain.subscription.config.PromotionConfig;
 import com.tradingpt.tpt_api.domain.subscription.entity.Subscription;
 import com.tradingpt.tpt_api.domain.subscription.enums.Status;
-import com.tradingpt.tpt_api.domain.subscription.enums.SubscriptionType;
 import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionErrorStatus;
 import com.tradingpt.tpt_api.domain.subscription.exception.SubscriptionException;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
@@ -65,12 +64,16 @@ public class RecurringPaymentService {
 
 		log.info("정기 결제 대상 구독 수: {}", dueSubscriptions.size());
 
+		// N+1 쿼리 방지: 루프 밖에서 활성 플랜 1회만 조회
+		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
+			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+
 		int successCount = 0;
 		int failureCount = 0;
 
 		for (Subscription subscription : dueSubscriptions) {
 			try {
-				executePaymentForSubscription(subscription);
+				executePaymentForSubscription(subscription, activePlan);
 				successCount++;
 			} catch (Exception e) {
 				log.error("구독 결제 처리 실패: subscriptionId={}", subscription.getId(), e);
@@ -83,16 +86,26 @@ public class RecurringPaymentService {
 	}
 
 	/**
-	 * 단일 구독에 대한 결제 실행
+	 * 단일 구독에 대한 결제 실행 (단일 호출용)
+	 * 구독 생성 시 첫 결제 등 단일 호출 시 사용
 	 *
 	 * @param subscription 구독 엔티티
 	 */
 	public void executePaymentForSubscription(Subscription subscription) {
-		log.info("구독 결제 실행: subscriptionId={}", subscription.getId());
-
-		// 활성화된 구독 플랜 조회
 		SubscriptionPlan activePlan = subscriptionPlanRepository.findByIsActiveTrue()
 			.orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.ACTIVE_SUBSCRIPTION_PLAN_NOT_FOUND));
+		executePaymentForSubscription(subscription, activePlan);
+	}
+
+	/**
+	 * 단일 구독에 대한 결제 실행 (배치 처리용)
+	 * processRecurringPayments()에서 N+1 쿼리 방지를 위해 activePlan을 외부에서 전달
+	 *
+	 * @param subscription 구독 엔티티
+	 * @param activePlan 활성 구독 플랜 (N+1 쿼리 방지를 위해 외부에서 조회하여 전달)
+	 */
+	public void executePaymentForSubscription(Subscription subscription, SubscriptionPlan activePlan) {
+		log.info("구독 결제 실행: subscriptionId={}", subscription.getId());
 
 		// ✅ 결제 수단 검증 (Payment 생성 전에 확인)
 		PaymentMethod paymentMethod = subscription.getPaymentMethod();
@@ -142,8 +155,12 @@ public class RecurringPaymentService {
 			return; // Payment 생성하지 않고 정상 종료
 		}
 
+		// ✅ 결제 실행일이 프로모션 기간 내인지 확인
+		LocalDate today = LocalDate.now();
+		boolean isPromotionPeriod = PromotionConfig.isWithinPromotionPeriod(today);
+
 		// 결제 금액 계산 (프로모션 기간 확인)
-		BigDecimal paymentAmount = calculatePaymentAmount(subscription, activePlan);
+		BigDecimal paymentAmount = calculatePaymentAmount(activePlan, isPromotionPeriod);
 
 		// 첫 결제 여부 확인
 		boolean isFirstPayment = subscription.getLastBillingDate() == null;
@@ -161,12 +178,16 @@ public class RecurringPaymentService {
 			log.info("첫 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
 				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
 		} else {
-			// 정기 결제: 이전 기간 종료일 기준으로 계산
+			// 정기 결제: 결제 실행일 기준으로 계산
 			billingPeriodStart = subscription.getCurrentPeriodEnd().plusDays(1);
-			billingPeriodEnd = billingPeriodStart.plusMonths(1).minusDays(1);
-			nextBillingDate = billingPeriodEnd.plusDays(1);
-			log.info("정기 결제 처리: subscriptionId={}, 청구기간={} ~ {}, 다음결제일={}",
-				subscription.getId(), billingPeriodStart, billingPeriodEnd, nextBillingDate);
+
+			// ✅ 프로모션 기간이면 N개월, 아니면 1개월 추가
+			int monthsToAdd = isPromotionPeriod ? PromotionConfig.PROMOTION_FREE_MONTHS : 1;
+			billingPeriodEnd = today.plusMonths(monthsToAdd).minusDays(1);
+			nextBillingDate = today.plusMonths(monthsToAdd);
+
+			log.info("정기 결제 처리: subscriptionId={}, 프로모션기간={}, 추가개월={}, 청구기간={} ~ {}, 다음결제일={}",
+				subscription.getId(), isPromotionPeriod, monthsToAdd, billingPeriodStart, billingPeriodEnd, nextBillingDate);
 		}
 
 		// 주문번호 생성
@@ -185,18 +206,18 @@ public class RecurringPaymentService {
 			billingPeriodStart.getMonthValue(),
 			billingPeriodStart.getYear());
 
-		// 프로모션 여부 확인
-		boolean isPromotional = paymentAmount.compareTo(BigDecimal.ZERO) == 0 ||
-			paymentAmount.equals(PromotionConfig.PROMOTION_FIRST_PAYMENT_AMOUNT);
+		// 프로모션 여부 확인 (결제 실행일 기준)
+		boolean isPromotional = isPromotionPeriod;
 
 		String promotionDetail = null;
-		if (isPromotional && subscription.getSubscriptionType() == SubscriptionType.PROMOTION) {
-			LocalDate promotionEndDate = PromotionConfig.calculatePromotionEndDate(
-				subscription.getCreatedAt().toLocalDate());
+		if (isPromotional) {
 			promotionDetail = String.format(
-				"프로모션 가입 혜택 (2025.12.10-12.17) - %d개월 무료, 종료일: %s",
+				"프로모션 기간 혜택 (%s ~ %s) - %d개월 구독, 결제일: %s, 다음결제일: %s",
+				PromotionConfig.PROMOTION_START_DATE,
+				PromotionConfig.PROMOTION_END_DATE,
 				PromotionConfig.PROMOTION_FREE_MONTHS,
-				promotionEndDate
+				today,
+				nextBillingDate
 			);
 		}
 
@@ -352,34 +373,23 @@ public class RecurringPaymentService {
 	}
 
 	/**
-	 * 결제 금액 계산 (프로모션 혜택 확인)
+	 * 결제 금액 계산 (결제 실행일 기준 프로모션 확인)
 	 *
-	 * @param subscription 구독
+	 * 프로모션 적용 기준:
+	 * - 결제 실행일이 프로모션 기간 내인 경우 → 프로모션 금액 (0원 또는 설정된 금액)
+	 * - 결제 실행일이 프로모션 기간 외인 경우 → 정상 플랜 가격
+	 *
 	 * @param activePlan 활성 플랜
+	 * @param isPromotionPeriod 결제 실행일이 프로모션 기간 내인지 여부
 	 * @return 결제 금액
 	 */
-	private BigDecimal calculatePaymentAmount(Subscription subscription, SubscriptionPlan activePlan) {
-		LocalDate today = LocalDate.now();
-
-		// 프로모션 구독인 경우 혜택 종료일 확인
-		if (subscription.getSubscriptionType() == SubscriptionType.PROMOTION) {
-			// 구독 생성일 기준 프로모션 혜택 종료일 계산
-			LocalDate subscriptionCreatedAt = subscription.getCreatedAt().toLocalDate();
-			LocalDate promotionEndDate = PromotionConfig.calculatePromotionEndDate(subscriptionCreatedAt);
-
-			log.info("프로모션 구독 결제 금액 계산: subscriptionId={}, 혜택종료일={}, 오늘={}",
-				subscription.getId(), promotionEndDate, today);
-
-			// 프로모션 혜택 기간 내인지 확인
-			if (today.isBefore(promotionEndDate) || today.isEqual(promotionEndDate)) {
-				log.info("프로모션 혜택 기간 내 결제: amount={}", PromotionConfig.PROMOTION_FIRST_PAYMENT_AMOUNT);
-				return PromotionConfig.PROMOTION_FIRST_PAYMENT_AMOUNT;
-			}
-
-			log.info("프로모션 혜택 종료, 정상 금액 결제: amount={}", activePlan.getPrice());
+	private BigDecimal calculatePaymentAmount(SubscriptionPlan activePlan, boolean isPromotionPeriod) {
+		if (isPromotionPeriod) {
+			log.info("프로모션 기간 내 결제: amount={}", PromotionConfig.PROMOTION_PAYMENT_AMOUNT);
+			return PromotionConfig.PROMOTION_PAYMENT_AMOUNT;
 		}
 
-		// 일반 구독 또는 프로모션 기간 종료: 활성 플랜의 가격 사용
+		// 프로모션 기간 외: 활성 플랜의 가격 사용
 		log.info("정상 금액 결제: amount={}", activePlan.getPrice());
 		return activePlan.getPrice();
 	}

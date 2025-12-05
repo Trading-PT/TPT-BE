@@ -47,6 +47,8 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
 	@EntityGraph(attributePaths = "customer")
 	Page<Consultation> findByIsProcessed(Boolean isProcessed, Pageable pageable);
 
+
+
 	/**
 	 * Projection interface (JPA가 자동으로 매핑)
 	 */

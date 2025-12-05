@@ -40,7 +40,7 @@ public class AdminComplaintV1Controller {
         return ResponseEntity.ok(BaseResponse.onSuccess(page));
     }
 
-    @Operation(summary = "민원 단건 조회(관리자)")
+    @Operation(summary = "민원 단건 조회(어드민,트레이너 둘다 가능)")
     @GetMapping("/{complaintId}")
     public ResponseEntity<BaseResponse<ComplaintResponseDTO>> getAdminComplaintById(
             @PathVariable("complaintId") Long complaintId
@@ -49,7 +49,7 @@ public class AdminComplaintV1Controller {
         return ResponseEntity.ok(BaseResponse.onSuccess(dto));
     }
 
-    @Operation(summary = "민원 답변 등록(관리자)", description = "민원에 대한 최초 답변을 등록합니다.")
+    @Operation(summary = "민원 답변 등록(어드민,트레이너 둘다가능)", description = "민원에 대한 최초 답변을 등록합니다.")
     @PostMapping("/{complaintId}/reply")
     public ResponseEntity<BaseResponse<ComplaintResponseDTO>> createReply(
             @PathVariable Long complaintId,
@@ -61,7 +61,7 @@ public class AdminComplaintV1Controller {
         return ResponseEntity.status(HttpStatus.CREATED).body(BaseResponse.onSuccessCreate(dto));
     }
 
-    @Operation(summary = "민원 답변 수정(관리자)", description = "기존 답변 내용을 수정합니다.")
+    @Operation(summary = "민원 답변 수정(어드민,트레니어 둘다 가능)", description = "기존 답변 내용을 수정합니다.")
     @PutMapping("/{complaintId}/reply")
     public ResponseEntity<BaseResponse<ComplaintResponseDTO>> updateReply(
             @PathVariable Long complaintId,

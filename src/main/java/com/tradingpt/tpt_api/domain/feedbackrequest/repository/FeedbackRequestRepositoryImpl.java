@@ -52,13 +52,12 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 	@Override
 	public Slice<FeedbackRequest> findAllFeedbackRequestsSlice(Pageable pageable) {
 		// 1단계: 베스트 피드백 조회 (최대 4개, 고정 수량이므로 전체 로드 OK)
+		// @ManyToOne(customer)만 fetch join - @OneToMany 컬렉션은 batch_size로 지연 로딩
 		List<FeedbackRequest> bestFeedbacks = queryFactory
 			.selectFrom(feedbackRequest)
 			.leftJoin(feedbackRequest.customer).fetchJoin()
-			.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 			.where(feedbackRequest.isBestFeedback.isTrue())
 			.orderBy(feedbackRequest.createdAt.desc())
-			.distinct()
 			.fetch();
 
 		// 실제 베스트 피드백 수 (최대 4개까지만 사용)
@@ -72,14 +71,13 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			// 첫 페이지: 베스트 피드백 + 일반 피드백
 			int regularNeeded = pageSize - actualBestCount;
 
+			// @ManyToOne(customer)만 fetch join - @OneToMany 컬렉션은 batch_size로 지연 로딩
 			List<FeedbackRequest> regularFeedbacks = queryFactory
 				.selectFrom(feedbackRequest)
 				.leftJoin(feedbackRequest.customer).fetchJoin()
-				.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 				.where(feedbackRequest.isBestFeedback.isNull()
 					.or(feedbackRequest.isBestFeedback.isFalse()))
 				.orderBy(feedbackRequest.createdAt.desc())
-				.distinct()
 				.offset(0)
 				.limit(regularNeeded + 1)  // hasNext 확인용 +1
 				.fetch();
@@ -97,14 +95,13 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 			// 2페이지 이후: 일반 피드백만 (베스트 피드백 제외)
 			long regularOffset = (long)pageNumber * pageSize - actualBestCount;
 
+			// @ManyToOne(customer)만 fetch join - @OneToMany 컬렉션은 batch_size로 지연 로딩
 			List<FeedbackRequest> regularFeedbacks = queryFactory
 				.selectFrom(feedbackRequest)
 				.leftJoin(feedbackRequest.customer).fetchJoin()
-				.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 				.where(feedbackRequest.isBestFeedback.isNull()
 					.or(feedbackRequest.isBestFeedback.isFalse()))
 				.orderBy(feedbackRequest.createdAt.desc())
-				.distinct()
 				.offset(regularOffset)
 				.limit(pageSize + 1)  // hasNext 확인용 +1
 				.fetch();
@@ -156,13 +153,12 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 	@Override
 	public Slice<FeedbackRequest> findAllFeedbacksByCreatedAtDesc(Pageable pageable) {
-		// DB 레벨에서 페이징 처리 (Fetch Join으로 N+1 방지)
+		// DB 레벨에서 페이징 처리
+		// @ManyToOne(customer)만 fetch join - @OneToMany 컬렉션은 batch_size로 지연 로딩
 		List<FeedbackRequest> content = queryFactory
 			.selectFrom(feedbackRequest)
 			.leftJoin(feedbackRequest.customer).fetchJoin()
-			.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 			.orderBy(feedbackRequest.createdAt.desc())
-			.distinct()
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize() + 1)  // hasNext 확인용 +1
 			.fetch();
@@ -915,29 +911,23 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 
 	@Override
 	public Slice<FeedbackRequest> findTrainerWrittenFeedbacks(Pageable pageable) {
+		// DB 레벨에서 페이징 처리
+		// @OneToMany 컬렉션은 batch_size로 지연 로딩 (컬렉션 fetch join + 페이징 금지)
 		List<FeedbackRequest> content = queryFactory
 			.selectFrom(feedbackRequest)
-			.leftJoin(feedbackRequest.feedbackRequestAttachments).fetchJoin()
 			.where(feedbackRequest.isTrainerWritten.isTrue())
 			.orderBy(feedbackRequest.createdAt.desc())
-			.distinct()
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize() + 1)  // hasNext 확인용 +1
 			.fetch();
 
-		// 메모리 페이징 (fetchJoin으로 인해)
-		int start = Math.min((int)pageable.getOffset(), content.size());
-		int end = Math.min(start + pageable.getPageSize() + 1, content.size());
-
-		List<FeedbackRequest> pagedContent = start >= content.size()
-			? new ArrayList<>()
-			: content.subList(start, end);
-
-		boolean hasNext = pagedContent.size() > pageable.getPageSize();
+		boolean hasNext = content.size() > pageable.getPageSize();
 
 		if (hasNext) {
-			pagedContent = pagedContent.subList(0, pageable.getPageSize());
+			content = content.subList(0, pageable.getPageSize());
 		}
 
-		return new SliceImpl<>(pagedContent, pageable, hasNext);
+		return new SliceImpl<>(content, pageable, hasNext);
 	}
 
 	@Override

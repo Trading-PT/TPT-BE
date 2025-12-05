@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.user.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.tradingpt.tpt_api.domain.user.enums.Provider;
@@ -111,6 +112,5 @@ public abstract class User extends BaseEntity {
 
 	// 추상 메서드로 Role 반환
 	public abstract Role getRole();
-
 }
 

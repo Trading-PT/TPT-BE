@@ -144,7 +144,10 @@
       "Bash(aws iam list-user-policies:*)",
       "Bash(aws iam attach-user-policy:*)",
       "Bash(aws ssm get-parameters:*)",
-      "Bash(k6 version:*)"
+      "Bash(k6 version:*)",
+      "Bash(mcp__cloudwatch__describe_log_groups)",
+      "Bash(claude mcp list:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []

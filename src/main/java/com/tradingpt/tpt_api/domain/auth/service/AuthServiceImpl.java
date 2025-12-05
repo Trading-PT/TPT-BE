@@ -7,10 +7,12 @@ import com.tradingpt.tpt_api.domain.user.entity.PasswordHistory;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.repository.PasswordHistoryRepository;
+import com.tradingpt.tpt_api.global.aligo.AligoAlimtalkClient;
 import com.tradingpt.tpt_api.global.web.logout.LogoutHelper;
 import java.time.LocalDate;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +36,7 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
@@ -45,6 +48,7 @@ public class AuthServiceImpl implements AuthService {
 	private final UserRepository userRepository;
 	private final PasswordHistoryRepository passwordHistoryRepository;
 	private final LogoutHelper logoutHelper;
+	private final AligoAlimtalkClient aligoAlimtalkClient;
 
 	/* === 휴대폰 인증 === */
 	@Override
@@ -120,6 +124,13 @@ public class AuthServiceImpl implements AuthService {
 		attachUid(customer, req);     // 자식 먼저 붙이고
 		userRepository.save(customer); // 저장은 한 번 (cascade로 Uid 함께 INSERT)
 		eventTokenService.grantSignupTokens(customer);
+
+		try {
+			aligoAlimtalkClient.sendJoinTalk(customer.getPhoneNumber(), "TPT");
+		} catch (Exception e) {
+			log.error("회원가입 알림톡 발송 실패: {}", e.getMessage());
+		}
+
 
 		verificationService.clearPhoneTrace(phone);
 		verificationService.clearEmailTrace(email);
@@ -198,6 +209,14 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.save(customer);
 		// 여기서 이벤트 토큰 발급
 		eventTokenService.grantSignupTokens(customer);
+
+
+		try {
+			aligoAlimtalkClient.sendJoinTalk(customer.getPhoneNumber(), "TPT");
+		} catch (Exception e) {
+			log.error("회원가입 알림톡 발송 실패: {}", e.getMessage());
+		}
+
 
 		verificationService.clearPhoneTrace(phone);
 		verificationService.clearEmailTrace(email);

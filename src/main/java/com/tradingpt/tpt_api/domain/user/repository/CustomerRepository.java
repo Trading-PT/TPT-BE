@@ -7,6 +7,7 @@ import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -43,6 +44,19 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 	);
 
 	/**
+	 * 특정 완강 상태인 모든 고객을 이름순으로 조회 (ADMIN용)
+	 * 평가 관리 화면에서 ADMIN이 전체 고객 조회 시 사용
+	 *
+	 * @param courseStatus 완강 상태
+	 * @param pageable     페이징 정보
+	 * @return 조건에 맞는 고객 목록 (Slice)
+	 */
+	Slice<Customer> findByCourseStatusOrderByNameAsc(
+		CourseStatus courseStatus,
+		Pageable pageable
+	);
+
+	/**
 	 * 특정 멤버십 레벨이고 만료일이 지난 고객 조회
 	 * 만료 처리 스케줄러에서 사용
 	 *
@@ -63,8 +77,4 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 	Page<Customer> findByUidUidStartingWithIgnoreCase(String uidPrefix, Pageable pageable);
 
 	Page<Customer> findByNameContainingIgnoreCase(String name, Pageable pageable);
-
-	int countAllByDeletedAtBefore(LocalDateTime time);
-
-	void deleteAllByDeletedAtBefore(LocalDateTime time);
 }

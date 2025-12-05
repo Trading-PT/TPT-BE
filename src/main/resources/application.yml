@@ -20,7 +20,7 @@ spring:
     properties:
       hibernate:
         jdbc:
-          batch_size: 20
+          batch_size: 1000
           lob:
             non_contextual_creation: true
         order_inserts: true
@@ -191,3 +191,13 @@ logging:
     org.springframework.security: DEBUG
     com.tradingpt.tpt_api.auth.filter: DEBUG
     org.springframework.security.web.authentication.rememberme: DEBUG
+
+aligo:
+  user-id: "${ALIGO_USER_ID}"
+  api-key: "${ALIGO_API_KEY}"
+  senderkey: "${ALIGO_SENDER_KEY}"
+  sender: "${ALIGO_SENDER_NUMBER}"
+
+  template:
+    join: "${ALIGO_TEMPLATE_JOIN}"              # 회원가입 템플릿 코드
+    join-approved: "${ALIGO_TEMPLATE_JOIN_APPROVED}" # 가입 승인 템플릿 코드

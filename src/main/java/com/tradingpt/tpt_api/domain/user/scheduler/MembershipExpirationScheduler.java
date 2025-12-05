@@ -28,9 +28,9 @@ public class MembershipExpirationScheduler {
 
 	/**
 	 * 만료된 PREMIUM 멤버십을 BASIC으로 전환
-	 * 매일 자정(00:00:00)에 실행
+	 * 매일 00:05:00에 실행 (정기 결제 스케줄러와 시간 분산)
 	 */
-	@Scheduled(cron = "0 0 0 * * *")
+	@Scheduled(cron = "0 5 0 * * *")
 	@SchedulerLock(
 		name = "membershipExpirationScheduler",
 		lockAtMostFor = "PT30M",  // 최대 30분

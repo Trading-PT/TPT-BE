@@ -20,6 +20,8 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
+import org.hibernate.annotations.BatchSize;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -82,6 +84,7 @@ public class FeedbackRequest extends BaseEntity {
 	private Customer customer;
 
 	@Builder.Default
+	@BatchSize(size = 100)  // 컬렉션 지연 로딩 시 IN 쿼리로 일괄 조회 (N+1 방지)
 	@OneToMany(mappedBy = "feedbackRequest", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FeedbackRequestAttachment> feedbackRequestAttachments = new ArrayList<>();
 
@@ -310,6 +313,14 @@ public class FeedbackRequest extends BaseEntity {
 
 	public void updateIsBestFeedback(boolean b) {
 		this.isBestFeedback = b;
+	}
+
+	/**
+	 * 트레이너 작성 피드백으로 표시
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void markAsTrainerWritten() {
+		this.isTrainerWritten = Boolean.TRUE;
 	}
 
 	public void useToken(Integer tokenAmount) {

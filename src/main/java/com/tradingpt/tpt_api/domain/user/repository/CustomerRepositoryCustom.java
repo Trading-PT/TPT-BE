@@ -66,6 +66,19 @@ public interface CustomerRepositoryCustom {
 	 */
 	Slice<Customer> findNewSubscriptionCustomers(Pageable pageable);
 
+	/**
+	 * 신규 구독 고객 총 인원 수 조회
+	 *
+	 * 조건:
+	 * - ACTIVE 상태의 Subscription 보유
+	 * - 다음 중 하나에 해당:
+	 *   1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
+	 *   2. 트레이너가 아직 배정되지 않음 (assignedTrainer IS NULL)
+	 *
+	 * @return 신규 구독 고객 총 인원 수
+	 */
+	Long countNewSubscriptionCustomers();
+
 	@Getter
 	@AllArgsConstructor
 	class AssignedCustomerInfo {

@@ -31,6 +31,9 @@ public class QAssignmentAttachment extends EntityPathBase<AssignmentAttachment> 
 
     public final QCustomerAssignment customerAssignment;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final StringPath fileKey = createString("fileKey");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

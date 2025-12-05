@@ -40,11 +40,11 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
             default           -> null; // ALL
         };
 
-        // 고객에게 배정된 담당자(조교/어드민 등)를 위한 alias
+        // 고객에게 배정된 담당자 (User: 트레이너/어드민 둘 다 가능)
         QUser assignedUser = new QUser("assignedUser");
 
-        // 답변 남긴 사람(이건 너 코드처럼 트레이너로 유지한 듯해서 그대로 별칭)
-        QTrainer answeredTrainer = new QTrainer("ansTrainer");
+        // 답변 남긴 사람도 이제 User
+        QUser answeredUser = new QUser("answeredUser");
 
         // 정렬
         OrderSpecifier<?>[] orders = pageable.getSort().stream()
@@ -62,33 +62,32 @@ public class ComplaintRepositoryImpl implements ComplaintRepositoryCustom {
         List<AdminComplaintResponseDTO> content = q
                 .select(Projections.constructor(
                         AdminComplaintResponseDTO.class,
-                        complaint.id,              // 민원 ID
-                        customer.name,              // 고객 이름
-                        customer.phoneNumber,       // 고객 전화
-                        assignedUser.name,          // ✅ 고객에게 배정된 담당자 (user로 조인했으니 user.name)
-                        complaint.title,            // 제목
-                        answeredCond,               // 답변 여부
-                        answeredTrainer.name,       // 답변 작성자
-                        complaint.answeredAt,       // 답변 시각
-                        complaint.createdAt         // 등록 시각
+                        complaint.id,             // 민원 ID
+                        customer.name,            // 고객 이름
+                        customer.phoneNumber,     // 고객 전화
+                        assignedUser.name,        // 고객에게 배정된 담당자 (User)
+                        complaint.title,          // 제목
+                        answeredCond,             // 답변 여부 (BooleanExpression -> Boolean 컬럼)
+                        answeredUser.name,        // 답변 작성자 (User: 트레이너/어드민)
+                        complaint.answeredAt,     // 답변 시각
+                        complaint.createdAt       // 등록 시각
                 ))
                 .from(complaint)
-                .join(complaint.customer, customer)           // 민원 올린 고객
-                .leftJoin(customer.assignedTrainer, assignedUser) // ✅ 고객에게 배정된 user
-                .leftJoin(complaint.trainer, answeredTrainer) // 답변 남긴 트레이너
+                .join(complaint.customer, customer)              // 민원 올린 고객
+                .leftJoin(customer.assignedTrainer, assignedUser) // 고객 담당자(User)
+                .leftJoin(complaint.user, answeredUser)          // 답변 남긴 User
                 .where(where)
                 .orderBy(orders)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 전체 개수
         Long total = q
                 .select(complaint.count())
                 .from(complaint)
                 .join(complaint.customer, customer)
                 .leftJoin(customer.assignedTrainer, assignedUser)
-                .leftJoin(complaint.trainer, answeredTrainer)
+                .leftJoin(complaint.user, answeredUser)
                 .where(where)
                 .fetchOne();
 

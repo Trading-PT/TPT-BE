@@ -32,6 +32,9 @@ public class FreeCustomerResponseDTO {
 	@Schema(description = "전화번호", example = "010-1234-5678")
 	private String phoneNumber;
 
+	@Schema(description = "uid", example = "1234")
+	private String uid;
+
 	@Schema(description = "현재 투자 유형", example = "DAY")
 	private InvestmentType primaryInvestmentType;
 
@@ -52,6 +55,7 @@ public class FreeCustomerResponseDTO {
 			.customerId(customer.getId())
 			.name(customer.getName())
 			.phoneNumber(customer.getPhoneNumber())
+			.uid(customer.getUid() != null ? customer.getUid().getUid() : null)
 			.primaryInvestmentType(customer.getPrimaryInvestmentType())
 			.token(customer.getToken())
 			.createdAt(customer.getCreatedAt())

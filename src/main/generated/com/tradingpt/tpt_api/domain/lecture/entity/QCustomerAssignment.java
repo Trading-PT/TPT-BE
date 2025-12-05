@@ -29,6 +29,9 @@ public class QCustomerAssignment extends EntityPathBase<CustomerAssignment> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final QLecture lecture;
