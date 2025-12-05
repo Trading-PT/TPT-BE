@@ -20,7 +20,7 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
 
     List<LectureProgress> findByCustomerId(Long customerId);
 
-    Optional<LectureProgress> findByLectureIdAndCustomerId(Long lectureId, Long customerId);
+    Optional<LectureProgress> findByLecture_IdAndCustomer_Id(Long lectureId, Long customerId);
 
     @Query("""
         SELECT COUNT(lp)
