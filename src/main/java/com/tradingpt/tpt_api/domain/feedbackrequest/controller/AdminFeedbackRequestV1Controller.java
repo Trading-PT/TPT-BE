@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateBestFeedbacksRequestDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateTrainerWrittenRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.AdminFeedbackResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.UpdateTrainerWrittenResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.MyCustomerNewFeedbackListResponseDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.TokenUsedFeedbackListResponseDTO;
@@ -210,12 +212,33 @@ public class AdminFeedbackRequestV1Controller {
 		);
 	}
 
-	// TODO: 트레이너 작성 매매일지 플래그 업데이트 API 구현 필요
-	// TODO: POST /api/v1/admin/feedback-requests/{id}/user-written
-	// TODO: 현재는 DataGrip으로 수동 업데이트 중이나, 향후 Admin UI에서 직접 설정할 수 있도록 구현 예정
-	// TODO: 베스트 피드백 설정 API (updateBestFeedbackStatus)와 유사한 구조로 구현
-	// TODO: Request DTO: { isTrainerWritten: boolean }
-	// TODO: 권한: ADMIN 또는 TRAINER
-	// TODO: 검증: 해당 피드백이 실제 트레이너가 작성한 것인지 확인하는 로직 추가 고려
-	// TODO: (현재는 수동으로 확인 후 플래그만 설정하지만, 향후 자동 검증 로직 추가 가능)
+	@Operation(
+		summary = "트레이너 작성 피드백 일괄 설정",
+		description = """
+			여러 피드백 요청의 isTrainerWritten 필드를 true로 일괄 설정합니다.
+
+			특징:
+			- 관리자 또는 트레이너만 접근 가능
+			- 개수 제한 없음 (무제한 ID 입력 가능)
+			- 기존 트레이너 작성 피드백은 유지됩니다 (추가 설정 방식)
+			- 이미 isTrainerWritten=true인 피드백도 재설정 가능 (멱등성)
+
+			사용 시나리오:
+			- 트레이너가 대신 작성한 매매일지 표시
+			- 어드민이 특정 피드백들을 트레이너 작성으로 일괄 마킹
+
+			예시:
+			- PATCH /api/v1/admin/feedback-requests/trainer-written
+			  Body: { "feedbackRequestIds": [1, 2, 3, 5, 8] }
+			"""
+	)
+	@PatchMapping("/trainer-written")
+	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
+	public BaseResponse<UpdateTrainerWrittenResponseDTO> updateTrainerWrittenFeedbacks(
+		@Valid @RequestBody UpdateTrainerWrittenRequestDTO request
+	) {
+		return BaseResponse.onSuccess(
+			feedbackRequestCommandService.updateTrainerWrittenFeedbacks(request.getFeedbackRequestIds())
+		);
+	}
 }
