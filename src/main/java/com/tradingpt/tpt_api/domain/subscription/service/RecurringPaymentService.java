@@ -240,10 +240,10 @@ public class RecurringPaymentService {
 		// 결제 실행
 		if (paymentAmount.compareTo(BigDecimal.ZERO) == 0) {
 			// 0원 결제: 실제 결제 없이 Payment와 Subscription만 업데이트
-			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
+			handleZeroAmountPayment(subscription, payment, nextBillingDate, billingPeriodStart, billingPeriodEnd, isFirstPayment);
 		} else {
 			// 일반 결제: 나이스페이 API 호출
-			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodEnd, isFirstPayment);
+			handleRegularPayment(subscription, payment, nextBillingDate, billingPeriodStart, billingPeriodEnd, isFirstPayment);
 		}
 	}
 
@@ -254,6 +254,7 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
+		LocalDate billingPeriodStart,
 		LocalDate billingPeriodEnd,
 		boolean isFirstPayment
 	) {
@@ -269,6 +270,7 @@ public class RecurringPaymentService {
 			subscriptionCommandService.updateNextBillingDate(
 				subscription.getId(),
 				nextBillingDate,
+				billingPeriodStart,
 				billingPeriodEnd
 			);
 		}
@@ -296,6 +298,7 @@ public class RecurringPaymentService {
 		Subscription subscription,
 		Payment payment,
 		LocalDate nextBillingDate,
+		LocalDate billingPeriodStart,
 		LocalDate billingPeriodEnd,
 		boolean isFirstPayment
 	) {
@@ -326,6 +329,7 @@ public class RecurringPaymentService {
 				subscriptionCommandService.updateNextBillingDate(
 					subscription.getId(),
 					nextBillingDate,
+					billingPeriodStart,
 					billingPeriodEnd
 				);
 			}

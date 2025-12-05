@@ -104,11 +104,13 @@ public class Subscription extends BaseEntity {
 	/**
 	 * 다음 결제일 및 현재 기간 업데이트
 	 * JPA dirty checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * @param nextBillingDate 다음 결제 예정일
+	 * @param currentPeriodStart 현재 결제 주기 시작일 (호출자가 계산해서 전달)
+	 * @param currentPeriodEnd 현재 결제 주기 종료일
 	 */
-	public void updateBillingDates(LocalDate nextBillingDate, LocalDate currentPeriodEnd) {
-		this.currentPeriodStart = this.currentPeriodEnd != null
-			? this.currentPeriodEnd.plusDays(1)
-			: this.currentPeriodStart;
+	public void updateBillingDates(LocalDate nextBillingDate, LocalDate currentPeriodStart, LocalDate currentPeriodEnd) {
+		this.currentPeriodStart = currentPeriodStart;
 		this.currentPeriodEnd = currentPeriodEnd;
 		this.nextBillingDate = nextBillingDate;
 	}

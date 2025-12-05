@@ -32,12 +32,14 @@ public interface SubscriptionCommandService {
      *
      * @param subscriptionId 구독 ID
      * @param nextBillingDate 다음 결제 예정일
+     * @param currentPeriodStart 현재 결제 주기 시작일
      * @param currentPeriodEnd 현재 결제 주기 종료일
      * @return 업데이트된 Subscription 엔티티
      */
     Subscription updateNextBillingDate(
         Long subscriptionId,
         LocalDate nextBillingDate,
+        LocalDate currentPeriodStart,
         LocalDate currentPeriodEnd
     );
 
