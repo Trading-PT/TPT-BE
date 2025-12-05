@@ -111,7 +111,7 @@ public class LectureCommandServiceImpl implements LectureCommandService {
         int duration = lecture.getDurationSeconds();
 
         LectureProgress progress = lectureProgressRepository
-                .findByLectureIdAndCustomerId(lectureId, customer.getId())
+                .findByLecture_IdAndCustomer_Id(lectureId, customer.getId())
                 .orElseThrow(() -> new LectureException(LectureErrorStatus.NOT_FOUND));
 
         // 1) 개별 강의 진도 업데이트
