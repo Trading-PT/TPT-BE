@@ -25,6 +25,9 @@ public class AdminFeedbackCardResponseDTO {
 	@Schema(description = "베스트 피드백 여부")
 	private Boolean isBestFeedback;
 
+	@Schema(description = "트레이너 작성 여부")
+	private Boolean isTrainerWritten;
+
 	@Schema(description = "이름")
 	private String username;
 
@@ -43,12 +46,13 @@ public class AdminFeedbackCardResponseDTO {
 	@Schema(description = "제공 일자")
 	private LocalDateTime submittedAt;
 
-	public static AdminFeedbackCardResponseDTO of(Long id, Boolean isBestFeedback, String username, String trainerName,
-		InvestmentType investmentType,
+	public static AdminFeedbackCardResponseDTO of(Long id, Boolean isBestFeedback, Boolean isTrainerWritten,
+		String username, String trainerName, InvestmentType investmentType,
 		CourseStatus courseStatus, LocalDateTime createdAt, LocalDateTime submittedAt) {
 		return AdminFeedbackCardResponseDTO.builder()
 			.id(id)
 			.isBestFeedback(isBestFeedback)
+			.isTrainerWritten(isTrainerWritten)
 			.username(username)
 			.trainerName(trainerName)
 			.investmentType(investmentType)

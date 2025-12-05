@@ -5,6 +5,7 @@ import java.util.List;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.CreateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.request.UpdateFeedbackRequestDTO;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.FeedbackRequestDetailResponseDTO;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.response.UpdateTrainerWrittenResponseDTO;
 
 public interface FeedbackRequestCommandService {
 
@@ -51,6 +52,18 @@ public interface FeedbackRequestCommandService {
 	 * @throws FeedbackRequestException 피드백을 찾을 수 없거나, 최대 개수 초과 시
 	 */
 	Void updateBestFeedbacks(List<Long> feedbackIds);
+
+	/**
+	 * 트레이너 작성 피드백 일괄 업데이트
+	 * - 지정된 피드백들의 isTrainerWritten = true로 설정
+	 * - 개수 제한 없음 (무제한 ID 입력 가능)
+	 * - 기존 트레이너 작성 피드백은 유지 (추가 설정 방식)
+	 *
+	 * @param feedbackRequestIds 트레이너 작성으로 지정할 피드백 ID 목록
+	 * @return 업데이트 결과 (업데이트된 개수 및 ID 목록)
+	 * @throws FeedbackRequestException 피드백을 찾을 수 없는 경우
+	 */
+	UpdateTrainerWrittenResponseDTO updateTrainerWrittenFeedbacks(List<Long> feedbackRequestIds);
 
 	/**
 	 * 피드백 요청 삭제 (Admin 전용)

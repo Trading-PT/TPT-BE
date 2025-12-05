@@ -315,6 +315,14 @@ public class FeedbackRequest extends BaseEntity {
 		this.isBestFeedback = b;
 	}
 
+	/**
+	 * 트레이너 작성 피드백으로 표시
+	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 */
+	public void markAsTrainerWritten() {
+		this.isTrainerWritten = Boolean.TRUE;
+	}
+
 	public void useToken(Integer tokenAmount) {
 		this.isTokenUsed = true;
 		this.tokenAmount = tokenAmount;

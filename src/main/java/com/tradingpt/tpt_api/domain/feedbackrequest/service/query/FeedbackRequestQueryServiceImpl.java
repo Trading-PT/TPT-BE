@@ -278,6 +278,7 @@ public class FeedbackRequestQueryServiceImpl implements FeedbackRequestQueryServ
 		return AdminFeedbackCardResponseDTO.of(
 			feedback.getId(),
 			feedback.getIsBestFeedback(),
+			feedback.getIsTrainerWritten(),
 			feedback.getCustomer().getUsername(),
 			feedback.getCustomer().getAssignedTrainer() != null ?
 				feedback.getCustomer().getAssignedTrainer().getUsername() : null,
