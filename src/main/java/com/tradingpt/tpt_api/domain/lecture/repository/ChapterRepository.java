@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("SELECT new com.tradingpt.tpt_api.domain.lecture.dto.response.ChapterListResponseDTO(" +
-            "c.id, c.title) " +
+            "c.id, c.title, c.chapterType) " +  // ← 타입 추가
             "FROM Chapter c " +
             "ORDER BY c.chapterOrder ASC")
     List<ChapterListResponseDTO> findAllSimple();

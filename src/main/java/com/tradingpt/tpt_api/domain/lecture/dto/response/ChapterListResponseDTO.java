@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.lecture.dto.response;
 
+import com.tradingpt.tpt_api.domain.lecture.enums.ChapterType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,4 +15,6 @@ public class ChapterListResponseDTO {
 
     @Schema(description = "챕터명", example = "1주차: 트레이딩 기초")
     private String title;
+
+    private ChapterType chapterType;
 }

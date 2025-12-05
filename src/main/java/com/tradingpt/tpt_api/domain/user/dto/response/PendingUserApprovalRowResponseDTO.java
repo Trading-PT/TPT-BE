@@ -59,7 +59,12 @@ public class PendingUserApprovalRowResponseDTO {
 			.requestedAt(c.getCreatedAt())
 			.uid(uidDto)
 			.status(c.getUserStatus())
-		.trainerName(c.getAssignedTrainer().getName())
-			.build();
+				.trainerName(
+						c.getAssignedTrainer() != null
+								? c.getAssignedTrainer().getName()
+								: null
+				)
+
+				.build();
 	}
 }
