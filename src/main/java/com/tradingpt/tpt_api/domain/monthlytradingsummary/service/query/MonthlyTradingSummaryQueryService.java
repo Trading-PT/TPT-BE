@@ -23,19 +23,23 @@ public interface MonthlyTradingSummaryQueryService {
 	MonthlySummaryResponseDTO getMonthlySummaryResponse(Integer year, Integer month, Long customerId);
 
 	/**
-	 * ✅ 특정 연/월에 피드백 요청이 존재하는 주차 목록 조회
+	 * 특정 연/월에 피드백 요청이 존재하는 주차 목록 조회
+	 *
+	 * 역할별 동작:
+	 * - ADMIN: 모든 고객의 피드백 주차 목록 조회 가능
+	 * - TRAINER: 담당 고객의 피드백 주차 목록만 조회 가능
 	 *
 	 * @param year 연도
 	 * @param month 월
 	 * @param customerId 고객 ID
-	 * @param trainerId 트레이너 ID
+	 * @param userId 현재 로그인한 사용자 ID (ADMIN 또는 TRAINER)
 	 * @return 피드백이 존재하는 주차 목록
 	 */
 	MonthlyWeekFeedbackResponseDTO getMonthlyWeekFeedbackResponse(
 		Integer year,
 		Integer month,
 		Long customerId,
-		Long trainerId
+		Long userId
 	);
 
 }

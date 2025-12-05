@@ -2,7 +2,6 @@ package com.tradingpt.tpt_api.domain.user.controller;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -23,13 +22,19 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/v1/admin/customer-evaluations")
 @RequiredArgsConstructor
-@Tag(name = "관리자 - 고객 평가 관리", description = "트레이너 전용 담당 고객 평가 관리 API")
+@Tag(name = "관리자 - 고객 평가 관리", description = "ADMIN/TRAINER 전용 고객 평가 관리 API")
 public class AdminCustomerEvaluationV1Controller {
 
 	private final CustomerEvaluationQueryService customerEvaluationQueryService;
 
 	/**
-	 * 트레이너의 담당 고객 미작성 평가 목록 조회 (무한 스크롤)
+	 * 미작성 평가 목록 조회 (무한 스크롤)
+	 *
+	 * <p>역할별 동작:
+	 * <ul>
+	 *   <li>ADMIN: 모든 고객의 미작성 평가 목록 조회</li>
+	 *   <li>TRAINER: 자기 담당 고객의 미작성 평가 목록만 조회</li>
+	 * </ul>
 	 *
 	 * <p>비즈니스 규칙:
 	 * <ul>
@@ -41,14 +46,18 @@ public class AdminCustomerEvaluationV1Controller {
 	 *   <li>무한 스크롤 (Slice 페이징)</li>
 	 * </ul>
 	 *
-	 * @param trainerId 현재 로그인한 트레이너 ID (자동 주입)
-	 * @param pageable  페이징 정보 (기본: 20개씩)
+	 * @param userId   현재 로그인한 사용자 ID (ADMIN 또는 TRAINER, 자동 주입)
+	 * @param pageable 페이징 정보 (기본: 20개씩)
 	 * @return 미작성 평가 목록 (고객별 평가 대상을 행으로 나열)
 	 */
 	@Operation(
-		summary = "담당 고객 미작성 평가 목록 조회",
+		summary = "미작성 평가 목록 조회",
 		description = """
-			트레이너가 자신의 담당 고객들의 미작성 평가 목록을 조회합니다.
+			미작성 평가 목록을 조회합니다.
+
+			**역할별 동작:**
+			- ADMIN: 모든 고객의 미작성 평가 목록 조회
+			- TRAINER: 자기 담당 고객의 미작성 평가 목록만 조회
 
 			**조회 범위:**
 			- 완강(AFTER_COMPLETION) 상태 고객만 대상
@@ -71,13 +80,13 @@ public class AdminCustomerEvaluationV1Controller {
 	)
 	@GetMapping("/pending")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
-	public ResponseEntity<BaseResponse<PendingEvaluationListResponseDTO>> getPendingEvaluations(
+	public BaseResponse<PendingEvaluationListResponseDTO> getPendingEvaluations(
 		@Parameter(hidden = true)
-		@AuthenticationPrincipal(expression = "id") Long trainerId,
+		@AuthenticationPrincipal(expression = "id") Long userId,
 		@PageableDefault(size = 20) Pageable pageable
 	) {
 		PendingEvaluationListResponseDTO result =
-			customerEvaluationQueryService.getPendingEvaluations(trainerId, pageable);
-		return ResponseEntity.ok(BaseResponse.onSuccess(result));
+			customerEvaluationQueryService.getPendingEvaluations(userId, pageable);
+		return BaseResponse.onSuccess(result);
 	}
 }
