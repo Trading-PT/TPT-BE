@@ -27,6 +27,9 @@ public class QFeedbackRequestAttachment extends EntityPathBase<FeedbackRequestAt
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final QFeedbackRequest feedbackRequest;
 
     public final StringPath fileKey = createString("fileKey");

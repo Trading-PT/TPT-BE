@@ -35,6 +35,9 @@ public class QFeedbackRequest extends EntityPathBase<FeedbackRequest> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final StringPath directionFrame = createString("directionFrame");
 
     public final BooleanPath directionFrameExists = createBoolean("directionFrameExists");

@@ -29,6 +29,9 @@ public class QInvestmentTypeHistory extends EntityPathBase<InvestmentTypeHistory
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final DatePath<java.time.LocalDate> endDate = createDate("endDate", java.time.LocalDate.class);
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

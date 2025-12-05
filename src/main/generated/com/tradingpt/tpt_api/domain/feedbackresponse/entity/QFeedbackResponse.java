@@ -29,6 +29,9 @@ public class QFeedbackResponse extends EntityPathBase<FeedbackResponse> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackRequest feedbackRequest;
 
     public final ListPath<FeedbackResponseAttachment, QFeedbackResponseAttachment> feedbackResponseAttachments = this.<FeedbackResponseAttachment, QFeedbackResponseAttachment>createList("feedbackResponseAttachments", FeedbackResponseAttachment.class, QFeedbackResponseAttachment.class, PathInits.DIRECT2);

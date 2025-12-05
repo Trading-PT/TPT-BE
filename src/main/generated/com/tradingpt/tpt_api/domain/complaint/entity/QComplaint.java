@@ -35,6 +35,9 @@ public class QComplaint extends EntityPathBase<Complaint> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final EnumPath<com.tradingpt.tpt_api.domain.complaint.enums.Status> status = createEnum("status", com.tradingpt.tpt_api.domain.complaint.enums.Status.class);

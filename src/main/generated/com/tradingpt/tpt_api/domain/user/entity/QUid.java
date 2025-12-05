@@ -29,6 +29,9 @@ public class QUid extends EntityPathBase<Uid> {
 
     public final QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final StringPath exchangeName = createString("exchangeName");
 
     public final NumberPath<Long> id = createNumber("id", Long.class);

@@ -31,6 +31,9 @@ public class QLevelTestResponse extends EntityPathBase<LevelTestResponse> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
     public final QLevelTestAttempt leveltestAttempt;

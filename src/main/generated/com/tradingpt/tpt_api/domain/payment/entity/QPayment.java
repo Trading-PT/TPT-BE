@@ -39,6 +39,9 @@ public class QPayment extends EntityPathBase<Payment> {
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final NumberPath<java.math.BigDecimal> discountAmount = createNumber("discountAmount", java.math.BigDecimal.class);
 
     public final DateTimePath<java.time.LocalDateTime> failedAt = createDateTime("failedAt", java.time.LocalDateTime.class);
