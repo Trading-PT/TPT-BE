@@ -1,19 +1,17 @@
-package com.tradingpt.tpt_api.domain.user.repository;
+package com.tradingpt.tpt_api.domain.review.repository;
 
-import com.tradingpt.tpt_api.domain.user.entity.Uid;
-import java.util.Optional;
+import com.tradingpt.tpt_api.domain.review.entity.ReviewAttachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface UidRepository extends JpaRepository<Uid, Long> {
-    Optional<Uid> findByCustomerId(Long customerId);
+public interface ReviewAttachmentRepository extends JpaRepository<ReviewAttachment, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-        DELETE FROM Uid u
-        WHERE u.customer.id = :customerId
+        DELETE FROM ReviewAttachment a
+        WHERE a.review.customer.id = :customerId
         """)
     void deleteByCustomerId(@Param("customerId") Long customerId);
 }

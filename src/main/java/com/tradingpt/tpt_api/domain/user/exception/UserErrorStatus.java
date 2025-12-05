@@ -29,6 +29,8 @@ public enum UserErrorStatus implements BaseCodeInterface {
 	ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404_3", "어드민을 찾을 수 없습니다."),
 	COURSE_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404_4", "유저의 완강 여부가 존재하지 않습니다."),
 	UID_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_404_5", "uid를 찾을 수 없습니다."),
+	DELETED_USER(HttpStatus.FORBIDDEN, "USER_403_2", "탈퇴된 회원입니다."),   // 👈 추가됨
+
 
 	// 403 Forbidden
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "USER_403_0", "접근 권한이 없습니다."),

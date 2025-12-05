@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.tradingpt.tpt_api.domain.paymentmethod.entity.PaymentMethod;
@@ -55,4 +58,12 @@ public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Lo
 	 * @return 결제수단 개수
 	 */
 	long countByCustomer_IdAndIsDeletedFalse(Long customerId);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        DELETE FROM PaymentMethod pm
+        WHERE pm.customer.id = :customerId
+        """)
+	void deleteByCustomerId(@Param("customerId") Long customerId);
+
 }

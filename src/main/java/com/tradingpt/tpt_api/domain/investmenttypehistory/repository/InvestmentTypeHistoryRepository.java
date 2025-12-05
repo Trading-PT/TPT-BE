@@ -5,6 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeHistory;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface InvestmentTypeHistoryRepository
 	extends JpaRepository<InvestmentTypeHistory, Long>, InvestmentTypeHistoryRepositoryCustom {
@@ -16,4 +19,11 @@ public interface InvestmentTypeHistoryRepository
 	 * @return 투자유형 이력 리스트
 	 */
 	List<InvestmentTypeHistory> findByCustomer_IdOrderByStartDateAsc(Long customerId);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        DELETE FROM FeedbackResponseAttachment a
+        WHERE a.feedbackResponse.feedbackRequest.customer.id = :customerId
+        """)
+	void deleteByCustomerId(@Param("customerId") Long customerId);
 }

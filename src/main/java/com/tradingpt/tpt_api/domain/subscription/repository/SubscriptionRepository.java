@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -43,4 +44,12 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     @Query("SELECT s FROM Subscription s WHERE s.status = 'ACTIVE' " +
            "AND s.paymentFailedCount >= :threshold")
     List<Subscription> findActiveSubscriptionsWithFailureThreshold(@Param("threshold") int threshold);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM Subscription s
+        WHERE s.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
 }
+
