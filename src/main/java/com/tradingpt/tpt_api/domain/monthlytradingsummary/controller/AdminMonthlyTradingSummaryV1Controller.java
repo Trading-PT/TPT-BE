@@ -76,7 +76,13 @@ public class AdminMonthlyTradingSummaryV1Controller {
 
 	@Operation(
 		summary = "해당 연/월에 대한 주차 리스트업",
-		description = "해당 연/월에 대한 주차를 리스트업 합니다."
+		description = """
+			해당 연/월에 대한 주차를 리스트업 합니다.
+
+			**역할별 동작:**
+			- ADMIN: 모든 고객의 피드백 주차 목록 조회 가능
+			- TRAINER: 담당 고객의 피드백 주차 목록만 조회 가능
+			"""
 	)
 	@GetMapping("/customers/{customerId}/years/{year}/months/{month}")
 	@PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_TRAINER')")
@@ -84,11 +90,12 @@ public class AdminMonthlyTradingSummaryV1Controller {
 		@PathVariable Integer year,
 		@PathVariable Integer month,
 		@PathVariable Long customerId,
-		@AuthenticationPrincipal(expression = "id") Long trainerId
+		@Parameter(hidden = true)
+		@AuthenticationPrincipal(expression = "id") Long userId
 	) {
 		return BaseResponse.onSuccess(
 			monthlyTradingSummaryQueryService.getMonthlyWeekFeedbackResponse(
-				year, month, customerId, trainerId
+				year, month, customerId, userId
 			)
 		);
 	}
