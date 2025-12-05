@@ -20,7 +20,7 @@ spring:
     properties:
       hibernate:
         jdbc:
-          batch_size: 20
+          batch_size: 1000
           lob:
             non_contextual_creation: true
         order_inserts: true

@@ -20,6 +20,8 @@ import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
 import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.global.common.BaseEntity;
 
+import org.hibernate.annotations.BatchSize;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -82,6 +84,7 @@ public class FeedbackRequest extends BaseEntity {
 	private Customer customer;
 
 	@Builder.Default
+	@BatchSize(size = 100)  // 컬렉션 지연 로딩 시 IN 쿼리로 일괄 조회 (N+1 방지)
 	@OneToMany(mappedBy = "feedbackRequest", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<FeedbackRequestAttachment> feedbackRequestAttachments = new ArrayList<>();
 

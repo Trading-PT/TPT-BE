@@ -3,6 +3,7 @@ package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
@@ -11,12 +12,14 @@ public interface FeedbackRequestRepository
 	extends JpaRepository<FeedbackRequest, Long>, FeedbackRequestRepositoryCustom {
 
 	/**
-	 * 베스트 피드백 최대 3개 조회 (최신순)
-	 * isBestFeedback = true인 피드백을 생성일시 기준 내림차순으로 최대 3개 반환
+	 * 베스트 피드백 조회 (최신순, 개수 제한은 Pageable로 제어)
+	 * isBestFeedback = true인 피드백을 생성일시 기준 내림차순으로 반환
 	 *
-	 * @return 베스트 피드백 목록 (최대 3개)
+	 * @param pageable 페이징 정보 (PageRequest.of(0, MAX_BEST_FEEDBACK_COUNT) 사용)
+	 * @return 베스트 피드백 목록
+	 * @see FeedbackRequest#MAX_BEST_FEEDBACK_COUNT
 	 */
-	List<FeedbackRequest> findTop3ByIsBestFeedbackTrueOrderByCreatedAtDesc();
+	List<FeedbackRequest> findByIsBestFeedbackTrueOrderByCreatedAtDesc(Pageable pageable);
 
 	/**
 	 * 베스트 피드백 전체 조회
