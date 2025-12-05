@@ -19,9 +19,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@MappedSuperclass // JPA Entity 클래스들이 BaseTimeEntity를 상속할 경우 필드들도 칼럼으로 인식하도록 함
-@EntityListeners(AuditingEntityListener.class) // BaseTimeEntity 클래스에 Auditing 기능을 포함시킴
-public abstract class BaseEntity {            // AuditingEntityListener를 통해 자동으로 시간에 대한 정보를 관리
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity {
 
 	@CreatedDate
 	@Column(nullable = false, updatable = false)
@@ -30,5 +30,29 @@ public abstract class BaseEntity {            // AuditingEntityListener를 통�
 	@LastModifiedDate
 	@Column(nullable = false)
 	private LocalDateTime updatedAt;
-	
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
+	/**
+	 * Soft Delete 수행
+	 * JPA Dirty Checking으로 자동 UPDATE
+	 */
+	public void delete() {
+		this.deletedAt = LocalDateTime.now();
+	}
+
+	/**
+	 * 삭제 복구
+	 */
+	public void restore() {
+		this.deletedAt = null;
+	}
+
+	/**
+	 * 삭제 여부 확인
+	 */
+	public boolean isDeleted() {
+		return this.deletedAt != null;
+	}
 }
