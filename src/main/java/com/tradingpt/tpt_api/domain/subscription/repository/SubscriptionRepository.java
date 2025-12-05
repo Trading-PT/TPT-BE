@@ -1,5 +1,6 @@
 package com.tradingpt.tpt_api.domain.subscription.repository;
 
+import com.tradingpt.tpt_api.domain.lecture.entity.Lecture;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,14 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     /**
      * 상태별 구독 조회
      */
-    List<Subscription> findAllByStatus(Status status);
+
+    @Query("""
+           SELECT s
+           FROM Subscription s
+           JOIN FETCH s.customer c
+           WHERE s.status = :status
+           """)
+    List<Subscription> findAllByStatus(@Param("status") Status status);
 
     /**
      * 고객 ID로 활성 구독 조회
