@@ -127,7 +127,8 @@
       "Bash(k6 version:*)",
       "Bash(mcp__cloudwatch__describe_log_groups)",
       "Bash(claude mcp list:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []
