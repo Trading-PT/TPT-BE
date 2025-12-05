@@ -1,19 +1,18 @@
-package com.tradingpt.tpt_api.domain.user.repository;
+package com.tradingpt.tpt_api.domain.feedbackrequest.repository;
 
-import com.tradingpt.tpt_api.domain.user.entity.Uid;
-import java.util.Optional;
+import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequestAttachment;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface UidRepository extends JpaRepository<Uid, Long> {
-    Optional<Uid> findByCustomerId(Long customerId);
+public interface FeedbackRequestAttachmentRepository extends JpaRepository<FeedbackRequestAttachment, Long> {
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
-        DELETE FROM Uid u
-        WHERE u.customer.id = :customerId
+        DELETE FROM FeedbackRequestAttachment a
+        WHERE a.feedbackRequest.customer.id = :customerId
         """)
     void deleteByCustomerId(@Param("customerId") Long customerId);
 }

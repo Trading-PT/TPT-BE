@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tradingpt.tpt_api.domain.investmenttypehistory.entity.InvestmentTypeChangeRequest;
 import com.tradingpt.tpt_api.domain.investmenttypehistory.enums.ChangeRequestStatus;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface InvestmentTypeChangeRequestRepository
 	extends JpaRepository<InvestmentTypeChangeRequest, Long>, InvestmentTypeChangeRequestRepositoryCustom {
@@ -20,4 +23,11 @@ public interface InvestmentTypeChangeRequestRepository
 	 */
 	List<InvestmentTypeChangeRequest> findByStatusOrderByRequestedDateAsc(ChangeRequestStatus status);
 
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        DELETE FROM InvestmentTypeChangeRequest r
+        WHERE r.customer.id = :customerId
+        """)
+	void deleteByCustomerId(@Param("customerId") Long customerId);
 }

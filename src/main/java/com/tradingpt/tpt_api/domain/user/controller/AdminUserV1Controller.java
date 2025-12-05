@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -268,5 +269,15 @@ public class AdminUserV1Controller {
 		Pageable pageable
 	) {
 		return BaseResponse.onSuccess(customerQueryService.getNewSubscriptionCustomers(pageable));
+	}
+
+	@Operation(summary = "회원 하드 딜리트(관리자 전용)", description = "고객 및 모든 연관 데이터를 영구 삭제합니다.")
+	@DeleteMapping("/{userId}")
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	public BaseResponse<Void> deleteUserHard(
+			@PathVariable Long userId
+	) {
+		adminUserCommandService.deleteUserHard(userId);
+		return BaseResponse.onSuccess(null);
 	}
 }

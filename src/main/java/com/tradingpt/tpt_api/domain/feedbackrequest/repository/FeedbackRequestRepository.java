@@ -7,6 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface FeedbackRequestRepository
 	extends JpaRepository<FeedbackRequest, Long>, FeedbackRequestRepositoryCustom {
@@ -49,5 +52,12 @@ public interface FeedbackRequestRepository
 	 * @return 해당 고객의 피드백 요청 개수
 	 */
 	long countByCustomer_Id(Long customerId);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        DELETE FROM FeedbackRequest fr
+        WHERE fr.customer.id = :customerId
+        """)
+	void deleteByCustomerId(@Param("customerId") Long customerId);
 
 }

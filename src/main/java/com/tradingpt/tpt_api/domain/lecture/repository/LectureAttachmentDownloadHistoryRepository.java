@@ -21,4 +21,11 @@ public interface LectureAttachmentDownloadHistoryRepository extends
         """)
     void deleteByLectureId(@Param("lectureId") Long lectureId);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM LectureAttachmentDownloadHistory h
+        WHERE h.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
+
 }

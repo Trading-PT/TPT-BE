@@ -44,4 +44,11 @@ public interface LectureProgressRepository extends JpaRepository<LectureProgress
         where l.id = :lectureId
         """)
     Optional<Lecture> findByIdForDelete(@Param("lectureId") Long lectureId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+        DELETE FROM LectureProgress lp
+        WHERE lp.customer.id = :customerId
+        """)
+    void deleteByCustomerId(@Param("customerId") Long customerId);
 }

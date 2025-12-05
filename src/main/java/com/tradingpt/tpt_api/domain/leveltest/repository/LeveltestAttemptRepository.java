@@ -39,4 +39,11 @@ public interface LeveltestAttemptRepository extends JpaRepository<LevelTestAttem
         order by a.createdAt asc
     """)
 	List<LevelTestAttempt> findAllByUserIdOrderByCreatedAtAsc(@Param("userId") Long userId);
+
+	@Modifying(clearAutomatically = true, flushAutomatically = true)
+	@Query("""
+        DELETE FROM LevelTestAttempt a
+        WHERE a.customer.id = :customerId
+        """)
+	void deleteByCustomerId(@Param("customerId") Long customerId);
 }
