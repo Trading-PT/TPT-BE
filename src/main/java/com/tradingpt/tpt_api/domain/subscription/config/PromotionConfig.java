@@ -30,9 +30,8 @@ public class PromotionConfig {
 	/**
 	 * 프로모션 첫 결제 금액
 	 * 0원 = 완전 무료
-	 * 1004원 = 최소 결제 금액 (PG사 정책)
 	 */
-	public static final BigDecimal PROMOTION_FIRST_PAYMENT_AMOUNT = BigDecimal.ZERO;
+	public static final BigDecimal PROMOTION_PAYMENT_AMOUNT = BigDecimal.ZERO;
 
 	/**
 	 * 결제 실패 허용 횟수
