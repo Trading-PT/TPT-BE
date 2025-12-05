@@ -99,6 +99,9 @@ public class AdminColumnCommandServiceImpl implements AdminColumnCommandService 
         Columns column = columnsRepository.findById(columnId)
                 .orElseThrow(() -> new ColumnException(ColumnErrorStatus.NOT_FOUND));
 
+        commentRepository.deleteByColumns_Id(columnId);
+
+
         columnsRepository.delete(column);
         return column.getId();
     }

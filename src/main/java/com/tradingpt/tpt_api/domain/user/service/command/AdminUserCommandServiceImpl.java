@@ -29,6 +29,7 @@ import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionReposito
 import com.tradingpt.tpt_api.domain.user.repository.PasswordHistoryRepository;
 import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.repository.WeeklyTradingSummaryRepository;
+import com.tradingpt.tpt_api.global.aligo.AligoAlimtalkClient;
 import java.util.List;
 import org.springframework.data.annotation.Persistent;
 import org.springframework.stereotype.Service;
@@ -55,6 +56,7 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 	private final CustomerRepository customerRepository;
 	private final UserRepository userRepository;
 	private final UidRepository uidRepository;
+	private final AligoAlimtalkClient aligoAlimtalkClient;
 
 	private final LectureRepository lectureRepository;
 	private final LectureProgressRepository lectureProgressRepository;
@@ -111,6 +113,16 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 
 		if (newStatus == UserStatus.UID_APPROVED) {
 			createFreeOTLectures(customer);
+			// 2) 승인 알림톡 발송
+			try {
+				aligoAlimtalkClient.sendApprovalTalk(
+						customer.getPhoneNumber(),
+						"TPT"  // ← SHOPNAME 변수 값
+				);
+			} catch (Exception e) {
+				log.error("가입 승인 알림톡 발송 실패: {}", e.getMessage());
+			}
+
 		}
 	}
 

@@ -12,8 +12,8 @@ public class LectureOpenScheduler {
 
     private final LectureOpenService lectureOpenService;
 
-    // 10분마다 실행 (서버 시간 기준)
-    @Scheduled(cron = "0 */10 * * * *")
+    // 매일 하루마다 실행 (서버 시간 기준)
+    @Scheduled(cron = "0 0 0 * * *")
     @SchedulerLock(
             name = "weeklyLectureOpenJob",
             lockAtLeastFor = "PT5S",

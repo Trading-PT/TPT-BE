@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,6 +81,7 @@ public class AdminUserV1Controller {
 			- GET /api/v1/admin/users/search-by-uid?uid=abc&page=0&size=20
 			"""
 	)
+	@Transactional(readOnly = true)
 	@GetMapping("/search-by-uid")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByUid(
@@ -104,6 +106,7 @@ public class AdminUserV1Controller {
 	)
 	@GetMapping("/search-by-name")
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+	@Transactional(readOnly = true)
 	public ResponseEntity<BaseResponse<Page<PendingUserApprovalRowResponseDTO>>> searchUsersByName(
 		@RequestParam("name") String nameKeyword,
 		@PageableDefault(size = 20) Pageable pageable

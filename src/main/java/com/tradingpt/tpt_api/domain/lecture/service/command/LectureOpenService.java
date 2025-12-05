@@ -30,16 +30,32 @@ public class LectureOpenService {
      */
     @Transactional
     public void openWeeklyForActiveSubscriptions() {
-        List<Subscription> actives = subscriptionRepository
-                .findAllByStatus(Status.ACTIVE);
+
+        // (A) PRO 강의 목록을 한 번만 조회해서 재사용
+        List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
+        List<Lecture> proLectures = new ArrayList<>();
+
+        for (Lecture l : allLectures) {
+            if (l.getChapter().getChapterType() == ChapterType.PRO) {
+                proLectures.add(l);
+            }
+        }
+
+        if (proLectures.isEmpty()) {
+            return;
+        }
+
+        // (B) ACTIVE 구독자 목록 조회
+        //     👉 SubscriptionRepository에서 Customer까지 join fetch 하도록 구현하면 N+1 방지 가능
+        List<Subscription> actives = subscriptionRepository.findAllByStatus(Status.ACTIVE);
 
         for (Subscription sub : actives) {
-            openWeeklyForSubscription(sub);
+            openWeeklyForSubscription(sub, proLectures);
         }
     }
 
     @Transactional
-    public void openWeeklyForSubscription(Subscription sub) {
+    public void openWeeklyForSubscription(Subscription sub, List<Lecture> proLectures) {
 
         Customer customer = sub.getCustomer();
         Long customerId = customer.getId();
@@ -68,21 +84,11 @@ public class LectureOpenService {
 
         int shouldOpenCount = openedCount + 1;  // 딱 1개만 증가
 
-        // (4) PRO 강의 목록
-        List<Lecture> allLectures = lectureRepository.findAllOrderByChapterAndLectureOrder();
-        List<Lecture> proLectures = new ArrayList<>();
-
-        for (Lecture l : allLectures) {
-            if (l.getChapter().getChapterType() == ChapterType.PRO) {
-                proLectures.add(l);
-            }
-        }
-
         if (proLectures.isEmpty()) {
             return;
         }
 
-        // (5) 현재 열린 개수
+        // (5) 현재 열린 개수 (다시 한 번 방어적으로 계산)
         openedCount = (customer.getOpenChapterNumber() == null)
                 ? 0
                 : customer.getOpenChapterNumber();
@@ -109,4 +115,3 @@ public class LectureOpenService {
         }
     }
 }
-
