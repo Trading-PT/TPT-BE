@@ -108,7 +108,6 @@ public class AdminUserCommandServiceImpl implements AdminUserCommandService {
 		if (newStatus != UserStatus.UID_APPROVED && newStatus != UserStatus.UID_REJECTED) {
 			throw new UserException(UserErrorStatus.INVALID_STATUS_CHANGE);
 		}
-
 		customer.setUserStatus(newStatus);
 
 		if (newStatus == UserStatus.UID_APPROVED) {

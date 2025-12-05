@@ -67,18 +67,35 @@ public class AligoAlimtalkClient {
         params.add("receiver_1", phone);
         params.add("recvname_1", shopName);
 
-        /**
-         *  템플릿 변수 #{SHOPNAME} 단 하나이므로
-         * message에는 그 변수값만 넣는다.
-         */
-        params.add("message", shopName);
+        // 템플릿 변수 매핑 — 템플릿 내 모든 #{V} 에 대해 넣어야 함
+        params.add("message_1", shopName); // 템플릿이 #{SHOPNAME}만 필요한 경우
+
+        // 버튼 JSON
+        String buttonJson = """
+    [
+      {
+        "name": "채널추가",
+        "linkType": "BOT",
+        "linkTypeName": "채널추가"
+      },
+      {
+        "name": "OT 매매일지 작성방법",
+        "linkType": "WL",
+        "linkTypeName": "웹링크",
+        "linkM": "https://www.tradingpt.kr/menu/class-list",
+        "linkP": "https://www.tradingpt.kr/menu/class-list"
+      }
+    ]
+    """;
+
+        params.add("button_1", buttonJson);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         try {
-            restTemplate.postForObject(url, new HttpEntity<>(params, headers), String.class);
-            log.info("알림톡 발송 성공 → {} (템플릿: {})", phone, tplCode);
+            String result = restTemplate.postForObject(url, new HttpEntity<>(params, headers), String.class);
+            log.info("알림톡 발송 성공 → {} (템플릿: {}) 응답={}", phone, tplCode, result);
         } catch (Exception e) {
             log.error("알림톡 발송 실패 → {}", e.getMessage());
         }
