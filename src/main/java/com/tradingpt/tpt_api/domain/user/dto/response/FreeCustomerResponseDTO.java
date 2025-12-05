@@ -55,7 +55,7 @@ public class FreeCustomerResponseDTO {
 			.customerId(customer.getId())
 			.name(customer.getName())
 			.phoneNumber(customer.getPhoneNumber())
-			.uid(customer.getUid().getUid())
+			.uid(customer.getUid() != null ? customer.getUid().getUid() : null)
 			.primaryInvestmentType(customer.getPrimaryInvestmentType())
 			.token(customer.getToken())
 			.createdAt(customer.getCreatedAt())

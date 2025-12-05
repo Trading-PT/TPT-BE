@@ -17,6 +17,7 @@ import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerSliceResponseD
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListItemDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -98,15 +99,22 @@ public class CustomerQueryServiceImpl implements CustomerQueryService {
 	 * 4. DTO로 변환하여 반환
 	 *
 	 * @param pageable 페이징 정보
-	 * @return 신규 구독 고객 Slice
+	 * @return 신규 구독 고객 슬라이스 (총 인원 수 포함)
 	 */
 	@Override
-	public Slice<NewSubscriptionCustomerResponseDTO> getNewSubscriptionCustomers(Pageable pageable) {
+	public NewSubscriptionCustomerSliceResponseDTO getNewSubscriptionCustomers(Pageable pageable) {
 		// 1. Repository에서 신규 구독 고객 조회
 		Slice<Customer> customerSlice = customerRepository.findNewSubscriptionCustomers(pageable);
 
 		// 2. Entity를 DTO로 변환 (Slice 유지)
-		return customerSlice.map(this::toNewSubscriptionCustomerResponseDTO);
+		Slice<NewSubscriptionCustomerResponseDTO> dtoSlice = customerSlice
+			.map(this::toNewSubscriptionCustomerResponseDTO);
+
+		// 3. 신규 구독 고객 총 인원 수 조회
+		Long totalCount = customerRepository.countNewSubscriptionCustomers();
+
+		// 4. 래퍼 DTO 생성 및 반환
+		return NewSubscriptionCustomerSliceResponseDTO.from(dtoSlice, totalCount);
 	}
 
 	/**

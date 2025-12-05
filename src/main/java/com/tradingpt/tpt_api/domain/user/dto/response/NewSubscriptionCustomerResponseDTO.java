@@ -24,6 +24,9 @@ public class NewSubscriptionCustomerResponseDTO {
 	@Schema(description = "전화번호", example = "010-1234-5678")
 	private String phoneNumber;
 
+	@Schema(description = "고객 UID (미등록 시 null)", example = "123456789")
+	private String uid;
+
 	@Schema(description = "레벨테스트 응시 여부", example = "true")
 	private Boolean hasAttemptedLevelTest;
 
@@ -55,6 +58,7 @@ public class NewSubscriptionCustomerResponseDTO {
 			.customerId(customer.getId())
 			.name(customer.getName())
 			.phoneNumber(customer.getPhoneNumber())
+			.uid(customer.getUid() != null ? customer.getUid().getUid() : null)
 			.hasAttemptedLevelTest(hasAttemptedLevelTest)
 			.levelTestInfo(levelTestInfo)
 			.hasConsultation(hasConsultation)
