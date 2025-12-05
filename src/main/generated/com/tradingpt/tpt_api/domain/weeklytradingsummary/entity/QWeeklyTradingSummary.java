@@ -31,6 +31,9 @@ public class QWeeklyTradingSummary extends EntityPathBase<WeeklyTradingSummary> 
 
     public final com.tradingpt.tpt_api.domain.user.entity.QCustomer customer;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final DateTimePath<java.time.LocalDateTime> evaluatedAt = createDateTime("evaluatedAt", java.time.LocalDateTime.class);
 
     public final com.tradingpt.tpt_api.domain.user.entity.QUser evaluator;

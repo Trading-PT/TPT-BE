@@ -24,6 +24,9 @@ public class QSubscriptionPlan extends EntityPathBase<SubscriptionPlan> {
     //inherited
     public final DateTimePath<java.time.LocalDateTime> createdAt = _super.createdAt;
 
+    //inherited
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = _super.deletedAt;
+
     public final DateTimePath<java.time.LocalDateTime> effectiveFrom = createDateTime("effectiveFrom", java.time.LocalDateTime.class);
 
     public final DateTimePath<java.time.LocalDateTime> effectiveTo = createDateTime("effectiveTo", java.time.LocalDateTime.class);
