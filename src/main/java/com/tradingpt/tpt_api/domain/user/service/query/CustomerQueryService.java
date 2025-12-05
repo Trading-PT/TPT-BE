@@ -1,11 +1,10 @@
 package com.tradingpt.tpt_api.domain.user.service.query;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 
 import com.tradingpt.tpt_api.domain.user.dto.response.FreeCustomerSliceResponseDTO;
 import com.tradingpt.tpt_api.domain.user.dto.response.MyCustomerListResponseDTO;
-import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerResponseDTO;
+import com.tradingpt.tpt_api.domain.user.dto.response.NewSubscriptionCustomerSliceResponseDTO;
 
 public interface CustomerQueryService {
 
@@ -41,8 +40,7 @@ public interface CustomerQueryService {
 	 *   2. 트레이너가 아직 배정되지 않음
 	 *
 	 * @param pageable 페이징 정보
-	 * @return 신규 구독 고객 Slice
+	 * @return 신규 구독 고객 슬라이스 (총 인원 수 포함)
 	 */
-	Slice<NewSubscriptionCustomerResponseDTO> getNewSubscriptionCustomers(
-		Pageable pageable);
+	NewSubscriptionCustomerSliceResponseDTO getNewSubscriptionCustomers(Pageable pageable);
 }

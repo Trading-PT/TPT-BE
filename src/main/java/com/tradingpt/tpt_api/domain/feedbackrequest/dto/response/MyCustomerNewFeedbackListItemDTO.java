@@ -33,6 +33,9 @@ public class MyCustomerNewFeedbackListItemDTO {
 	@Schema(description = "고객 이름")
 	private String customerName;
 
+	@Schema(description = "uid")
+	private String uid;
+
 	@Schema(description = "피드백 제목")
 	private String title;
 
@@ -68,6 +71,7 @@ public class MyCustomerNewFeedbackListItemDTO {
 			.id(request.getId())
 			.customerId(request.getCustomer().getId())
 			.customerName(request.getCustomer().getUsername())
+			.uid(request.getCustomer().getUid().getUid() == null ? "" : request.getCustomer().getUid().getUid())
 			.title(request.getTitle())
 			.investmentType(request.getInvestmentType())
 			.courseStatus(request.getCourseStatus())

@@ -4,6 +4,8 @@ import static com.tradingpt.tpt_api.domain.feedbackrequest.entity.QFeedbackReque
 import static com.tradingpt.tpt_api.domain.subscription.entity.QSubscription.*;
 import static com.tradingpt.tpt_api.domain.user.entity.QCustomer.*;
 
+import com.tradingpt.tpt_api.domain.user.entity.QUid;
+
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
@@ -53,6 +55,8 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 	) {
 		// Trainer alias 생성 (고객에게 배정된 트레이너 조회용)
 		QUser trainer = new QUser("user");
+		// UID alias 생성
+		QUid customerUid = new QUid("customerUid");
 
 		// 기본 구독 정보 조회 (limit + 1 방식으로 hasNext 판단)
 		List<SubscriptionCustomerResponseDTO> content = queryFactory
@@ -61,6 +65,7 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 				customer.id,
 				customer.username,
 				customer.phoneNumber,
+				customerUid.uid,  // 고객 UID 추가
 				trainer.name,
 				JPAExpressions
 					.select(feedbackRequest.count())
@@ -69,6 +74,7 @@ public class SubscriptionRepositoryImpl implements SubscriptionRepositoryCustom 
 			))
 			.from(subscription)
 			.innerJoin(subscription.customer, customer)
+			.leftJoin(customer.uid, customerUid)  // UID 조인 추가
 			.leftJoin(customer.assignedTrainer, trainer)
 			.where(
 				subscription.status.eq(Status.ACTIVE),
