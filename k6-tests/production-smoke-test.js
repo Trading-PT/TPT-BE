@@ -36,8 +36,9 @@ export const options = {
     vus: 5,           // 5명의 가상 사용자
     duration: '1m',   // 1분 동안 실행
     thresholds: {
-        http_req_duration: ['p(95)<2000'],    // 95%가 2초 이내
-        http_req_failed: ['rate<0.1'],         // 실패율 10% 미만
+        http_req_duration: ['p(95)<2000'],     // 95%가 2초 이내
+        // 404는 데이터 없음으로 정상이므로, api_error_rate로 실패 판단
+        api_error_rate: ['rate<0.1'],          // API 에러율 10% 미만
         login_success_rate: ['rate>0.9'],      // 로그인 성공률 90% 이상
     },
 };
@@ -170,8 +171,8 @@ export default function () {
             headers['X-XSRF-TOKEN'] = csrfToken;
         }
 
-        // 피드백 요청 목록 조회
-        let response = http.get(`${BASE_URL}/api/v1/feedback-requests?page=0&size=10`, {
+        // 피드백 요청 목록 조회 (size=50)
+        let response = http.get(`${BASE_URL}/api/v1/feedback-requests?page=0&size=50`, {
             headers: headers,
             jar: jar,
         });
@@ -185,27 +186,43 @@ export default function () {
 
         sleep(0.5);
 
-        // 주간 매매 요약 조회
+        // 주간 매매 요약 조회 (404는 데이터 없음으로 정상 처리)
         response = http.get(
             `${BASE_URL}/api/v1/weekly-trading-summary/customers/me/years/${dateParams.year}/months/${dateParams.month}/weeks/${dateParams.week}`,
-            { headers: headers, jar: jar }
+            {
+                headers: headers,
+                jar: jar,
+                responseType: 'text',
+                tags: { name: 'weekly_summary' },
+            }
         );
         success = check(response, {
             'weekly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
         });
-        apiErrorRate.add(!success);
+        // 404는 데이터 없음이므로 에러로 카운트하지 않음
+        if (response.status !== 200 && response.status !== 404) {
+            apiErrorRate.add(1);
+        }
 
         sleep(0.5);
 
-        // 월간 매매 요약 조회
+        // 월간 매매 요약 조회 (404는 데이터 없음으로 정상 처리)
         response = http.get(
             `${BASE_URL}/api/v1/monthly-trading-summaries/customers/me/years/${dateParams.year}/months/${dateParams.month}`,
-            { headers: headers, jar: jar }
+            {
+                headers: headers,
+                jar: jar,
+                responseType: 'text',
+                tags: { name: 'monthly_summary' },
+            }
         );
         success = check(response, {
             'monthly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
         });
-        apiErrorRate.add(!success);
+        // 404는 데이터 없음이므로 에러로 카운트하지 않음
+        if (response.status !== 200 && response.status !== 404) {
+            apiErrorRate.add(1);
+        }
     });
 
     sleep(1);
@@ -219,10 +236,10 @@ export function handleSummary(data) {
     console.log(`테스트 대상: ${BASE_URL}`);
     console.log(`총 요청: ${data.metrics.http_reqs?.values?.count || 0}`);
     console.log(`평균 응답시간: ${(data.metrics.http_req_duration?.values?.avg || 0).toFixed(2)}ms`);
-    console.log(`HTTP 실패율: ${((data.metrics.http_req_failed?.values?.rate || 0) * 100).toFixed(2)}%`);
+    console.log(`API 에러율: ${((data.metrics.api_error_rate?.values?.rate || 0) * 100).toFixed(2)}%`);
     console.log(`로그인 성공률: ${((data.metrics.login_success_rate?.values?.rate || 0) * 100).toFixed(2)}%`);
 
-    const passed = (data.metrics.http_req_failed?.values?.rate || 0) < 0.1 &&
+    const passed = (data.metrics.api_error_rate?.values?.rate || 0) < 0.1 &&
         (data.metrics.login_success_rate?.values?.rate || 0) > 0.9;
 
     console.log(`상태: ${passed ? '✅ PASS' : '❌ FAIL'}`);

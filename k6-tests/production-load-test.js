@@ -2,7 +2,7 @@
  * TPT-API 운영 서버 부하 테스트 스크립트 (k6)
  *
  * 테스트 대상 API:
- * 1. GET /api/v1/feedback-requests - 피드백 요청 목록
+ * 1. GET /api/v1/feedback-requests?page=0&size=50 - 피드백 요청 목록
  * 2. GET /api/v1/weekly-trading-summary/customers/me/years/{year}/months/{month}/weeks/{week}
  * 3. GET /api/v1/monthly-trading-summaries/customers/me/years/{year}/months/{month}
  *
@@ -55,9 +55,9 @@ export const options = {
     },
     thresholds: {
         http_req_duration: ['p(95)<1000'],     // 95%의 요청이 1초 이내
-        http_req_failed: ['rate<0.05'],         // 실패율 5% 미만
-        login_success_rate: ['rate>0.95'],      // 로그인 성공률 95% 이상
+        // 404는 데이터 없음으로 정상이므로, api_error_rate로 실패 판단
         api_error_rate: ['rate<0.05'],          // API 에러율 5% 미만
+        login_success_rate: ['rate>0.95'],      // 로그인 성공률 95% 이상
     },
     http2: true,
 };
@@ -172,12 +172,9 @@ function getTestDateParams() {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
-
-    // 현재 주 계산
     const firstDayOfMonth = new Date(year, month - 1, 1);
     const dayOfMonth = now.getDate();
     const week = Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
-
     return { year, month, week: Math.min(week, 5) };
 }
 
@@ -212,11 +209,11 @@ export default function () {
 
     sleep(Math.random() * 0.5 + 0.5);
 
-    // 2. 피드백 요청 목록 조회
+    // 2. 피드백 요청 목록 조회 (size=50)
     group('Feedback Request List API', function () {
         const startTime = Date.now();
         const response = authenticatedGet(
-            `${BASE_URL}/api/v1/feedback-requests?page=0&size=10`,
+            `${BASE_URL}/api/v1/feedback-requests?page=0&size=50`,
             jar,
             csrfToken
         );
@@ -303,12 +300,11 @@ export function handleSummary(data) {
     console.log(`총 요청 수: ${data.metrics.http_reqs?.values?.count || 0}`);
     console.log(`평균 응답 시간: ${(data.metrics.http_req_duration?.values?.avg || 0).toFixed(2)}ms`);
     console.log(`95 백분위 응답 시간: ${(data.metrics.http_req_duration?.values?.['p(95)'] || 0).toFixed(2)}ms`);
-    console.log(`HTTP 실패율: ${((data.metrics.http_req_failed?.values?.rate || 0) * 100).toFixed(2)}%`);
     console.log(`로그인 성공률: ${((data.metrics.login_success_rate?.values?.rate || 0) * 100).toFixed(2)}%`);
     console.log(`API 에러율: ${((data.metrics.api_error_rate?.values?.rate || 0) * 100).toFixed(2)}%`);
     console.log('----------------------------------------');
     console.log('API별 평균 응답 시간:');
-    console.log(`  - 피드백 목록: ${(data.metrics.feedback_api_duration?.values?.avg || 0).toFixed(2)}ms`);
+    console.log(`  - 피드백 목록 (size=50): ${(data.metrics.feedback_api_duration?.values?.avg || 0).toFixed(2)}ms`);
     console.log(`  - 주간 요약: ${(data.metrics.weekly_api_duration?.values?.avg || 0).toFixed(2)}ms`);
     console.log(`  - 월간 요약: ${(data.metrics.monthly_api_duration?.values?.avg || 0).toFixed(2)}ms`);
     console.log('========================================');

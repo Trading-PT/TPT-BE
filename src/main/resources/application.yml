@@ -196,7 +196,7 @@ aligo:
   user-id: "${ALIGO_USER_ID}"
   api-key: "${ALIGO_API_KEY}"
   senderkey: "${ALIGO_SENDER_KEY}"
-  sender: "${ALIGO_SENDER_NUMBER}"
+  sender: "${ALIGO_SENDER}"
 
   template:
     join: "${ALIGO_TEMPLATE_JOIN}"              # 회원가입 템플릿 코드
