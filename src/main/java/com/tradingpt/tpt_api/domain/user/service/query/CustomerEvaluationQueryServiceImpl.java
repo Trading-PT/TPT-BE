@@ -18,17 +18,26 @@ import com.tradingpt.tpt_api.domain.user.dto.response.PendingEvaluationListRespo
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.entity.User;
+import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
 import com.tradingpt.tpt_api.domain.user.repository.TrainerRepository;
+import com.tradingpt.tpt_api.domain.user.repository.UserRepository;
 import com.tradingpt.tpt_api.domain.weeklytradingsummary.repository.WeeklyTradingSummaryRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * 트레이너의 담당 고객 평가 관리 Query Service 구현체
+ * 고객 평가 관리 Query Service 구현체
+ *
+ * 역할별 동작:
+ * - ADMIN: 모든 고객의 미작성 평가 목록 조회
+ * - TRAINER: 담당 고객의 미작성 평가 목록만 조회
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -38,21 +47,32 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 	private final MonthlyTradingSummaryRepository monthlyTradingSummaryRepository;
 	private final WeeklyTradingSummaryRepository weeklytradingSummaryRepository;
 	private final TrainerRepository trainerRepository;
+	private final UserRepository userRepository;
 
 	@Override
-	public PendingEvaluationListResponseDTO getPendingEvaluations(Long trainerId, Pageable pageable) {
-		// 1. 트레이너 존재 여부 확인
-		if (!trainerRepository.existsById(trainerId)) {
-			throw new UserException(UserErrorStatus.TRAINER_NOT_FOUND);
-		}
+	public PendingEvaluationListResponseDTO getPendingEvaluations(Long userId, Pageable pageable) {
+		// 1. 사용자 조회 및 역할 확인
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new UserException(UserErrorStatus.USER_NOT_FOUND));
 
-		// 2. 트레이너의 담당 고객 조회 (AFTER_COMPLETION만, 이름순 정렬, Slice 페이징)
-		Slice<Customer> customerSlice = customerRepository
-			.findByAssignedTrainerIdAndCourseStatusOrderByNameAsc(
-				trainerId,
+		// 2. Role에 따라 다른 조회 로직 실행
+		Slice<Customer> customerSlice;
+		if (user.getRole() == Role.ROLE_ADMIN) {
+			// ADMIN: 모든 완강 고객 조회
+			customerSlice = customerRepository.findByCourseStatusOrderByNameAsc(
 				CourseStatus.AFTER_COMPLETION,
 				pageable
 			);
+			log.info("Admin user (ID: {}) fetching all pending evaluations", userId);
+		} else {
+			// TRAINER: 담당 고객만 조회
+			customerSlice = customerRepository.findByAssignedTrainerIdAndCourseStatusOrderByNameAsc(
+				userId,
+				CourseStatus.AFTER_COMPLETION,
+				pageable
+			);
+			log.info("Trainer (ID: {}) fetching assigned customers' pending evaluations", userId);
+		}
 
 		// 3. 조회된 고객들의 미작성 평가 목록 생성
 		List<PendingEvaluationItemDTO> allPendingEvaluations = new ArrayList<>();
