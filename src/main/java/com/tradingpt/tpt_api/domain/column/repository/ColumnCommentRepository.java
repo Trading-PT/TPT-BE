@@ -30,4 +30,6 @@ public interface ColumnCommentRepository extends JpaRepository<Comment, Long> {
         Long getColumnId();
         long getCnt();
     }
+
+    void deleteByColumns_Id(Long columnId);
 }
