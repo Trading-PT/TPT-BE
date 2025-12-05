@@ -71,7 +71,7 @@ public class MyCustomerNewFeedbackListItemDTO {
 			.id(request.getId())
 			.customerId(request.getCustomer().getId())
 			.customerName(request.getCustomer().getUsername())
-			.uid(request.getCustomer().getUid().getUid())
+			.uid(request.getCustomer().getUid().getUid() == null ? "" : request.getCustomer().getUid().getUid())
 			.title(request.getTitle())
 			.investmentType(request.getInvestmentType())
 			.courseStatus(request.getCourseStatus())
