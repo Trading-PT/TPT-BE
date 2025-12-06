@@ -25,9 +25,6 @@ public class AdminLeveltestAttemptHistoryResponseDTO {
     @Schema(description = "등급(A/B/C)", example = "B")
     private String grade;
 
-    @Schema(description = "총 점수", example = "89")
-    private Integer totalScore;
-
     @Schema(description = "채점 트레이너 이름", example = "이직원")
     private String gradingTrainerName;
 
@@ -49,7 +46,6 @@ public class AdminLeveltestAttemptHistoryResponseDTO {
                 .attemptOrder(attemptOrder)
                 .testDate(attempt.getCreatedAt().toLocalDate())
                 .grade(attempt.getGrade() != null ? attempt.getGrade().name() : null)
-                .totalScore(attempt.getTotalScore())
                 .gradingTrainerName(gradingTrainerName)
                 .assignedTrainerName(assignedTrainerName)
                 .build();

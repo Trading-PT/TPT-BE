@@ -20,9 +20,6 @@ public class LeveltestAttemptDetailResponseDTO {
     @Schema(description = "시도(Attempt) ID", example = "12")
     private Long attemptId;
 
-    @Schema(description = "총점", example = "85")
-    private Integer totalScore;
-
     @Schema(description = "등급", example = "A")
     private String grade;
 
@@ -41,7 +38,6 @@ public class LeveltestAttemptDetailResponseDTO {
                                                          List<LevelTestResponse> responses) {
         return LeveltestAttemptDetailResponseDTO.builder()
                 .attemptId(attempt.getId())
-                .totalScore(attempt.getTotalScore())
                 .grade(String.valueOf(attempt.getGrade()))
                 .customerId(attempt.getCustomer().getId())
                 .responses(
@@ -78,9 +74,6 @@ public class LeveltestAttemptDetailResponseDTO {
         @Schema(description = "유저가 작성한 답변 (주관식/단답형일 경우)", example = "이동평균선은 일정기간 주가의 평균값입니다.")
         private String answerText;
 
-        @Schema(description = "획득 점수", example = "5")
-        private Integer scoreAwarded;
-
         public static QuestionResponse from(LevelTestResponse response) {
 
             LevelTestQuestion q = response.getLeveltestQuestion();
@@ -97,7 +90,6 @@ public class LeveltestAttemptDetailResponseDTO {
                     )
                     .choiceNumber(response.getChoiceNumber())
                     .answerText(response.getAnswerText())
-                    .scoreAwarded(response.getScoredAwarded())
                     .build();
         }
     }
