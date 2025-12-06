@@ -31,13 +31,15 @@ public class TrainerQueryServiceImpl implements TrainerQueryService {
 		Page<Customer> customerPage = customerRepository.findByAssignedTrainer_Id(trainerId, pageable);
 
 		return customerPage.map(customer -> {
+			// evaluator_id 조건 제거: 고객의 최신 평가 데이터를 조회
+			// - 고객이 직접 작성한 메모(evaluator_id=null)도 포함
+			// - 다른 트레이너가 작성한 평가도 포함
 			MonthlyTradingSummary latestMonthly = monthlyTradingSummaryRepository
-				.findTopByEvaluator_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(trainerId, customer.getId())
+				.findTopByCustomer_IdOrderByPeriodYearDescPeriodMonthDesc(customer.getId())
 				.orElse(null);
 
 			WeeklyTradingSummary latestWeekly = weeklyTradingSummaryRepository
-				.findTopByEvaluator_IdAndCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(trainerId,
-					customer.getId())
+				.findTopByCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(customer.getId())
 				.orElse(null);
 
 			return CustomerEvaluationResponseDTO.of(customer, latestMonthly, latestWeekly);

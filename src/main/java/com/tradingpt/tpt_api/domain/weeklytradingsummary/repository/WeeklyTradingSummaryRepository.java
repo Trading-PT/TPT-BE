@@ -58,4 +58,20 @@ public interface WeeklyTradingSummaryRepository
 		Integer month,
 		Integer week
 	);
+
+	/**
+	 * 특정 고객의 최신 주간 매매 요약 조회 (evaluator 무관)
+	 * 트레이너 담당 고객 평가 관리 화면에서 사용
+	 *
+	 * 비즈니스 규칙:
+	 * - 고객이 직접 작성한 메모(evaluator_id=null)도 포함
+	 * - 다른 트레이너가 작성한 평가도 포함
+	 * - 가장 최근 기간의 데이터를 반환
+	 *
+	 * @param customerId 고객 ID
+	 * @return 가장 최근 주간 매매 요약 (없으면 empty)
+	 */
+	Optional<WeeklyTradingSummary> findTopByCustomer_IdOrderByPeriodYearDescPeriodMonthDescPeriodWeekDesc(
+		Long customerId
+	);
 }

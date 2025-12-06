@@ -144,7 +144,8 @@
       "Bash(__NEW_LINE__ echo \"=== RDS Metrics (부하 테스트 시점) ===\")",
       "Bash(__NEW_LINE__ echo \"--- CPU Utilization ---\")",
       "Bash(aws autoscaling update-auto-scaling-group:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(mysql-dev:*)"
     ],
     "deny": [],
     "ask": []

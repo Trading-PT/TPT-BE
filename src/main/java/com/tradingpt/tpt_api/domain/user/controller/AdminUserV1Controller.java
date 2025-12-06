@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -139,6 +138,7 @@ public class AdminUserV1Controller {
 		return BaseResponse.onSuccess(null);
 	}
 
+	@Deprecated
 	@Operation(
 		summary = "내 담당 고객 목록 조회 (무한 스크롤)",
 		description = """
@@ -178,23 +178,23 @@ public class AdminUserV1Controller {
 		summary = "미구독(무료) 고객 목록 조회",
 		description = """
 			미구독 상태의 무료 고객 목록을 조회합니다.
-
+			
 			미구독 고객 정의:
 			1. Subscription이 없거나 ACTIVE 상태가 아닌 고객
 			2. membershipLevel이 BASIC인 고객
 			3. 담당 트레이너가 없는 고객 (assignedTrainer IS NULL)
-
+			
 			조회 정보:
 			- 고객 ID, 이름, 전화번호
 			- 현재 투자 유형 (DAY, SWING)
 			- 보유 토큰 수
 			- 가입일시
-
+			
 			응답 정보:
 			- totalCount: 미구독 고객 총 인원 수
 			- content: 미구독 고객 목록
 			- sliceInfo: 페이징 정보
-
+			
 			정렬 옵션 (sort 파라미터):
 			- createdAt,desc: 최근 가입 순 (기본값)
 			- createdAt,asc: 오래된 가입 순
@@ -202,12 +202,12 @@ public class AdminUserV1Controller {
 			- name,desc: 이름 내림차순
 			- tokenCount,desc: 토큰 많은 순
 			- tokenCount,asc: 토큰 적은 순
-
+			
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-
+			
 			예시:
 			- GET /api/v1/admin/users/free-customers
 			- GET /api/v1/admin/users/free-customers?page=0&size=20&sort=createdAt,desc
@@ -228,37 +228,37 @@ public class AdminUserV1Controller {
 		summary = "신규 구독 고객 목록 조회",
 		description = """
 			신규로 구독한 고객 목록을 조회합니다.
-
+			
 			신규 구독 고객 정의:
 			- ACTIVE 상태의 Subscription 보유
 			- 다음 중 하나에 해당:
 			  1. 구독 시작한지 24시간 이내 (Subscription.createdAt 기준)
 			  2. 트레이너가 아직 배정되지 않은 구독 고객
-
+			
 			조회 정보:
 			- 고객 기본 정보 (ID, UID, 이름, 전화번호)
 			- 레벨테스트 정보 (응시 여부, 상태, 채점 결과)
 			- 상담 여부
 			- 배정된 트레이너 정보
-
+			
 			레벨테스트 상태:
 			- SUBMITTED: 제출됨
 			- GRADING: 채점 중
 			- GRADED: 채점 완료
-
+			
 			정렬:
 			- 구독 시작일 내림차순 (최신순)
-
+			
 			응답 정보:
 			- totalCount: 신규 구독 고객 총 인원 수
 			- content: 신규 구독 고객 목록
 			- sliceInfo: 페이징 정보
-
+			
 			페이징:
 			- Slice 방식 (무한 스크롤)
 			- page: 페이지 번호 (0부터 시작)
 			- size: 페이지 크기 (기본값: 20)
-
+			
 			예시:
 			- GET /api/v1/admin/users/new-subscription-customers
 			- GET /api/v1/admin/users/new-subscription-customers?page=0&size=20
@@ -278,7 +278,7 @@ public class AdminUserV1Controller {
 	@DeleteMapping("/{userId}")
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public BaseResponse<Void> deleteUserHard(
-			@PathVariable Long userId
+		@PathVariable Long userId
 	) {
 		adminUserCommandService.deleteUserHard(userId);
 		return BaseResponse.onSuccess(null);
