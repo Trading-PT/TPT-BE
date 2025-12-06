@@ -103,15 +103,15 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		if (membershipLevel == MembershipLevel.PREMIUM) {
 			// PREMIUM: 트레이너 평가 포함
 			if (investmentType == InvestmentType.DAY) {
-				return buildAfterCompletionDaySummary(
+				return buildPremiumDayMembershipSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			} else {
-				return buildAfterCompletionSwingSummary(
+				return buildPremiumSwingMembershipSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			}
 		} else {
 			// BASIC 또는 null: 트레이너 평가 없음
-			return buildBeforeCompletionSummary(
+			return buildBasicMembershipSummary(
 				customerId, year, month, week, courseStatus, investmentType);
 		}
 	}
@@ -221,9 +221,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	}
 
 	/**
-	 * 완강 전 주간 요약 생성
+	 * BASIC 멤버십 주간 요약 생성 (트레이너 평가 없음)
 	 */
-	private BeforeCompletedCourseWeeklySummaryDTO buildBeforeCompletionSummary(
+	private BeforeCompletedCourseWeeklySummaryDTO buildBasicMembershipSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -285,9 +285,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	}
 
 	/**
-	 * 완강 후 데이 트레이딩 주간 요약 생성
+	 * PREMIUM 멤버십 데이 트레이딩 주간 요약 생성 (트레이너 평가 포함)
 	 */
-	private AfterCompletedDayWeeklySummaryDTO buildAfterCompletionDaySummary(
+	private AfterCompletedDayWeeklySummaryDTO buildPremiumDayMembershipSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -383,9 +383,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	}
 
 	/**
-	 * 완강 후 스윙 주간 요약 생성
+	 * PREMIUM 멤버십 스윙 주간 요약 생성 (트레이너 평가 포함)
 	 */
-	private AfterCompletedSwingWeeklySummaryDTO buildAfterCompletionSwingSummary(
+	private AfterCompletedSwingWeeklySummaryDTO buildPremiumSwingMembershipSummary(
 		Long customerId,
 		Integer year,
 		Integer month,

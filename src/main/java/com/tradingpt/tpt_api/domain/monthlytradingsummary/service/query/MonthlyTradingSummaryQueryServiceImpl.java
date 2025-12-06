@@ -107,10 +107,10 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 
 		if (membershipLevel == MembershipLevel.PREMIUM) {
 			// PREMIUM: 트레이너 평가 포함
-			return buildAfterCompletionSummary(customerId, year, month, courseStatus, investmentType);
+			return buildPremiumMembershipSummary(customerId, year, month, courseStatus, investmentType);
 		} else {
 			// BASIC 또는 null: 트레이너 평가 없음
-			return buildBeforeCompletionSummary(customerId, year, month, courseStatus, investmentType);
+			return buildBasicMembershipSummary(customerId, year, month, courseStatus, investmentType);
 		}
 	}
 
@@ -158,9 +158,9 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	/**
-	 * 완강 전 월별 요약 생성
+	 * BASIC 멤버십 월별 요약 생성 (트레이너 평가 없음)
 	 */
-	private BeforeCompletedCourseMonthlySummaryDTO buildBeforeCompletionSummary(
+	private BeforeCompletedCourseMonthlySummaryDTO buildBasicMembershipSummary(
 		Long customerId,
 		Integer year,
 		Integer month,
@@ -219,9 +219,9 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 	}
 
 	/**
-	 * 완강 후 월별 요약 생성 (스윙/데이)
+	 * PREMIUM 멤버십 월별 요약 생성 (트레이너 평가 포함)
 	 */
-	private AfterCompletedCourseMonthlySummaryDTO buildAfterCompletionSummary(
+	private AfterCompletedCourseMonthlySummaryDTO buildPremiumMembershipSummary(
 		Long customerId,
 		Integer year,
 		Integer month,

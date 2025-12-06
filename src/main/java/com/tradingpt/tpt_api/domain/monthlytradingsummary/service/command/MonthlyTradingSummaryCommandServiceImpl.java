@@ -143,7 +143,7 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 	 */
 
 	/**
-	 * 월간 매매일지 평가 Upsert (ADMIN/TRAINER용 - 완강 후)
+	 * 월간 매매일지 평가 Upsert (ADMIN/TRAINER용 - PREMIUM 멤버십 전용)
 	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
