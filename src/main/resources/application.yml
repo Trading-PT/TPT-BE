@@ -9,15 +9,15 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 20              # 10 → 20 (REQUIRES_NEW 사용으로 인한 동시 커넥션 증가 대응)
       minimum-idle: 5
-      connection-timeout: 20000
+      connection-timeout: 10000          # 20초 → 10초 (빠른 실패로 cascading failure 방지)
       idle-timeout: 300000
       max-lifetime: 1200000
       # Stale connection 방지 설정
-      keepalive-time: 30000              # 30초마다 유휴 연결 keepalive 체크
+      keepalive-time: 0           # 비활성화 (가장 안전)
       validation-timeout: 5000           # 연결 검증 타임아웃 5초
-      leak-detection-threshold: 60000    # 커넥션 누수 감지 임계값 60초
+      leak-detection-threshold: 30000    # 60초 → 30초 (누수 조기 감지)
 
   # 공통 JPA 설정
   jpa:

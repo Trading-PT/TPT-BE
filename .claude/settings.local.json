@@ -145,7 +145,8 @@
       "Bash(__NEW_LINE__ echo \"--- CPU Utilization ---\")",
       "Bash(aws autoscaling update-auto-scaling-group:*)",
       "Bash(grep:*)",
-      "Bash(mysql-dev:*)"
+      "Bash(mysql-dev:*)",
+      "mcp__cloudwatch__get_metric_data"
     ],
     "deny": [],
     "ask": []
