@@ -10,9 +10,9 @@ spring:
     hikari:
       pool-name: HikariCP-Dev
 
-      # 커넥션 풀 크기
-      maximum-pool-size: 20
-      minimum-idle: 5
+      # 커넥션 풀 크기 (db.t4g.medium: 4GB, max_connections ~340 대응)
+      maximum-pool-size: 30             # 20 → 30 (RDS 업그레이드로 증가 가능)
+      minimum-idle: 10                  # 5 → 10 (유휴 커넥션 확보)
 
       # 유휴 커넥션 정리
       idle-timeout: 300000              # 5분 (적절)
@@ -26,11 +26,11 @@ spring:
       # 커넥션이 끊겼는지 즉시 감지
       validation-timeout: 5000
 
-      # 커넥션 누수 감지
-      leak-detection-threshold: 5000    # 5초로 조기 감지
+      # 커넥션 누수 감지 (N+1 쿼리로 인한 긴 트랜잭션 대응)
+      leak-detection-threshold: 60000   # 5초 → 60초 (오탐 방지, 실제 누수만 감지)
 
       # 풀에서 커넥션 가져올 때 최대 대기 시간
-      connection-timeout: 10000         # 10초
+      connection-timeout: 20000         # 10초 → 20초 (버퍼 증가)
 
   # Redis 설정
   data:

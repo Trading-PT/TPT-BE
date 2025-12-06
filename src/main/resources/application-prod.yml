@@ -9,15 +9,23 @@ spring:
     password: ${PROD_DB_PASSWORD}
     hikari:
       pool-name: HikariCP-Prod
-      maximum-pool-size: 15                # 10 → 15 증가 (동시 요청 대응)
-      minimum-idle: 7                      # 5 → 7 증가
-      connection-timeout: 20000
-      idle-timeout: 300000
-      max-lifetime: 1200000
-      # Stale connection 방지 설정
-      keepalive-time: 30000                # 30초마다 유휴 연결 keepalive 체크
-      validation-timeout: 5000             # 연결 검증 타임아웃 5초
-      leak-detection-threshold: 60000      # 커넥션 누수 감지 임계값 60초
+
+      # 커넥션 풀 크기 (db.r6g.large: 16GB, max_connections ~1,365)
+      # 6 EC2 × 25 = 150 커넥션 (RDS 용량의 11%)
+      maximum-pool-size: 25               # 15 → 25 (동시 요청 대응 강화)
+      minimum-idle: 10                    # 7 → 10 (유휴 커넥션 확보)
+
+      # 타임아웃 설정
+      connection-timeout: 20000           # 커넥션 획득 대기 20초
+      idle-timeout: 300000                # 유휴 커넥션 5분 후 정리
+      max-lifetime: 1800000               # 1200000 → 1800000 (30분, RDS 권장)
+
+      # Stale connection 방지 (RDS 환경 최적화)
+      keepalive-time: 0                   # 30000 → 0 (RDS에서 불필요, 오히려 문제 유발)
+      validation-timeout: 5000            # 연결 검증 타임아웃 5초
+
+      # 커넥션 누수 감지 (N+1 쿼리 고려)
+      leak-detection-threshold: 60000     # 60초 유지
 
   # Redis 설정 (Encryption in-transit 활성화)
   data:
