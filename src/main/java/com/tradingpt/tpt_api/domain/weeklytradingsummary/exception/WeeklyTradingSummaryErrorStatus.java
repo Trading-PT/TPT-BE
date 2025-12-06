@@ -40,6 +40,8 @@ public enum WeeklyTradingSummaryErrorStatus implements BaseCodeInterface {
 		"완강 전에는 memo를 작성해야 합니다."),
 	DETAILED_EVALUATION_NOT_ALLOWED_FOR_CUSTOMER(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_7",
 		"고객은 상세 평가를 작성할 수 없습니다."),
+	MEMBERSHIP_NOT_PREMIUM(HttpStatus.BAD_REQUEST, "WEEKLY_SUM_400_8",
+		"PREMIUM 멤버십 고객만 트레이너 평가 작성 대상입니다."),
 	;
 
 	private final HttpStatus httpStatus;

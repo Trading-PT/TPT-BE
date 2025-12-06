@@ -16,8 +16,8 @@ import com.tradingpt.tpt_api.domain.monthlytradingsummary.exception.MonthlyTradi
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.repository.MonthlyTradingSummaryRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -80,8 +80,8 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 				MonthlyTradingSummaryErrorStatus.MONTHLY_SUMMARY_ALREADY_EXISTS);
 		}
 
-		// 5. 완강 여부 검증
-		validateCourseCompletion(customerId, year, month);
+		// 5. 멤버십 레벨 검증 (PREMIUM만 평가 대상)
+		validateMembershipLevel(customer);
 
 		// 6. 콘텐츠 처리 (저장 전에 처리 완료)
 		String processedEvaluation = contentImageUploader.processContent(
@@ -114,27 +114,26 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 	}
 
 	/**
-	 * 해당 연/월에 완강 후(AFTER_COMPLETION) 상태의 피드백이 존재하는지 검증합니다.
+	 * 고객의 멤버십 레벨이 PREMIUM인지 검증합니다.
+	 * PREMIUM 고객만 트레이너 평가 작성 대상입니다.
+	 * (완강 여부와 무관하게 PREMIUM이면 평가 작성 가능)
 	 *
-	 * @param customerId 고객 ID
-	 * @param year 연도
-	 * @param month 월
-	 * @throws MonthlyTradingSummaryException 완강 후 피드백이 없는 경우
+	 * @param customer 고객 엔티티
+	 * @throws MonthlyTradingSummaryException PREMIUM이 아닌 경우
 	 */
-	private void validateCourseCompletion(Long customerId, Integer year, Integer month) {
-		boolean hasCompletedCourse = feedbackRequestRepository
-			.existsByCustomerIdAndYearAndMonthAndCourseStatus(
-				customerId, year, month, CourseStatus.AFTER_COMPLETION);
+	private void validateMembershipLevel(Customer customer) {
+		MembershipLevel membershipLevel = customer.getMembershipLevel();
 
-		if (!hasCompletedCourse) {
-			log.warn("No AFTER_COMPLETION feedback found for customerId={}, year={}, month={}",
-				customerId, year, month);
+		// PREMIUM이 아닌 경우 (null 또는 BASIC) 평가 작성 불가
+		if (membershipLevel != MembershipLevel.PREMIUM) {
+			log.warn("Customer is not PREMIUM: customerId={}, membershipLevel={}",
+				customer.getId(), membershipLevel);
 			throw new MonthlyTradingSummaryException(
-				MonthlyTradingSummaryErrorStatus.COURSE_NOT_COMPLETED);
+				MonthlyTradingSummaryErrorStatus.MEMBERSHIP_NOT_PREMIUM);
 		}
 
-		log.debug("Course completion validated for customerId={}, year={}, month={}",
-			customerId, year, month);
+		log.debug("Membership level validated for customerId={}, membershipLevel={}",
+			customer.getId(), membershipLevel);
 	}
 
 	/**
@@ -200,8 +199,8 @@ public class MonthlyTradingSummaryCommandServiceImpl implements MonthlyTradingSu
 			summary.updateTrainerEvaluation(processedEvaluation, processedGoal);
 			log.info("Updated monthly evaluation by evaluatorId={}", evaluatorId);
 		} else {
-			// CREATE: 완강 검증 후 새 Entity 생성
-			validateCourseCompletion(customerId, year, month);
+			// CREATE: 멤버십 레벨 검증 후 새 Entity 생성 (PREMIUM만)
+			validateMembershipLevel(customer);
 
 			summary = MonthlyTradingSummary.createForEvaluation(
 				processedEvaluation,

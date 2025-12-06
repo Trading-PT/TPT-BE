@@ -41,6 +41,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Trainer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -101,12 +102,15 @@ public class MonthlyTradingSummaryQueryServiceImpl implements MonthlyTradingSumm
 				() -> new InvestmentHistoryException(InvestmentHistoryErrorStatus.INVESTMENT_HISTORY_NOT_FOUND))
 			.getInvestmentType();
 
-		// 3. CourseStatus에 따라 분기 처리
-		if (courseStatus == CourseStatus.BEFORE_COMPLETION || courseStatus == CourseStatus.PENDING_COMPLETION) {
-			return buildBeforeCompletionSummary(customerId, year, month, courseStatus, investmentType);
-		} else {
-			// 완강 후 (DAY/SWING)
+		// 3. MembershipLevel 기준 분기 (null은 BASIC과 동일 처리)
+		MembershipLevel membershipLevel = customer.getMembershipLevel();
+
+		if (membershipLevel == MembershipLevel.PREMIUM) {
+			// PREMIUM: 트레이너 평가 포함
 			return buildAfterCompletionSummary(customerId, year, month, courseStatus, investmentType);
+		} else {
+			// BASIC 또는 null: 트레이너 평가 없음
+			return buildBeforeCompletionSummary(customerId, year, month, courseStatus, investmentType);
 		}
 	}
 
