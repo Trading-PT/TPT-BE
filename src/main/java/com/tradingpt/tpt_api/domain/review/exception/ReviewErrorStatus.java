@@ -26,6 +26,7 @@ public enum ReviewErrorStatus implements BaseCodeInterface {
 	// 403 Forbidden
 	UNAUTHORIZED_REVIEW_ACCESS(HttpStatus.FORBIDDEN, "REVIEW_403_0", "해당 리뷰에 접근할 권한이 없습니다."),
 	REVIEW_NOT_PUBLIC(HttpStatus.FORBIDDEN, "REVIEW_403_1", "비공개 리뷰는 조회할 수 없습니다."),
+	UID_VERIFICATION_REQUIRED(HttpStatus.FORBIDDEN, "REVIEW_403_2", "UID 인증이 완료되어야 리뷰를 작성할 수 있습니다."),
 
 	// 400 Bad Request
 	REVIEW_ALREADY_HAS_REPLY(HttpStatus.BAD_REQUEST, "REVIEW_400_0", "이미 답변이 작성된 리뷰입니다."),

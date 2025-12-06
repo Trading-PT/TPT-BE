@@ -49,10 +49,17 @@ public class ReviewResponseDTO {
 	 * Review 엔티티를 DTO로 변환
 	 */
 	public static ReviewResponseDTO from(Review review) {
+		String nickname = review.getCustomer().getNickname();
+
+		if (nickname == null || nickname.isBlank()) {
+			String name = review.getCustomer().getUsername();
+			nickname = maskUsername(name);
+		}
+
 		ReviewResponseDTOBuilder builder = ReviewResponseDTO.builder()
 			.id(review.getId())
 			.customerId(review.getCustomer().getId())
-			.customerName(review.getCustomer().getName())
+			.customerName(nickname)
 			.phoneNumber(review.getCustomer().getPhoneNumber())
 			.content(review.getContent())
 			.rating(review.getRating())
@@ -69,6 +76,14 @@ public class ReviewResponseDTO {
 		}
 
 		return builder.build();
+	}
+
+	private static String maskUsername(String username) {
+		int length = username.length();
+		int visibleLength = (length + 1) / 2;  // 홀수일 경우 한 글자 더 노출
+		int maskLength = length - visibleLength;
+
+		return username.substring(0, visibleLength) + "*".repeat(maskLength);
 	}
 
 	public boolean hasReply() {
