@@ -32,14 +32,14 @@ public class AdminCustomerEvaluationV1Controller {
 	 *
 	 * <p>역할별 동작:
 	 * <ul>
-	 *   <li>ADMIN: 모든 고객의 미작성 평가 목록 조회</li>
-	 *   <li>TRAINER: 자기 담당 고객의 미작성 평가 목록만 조회</li>
+	 *   <li>ADMIN: 모든 PREMIUM 고객의 미작성 평가 목록 조회</li>
+	 *   <li>TRAINER: 자기 담당 PREMIUM 고객의 미작성 평가 목록만 조회</li>
 	 * </ul>
 	 *
 	 * <p>비즈니스 규칙:
 	 * <ul>
-	 *   <li>완강 후(AFTER_COMPLETION) 고객만 조회</li>
-	 *   <li>완강 월부터 현재 월까지의 모든 미작성 평가 표시</li>
+	 *   <li>PREMIUM 멤버십 고객만 조회</li>
+	 *   <li>FeedbackRequest가 존재하는 월의 미작성 평가만 표시</li>
 	 *   <li>월간 평가: DAY/SWING 모두 대상</li>
 	 *   <li>주간 평가: DAY만 대상, 현재 월은 현재 주차까지만 표시</li>
 	 *   <li>고객 이름순 정렬</li>
@@ -56,12 +56,12 @@ public class AdminCustomerEvaluationV1Controller {
 			미작성 평가 목록을 조회합니다.
 
 			**역할별 동작:**
-			- ADMIN: 모든 고객의 미작성 평가 목록 조회
-			- TRAINER: 자기 담당 고객의 미작성 평가 목록만 조회
+			- ADMIN: 모든 PREMIUM 고객의 미작성 평가 목록 조회
+			- TRAINER: 자기 담당 PREMIUM 고객의 미작성 평가 목록만 조회
 
 			**조회 범위:**
-			- 완강(AFTER_COMPLETION) 상태 고객만 대상
-			- 완강 월부터 현재 월까지의 모든 미작성 평가
+			- PREMIUM 멤버십 고객만 대상
+			- FeedbackRequest가 존재하는 월의 미작성 평가만 표시
 
 			**평가 유형:**
 			- 월간 평가: DAY/SWING 투자 유형 모두 대상

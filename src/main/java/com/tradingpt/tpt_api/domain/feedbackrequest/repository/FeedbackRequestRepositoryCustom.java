@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.YearMonthProjection;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
 import com.tradingpt.tpt_api.domain.monthlytradingsummary.dto.projection.EntryPointStatistics;
@@ -386,5 +387,15 @@ public interface FeedbackRequestRepositoryCustom {
 		Integer week,
 		InvestmentType investmentType
 	);
+
+	/**
+	 * ✅ 특정 고객의 피드백 요청이 존재하는 연/월 목록 조회
+	 * - Admin 평가 대기 목록에서 MembershipLevel 기반 조회 시 사용
+	 * - 연/월 오름차순 정렬
+	 *
+	 * @param customerId 고객 ID
+	 * @return 피드백이 존재하는 연/월 목록
+	 */
+	List<YearMonthProjection> findDistinctYearMonthsByCustomerId(Long customerId);
 
 }

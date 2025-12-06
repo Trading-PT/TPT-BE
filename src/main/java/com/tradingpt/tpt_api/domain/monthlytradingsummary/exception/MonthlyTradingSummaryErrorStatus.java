@@ -30,6 +30,8 @@ public enum MonthlyTradingSummaryErrorStatus implements BaseCodeInterface {
 		"해당 연/월에 완강 후 상태의 피드백이 없습니다. 완강 후에만 월간 요약을 작성할 수 있습니다."),
 	INVALID_INVESTMENT_TYPE(HttpStatus.BAD_REQUEST, "MONTHLY_SUM_400_2",
 		"월간 요약은 데이 트레이딩 또는 스윙 트레이딩 타입에서만 작성할 수 있습니다."),
+	MEMBERSHIP_NOT_PREMIUM(HttpStatus.BAD_REQUEST, "MONTHLY_SUM_400_3",
+		"PREMIUM 멤버십 고객만 트레이너 평가 작성 대상입니다."),
 	;
 
 	private final HttpStatus httpStatus;

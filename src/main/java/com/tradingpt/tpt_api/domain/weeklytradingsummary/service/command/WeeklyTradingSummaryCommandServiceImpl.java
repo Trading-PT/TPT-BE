@@ -14,6 +14,7 @@ import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
 import com.tradingpt.tpt_api.domain.user.enums.CourseStatus;
 import com.tradingpt.tpt_api.domain.user.enums.InvestmentType;
+import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
 import com.tradingpt.tpt_api.domain.user.enums.Role;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
@@ -86,11 +87,13 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 		// 6. 해당 주의 코스 상태 조회
 		CourseStatus courseStatus = getCourseStatusForWeek(customerId, year, month, week);
 
-		// 7. ✅ 완강 전인 경우 평가 작성 불가
-		if (courseStatus == CourseStatus.BEFORE_COMPLETION) {
-			log.warn("Evaluator cannot create summary for BEFORE_COMPLETION: evaluatorId={}", evaluatorId);
+		// 7. ✅ PREMIUM이 아닌 경우 평가 작성 불가 (완강 여부와 무관)
+		MembershipLevel membershipLevel = customer.getMembershipLevel();
+		if (membershipLevel != MembershipLevel.PREMIUM) {
+			log.warn("Evaluator cannot create summary for non-PREMIUM customer: customerId={}, membershipLevel={}",
+				customerId, membershipLevel);
 			throw new WeeklyTradingSummaryException(
-				WeeklyTradingSummaryErrorStatus.TRAINER_CANNOT_CREATE_FOR_BEFORE_COMPLETION);
+				WeeklyTradingSummaryErrorStatus.MEMBERSHIP_NOT_PREMIUM);
 		}
 
 		// 8. ✅ 완강 후 + SWING인 경우 생성 불가
@@ -332,7 +335,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 	 */
 
 	/**
-	 * 주간 매매일지 메모 Upsert (고객용 - 완강 전)
+	 * 주간 매매일지 메모 Upsert (고객용)
 	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
@@ -393,7 +396,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 	}
 
 	/**
-	 * 주간 매매일지 평가 Upsert (ADMIN/TRAINER용 - 완강 후 + DAY 타입)
+	 * 주간 매매일지 평가 Upsert (ADMIN/TRAINER용 - PREMIUM 멤버십 전용)
 	 * Entity의 비즈니스 메서드를 통해 검증 및 상태 변경
 	 * JPA Dirty Checking을 활용하여 자동 UPDATE
 	 */
@@ -458,7 +461,15 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			);
 			log.info("Evaluator updated weekly evaluation");
 		} else {
-			// CREATE: 새 Entity 생성
+			// CREATE: 멤버십 레벨 검증 후 새 Entity 생성 (PREMIUM만)
+			MembershipLevel membershipLevel = customer.getMembershipLevel();
+			if (membershipLevel != MembershipLevel.PREMIUM) {
+				log.warn("Cannot create weekly evaluation for non-PREMIUM customer: customerId={}, membershipLevel={}",
+					customerId, membershipLevel);
+				throw new WeeklyTradingSummaryException(
+					WeeklyTradingSummaryErrorStatus.MEMBERSHIP_NOT_PREMIUM);
+			}
+
 			summary = WeeklyTradingSummary.createForEvaluation(
 				processedEvaluation,
 				processedProfitAnalysis,
