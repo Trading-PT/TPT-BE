@@ -58,7 +58,7 @@ spring:
   # JPA 설정 (운영 환경)
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
