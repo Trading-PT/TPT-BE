@@ -57,7 +57,6 @@ public class AdminLevelTestQueryServiceImpl implements AdminLeveltestQueryServic
 			AdminLeveltestAttemptListResponseDTO.builder()
 				.attemptId(attempt.getId())
 				.customerName(attempt.getCustomer().getName())
-				.totalScore(attempt.getTotalScore())
 				.status(attempt.getStatus())
 				.createdAt(attempt.getCreatedAt())
 				.build()

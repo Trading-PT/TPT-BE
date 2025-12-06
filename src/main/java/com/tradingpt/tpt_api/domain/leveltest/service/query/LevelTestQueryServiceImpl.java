@@ -62,7 +62,6 @@ public class LevelTestQueryServiceImpl implements LevelTestQueryService {
 
 		return LeveltestAttemptDetailResponseDTO.builder()
 			.attemptId(attempt.getId())
-			.totalScore(attempt.getTotalScore())
 				.grade(attempt.getGrade() == null ? null : String.valueOf(attempt.getGrade()))
 				.customerId(attempt.getCustomer().getId())
 			.responses(
