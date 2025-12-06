@@ -44,6 +44,12 @@ public class FeedbackRequestDetailResponseDTO {
 	@Schema(description = "피드백 요청 ID")
 	private Long id;
 
+	@Schema(description = "고객의 성함")
+	private String customerName;
+
+	@Schema(description = "UID")
+	private String uid;
+
 	@Schema(description = "생성일시")
 	private LocalDateTime createdAt;
 
@@ -217,6 +223,8 @@ public class FeedbackRequestDetailResponseDTO {
 		return FeedbackRequestDetailResponseDTO.builder()
 			// 기본 정보
 			.id(feedbackRequest.getId())
+			.customerName(feedbackRequest.getCustomer().getName())
+			.uid(feedbackRequest.getCustomer().getUid().getUid())
 			.createdAt(feedbackRequest.getCreatedAt())
 			.updatedAt(feedbackRequest.getUpdatedAt())
 			.investmentType(feedbackRequest.getInvestmentType())
