@@ -201,3 +201,8 @@ aligo:
   template:
     join: "${ALIGO_TEMPLATE_JOIN}"              # 회원가입 템플릿 코드
     join-approved: "${ALIGO_TEMPLATE_JOIN_APPROVED}" # 가입 승인 템플릿 코드
+
+  button:
+    join:
+      name: "${ALIGO_BUTTON_JOIN_NAME}"
+      link: "${ALIGO_BUTTON_JOIN_LINK}"
