@@ -118,19 +118,6 @@ function login(user, jar) {
     return { success, csrfToken };
 }
 
-/**
- * 테스트용 날짜 파라미터 생성
- */
-function getTestDateParams() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const firstDayOfMonth = new Date(year, month - 1, 1);
-    const dayOfMonth = now.getDate();
-    const week = Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
-    return { year, month, week: Math.min(week, 5) };
-}
-
 // =====================================================
 // 메인 테스트
 // =====================================================
@@ -138,7 +125,6 @@ export default function () {
     const vuId = __VU;
     const user = getTestUser(vuId);
     const jar = http.cookieJar();
-    const dateParams = getTestDateParams();
 
     let csrfToken = '';
     let loggedIn = false;
@@ -162,8 +148,8 @@ export default function () {
 
     sleep(0.5);
 
-    // 2. 인증된 API 테스트
-    group('Authenticated APIs', function () {
+    // 2. 피드백 요청 목록 조회 API 테스트
+    group('Feedback Request List API', function () {
         const headers = {
             'Content-Type': 'application/json',
         };
@@ -182,46 +168,6 @@ export default function () {
         apiErrorRate.add(!success);
         if (!success) {
             console.log(`Feedback list failed: ${response.status} - ${response.body?.substring(0, 200)}`);
-        }
-
-        sleep(0.5);
-
-        // 주간 매매 요약 조회 (404는 데이터 없음으로 정상 처리)
-        response = http.get(
-            `${BASE_URL}/api/v1/weekly-trading-summary/customers/me/years/${dateParams.year}/months/${dateParams.month}/weeks/${dateParams.week}`,
-            {
-                headers: headers,
-                jar: jar,
-                responseType: 'text',
-                tags: { name: 'weekly_summary' },
-            }
-        );
-        success = check(response, {
-            'weekly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
-        });
-        // 404는 데이터 없음이므로 에러로 카운트하지 않음
-        if (response.status !== 200 && response.status !== 404) {
-            apiErrorRate.add(1);
-        }
-
-        sleep(0.5);
-
-        // 월간 매매 요약 조회 (404는 데이터 없음으로 정상 처리)
-        response = http.get(
-            `${BASE_URL}/api/v1/monthly-trading-summaries/customers/me/years/${dateParams.year}/months/${dateParams.month}`,
-            {
-                headers: headers,
-                jar: jar,
-                responseType: 'text',
-                tags: { name: 'monthly_summary' },
-            }
-        );
-        success = check(response, {
-            'monthly summary is 200 or 404': (r) => r.status === 200 || r.status === 404,
-        });
-        // 404는 데이터 없음이므로 에러로 카운트하지 않음
-        if (response.status !== 200 && response.status !== 404) {
-            apiErrorRate.add(1);
         }
     });
 

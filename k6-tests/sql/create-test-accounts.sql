@@ -84,7 +84,8 @@ BEGIN
             open_chapter_number,
             token,
             feedback_request_count,
-            trainer_id
+            trainer_id,
+            leveltest_status
         ) VALUES (
             current_user_id,
             CONCAT('010', LPAD(@START_NUM + i, 8, '0')),  -- 01090000001 ~ 형태
@@ -97,7 +98,8 @@ BEGIN
             1,                                             -- 오픈된 챕터
             10,                                            -- 초기 토큰 10개
             0,                                             -- 피드백 요청 횟수
-            NULL                                           -- 트레이너 미배정
+            NULL,                                          -- 트레이너 미배정
+            'AVAILABLE'                                    -- 레벨테스트 가능 상태
         );
 
         SET i = i + 1;
