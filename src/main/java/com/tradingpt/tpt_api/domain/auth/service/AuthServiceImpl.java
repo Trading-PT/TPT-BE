@@ -126,7 +126,11 @@ public class AuthServiceImpl implements AuthService {
 		eventTokenService.grantSignupTokens(customer);
 
 		try {
-			aligoAlimtalkClient.sendJoinTalk(customer.getPhoneNumber(), "TPT");
+			aligoAlimtalkClient.sendJoinTalk(
+					customer.getPhoneNumber(),
+					"TPT",
+					customer.getName()
+			);
 		} catch (Exception e) {
 			log.error("회원가입 알림톡 발송 실패: {}", e.getMessage());
 		}
@@ -212,7 +216,11 @@ public class AuthServiceImpl implements AuthService {
 
 
 		try {
-			aligoAlimtalkClient.sendJoinTalk(customer.getPhoneNumber(), "TPT");
+			aligoAlimtalkClient.sendJoinTalk(
+					customer.getPhoneNumber(),
+					"TPT",
+					customer.getName() // 또는 원하는 이름
+			);
 		} catch (Exception e) {
 			log.error("회원가입 알림톡 발송 실패: {}", e.getMessage());
 		}
