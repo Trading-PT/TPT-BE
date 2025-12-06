@@ -57,6 +57,34 @@ public interface CustomerRepository extends JpaRepository<Customer, Long>, Custo
 	);
 
 	/**
+	 * 특정 멤버십 레벨인 모든 고객을 이름순으로 조회 (ADMIN용)
+	 * 평가 관리 화면에서 MembershipLevel 기반 조회 시 사용
+	 *
+	 * @param membershipLevel 멤버십 레벨
+	 * @param pageable        페이징 정보
+	 * @return 조건에 맞는 고객 목록 (Slice)
+	 */
+	Slice<Customer> findByMembershipLevelOrderByNameAsc(
+		MembershipLevel membershipLevel,
+		Pageable pageable
+	);
+
+	/**
+	 * 트레이너의 담당 고객 중 특정 멤버십 레벨인 고객을 이름순으로 조회
+	 * 평가 관리 화면에서 TRAINER가 MembershipLevel 기반 조회 시 사용
+	 *
+	 * @param trainerId       트레이너 ID
+	 * @param membershipLevel 멤버십 레벨
+	 * @param pageable        페이징 정보
+	 * @return 조건에 맞는 고객 목록 (Slice)
+	 */
+	Slice<Customer> findByAssignedTrainerIdAndMembershipLevelOrderByNameAsc(
+		Long trainerId,
+		MembershipLevel membershipLevel,
+		Pageable pageable
+	);
+
+	/**
 	 * 특정 멤버십 레벨이고 만료일이 지난 고객 조회
 	 * 만료 처리 스케줄러에서 사용
 	 *

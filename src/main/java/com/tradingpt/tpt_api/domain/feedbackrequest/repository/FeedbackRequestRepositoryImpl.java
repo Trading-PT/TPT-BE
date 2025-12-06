@@ -21,6 +21,7 @@ import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.DailyPnlProjection;
+import com.tradingpt.tpt_api.domain.feedbackrequest.dto.projection.YearMonthProjection;
 import com.tradingpt.tpt_api.domain.feedbackrequest.entity.FeedbackRequest;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.EntryPoint;
 import com.tradingpt.tpt_api.domain.feedbackrequest.enums.Status;
@@ -1045,6 +1046,21 @@ public class FeedbackRequestRepositoryImpl implements FeedbackRequestRepositoryC
 		}
 
 		return Math.round((rnrSum / winCount) * 100.0) / 100.0;
+	}
+
+	@Override
+	public List<YearMonthProjection> findDistinctYearMonthsByCustomerId(Long customerId) {
+		return queryFactory
+			.select(Projections.constructor(
+				YearMonthProjection.class,
+				feedbackRequest.feedbackYear,
+				feedbackRequest.feedbackMonth
+			))
+			.from(feedbackRequest)
+			.where(feedbackRequest.customer.id.eq(customerId))
+			.groupBy(feedbackRequest.feedbackYear, feedbackRequest.feedbackMonth)
+			.orderBy(feedbackRequest.feedbackYear.asc(), feedbackRequest.feedbackMonth.asc())
+			.fetch();
 	}
 
 }
