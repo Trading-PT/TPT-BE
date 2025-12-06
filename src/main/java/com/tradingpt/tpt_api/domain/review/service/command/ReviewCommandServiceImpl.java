@@ -23,7 +23,7 @@ import com.tradingpt.tpt_api.domain.review.repository.ReviewTagRepository;
 import com.tradingpt.tpt_api.domain.subscription.repository.SubscriptionRepository;
 import com.tradingpt.tpt_api.domain.user.entity.Customer;
 import com.tradingpt.tpt_api.domain.user.entity.User;
-import com.tradingpt.tpt_api.domain.user.enums.MembershipLevel;
+import com.tradingpt.tpt_api.domain.user.enums.UserStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserErrorStatus;
 import com.tradingpt.tpt_api.domain.user.exception.UserException;
 import com.tradingpt.tpt_api.domain.user.repository.CustomerRepository;
@@ -57,18 +57,10 @@ public class ReviewCommandServiceImpl implements ReviewCommandService {
 		Customer customer = customerRepository.findById(customerId)
 			.orElseThrow(() -> new UserException(UserErrorStatus.CUSTOMER_NOT_FOUND));
 
-		// 구독 상태 검증 - 활성 구독이 있어야만 리뷰 작성 가능
-		// boolean hasActiveSubscription = subscriptionRepository
-		// 	.findByCustomer_IdAndStatus(
-		// 		customerId,
-		// 		com.tradingpt.tpt_api.domain.subscription.enums.Status.ACTIVE
-		// 	)
-		// 	.isPresent();
-
-		boolean hasActiveSubscription = customer.getMembershipLevel() == MembershipLevel.PREMIUM;
-
-		if (!hasActiveSubscription) {
-			throw new ReviewException(ReviewErrorStatus.SUBSCRIPTION_REQUIRED);
+		// UID 인증 상태 검증 - 거절되었거나 심사 대기 중인 경우 리뷰 작성 불가
+		if (customer.getUserStatus() == UserStatus.UID_REJECTED ||
+			customer.getUserStatus() == UserStatus.UID_REVIEW_PENDING) {
+			throw new ReviewException(ReviewErrorStatus.UID_VERIFICATION_REQUIRED);
 		}
 
 		// 리뷰 내용 업로드 (인라인 이미지를 S3에 업로드하고 URL로 변환)

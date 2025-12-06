@@ -2,9 +2,8 @@
  * TPT-API 운영 서버 부하 테스트 스크립트 (k6)
  *
  * 테스트 대상 API:
- * 1. GET /api/v1/feedback-requests?page=0&size=50 - 피드백 요청 목록
- * 2. GET /api/v1/weekly-trading-summary/customers/me/years/{year}/months/{month}/weeks/{week}
- * 3. GET /api/v1/monthly-trading-summaries/customers/me/years/{year}/months/{month}
+ * 1. POST /api/v1/auth/login - 로그인
+ * 2. GET /api/v1/feedback-requests?page=0&size=50 - 피드백 요청 목록
  *
  * 실행 방법 (EC2에서):
  *   BASE_URL=https://api.tradingpt.kr k6 run production-load-test.js
@@ -31,8 +30,6 @@ const loginSuccessRate = new Rate('login_success_rate');
 const loginDuration = new Trend('login_duration');
 const apiErrorRate = new Rate('api_error_rate');
 const feedbackApiTrend = new Trend('feedback_api_duration');
-const weeklyApiTrend = new Trend('weekly_api_duration');
-const monthlyApiTrend = new Trend('monthly_api_duration');
 const totalRequests = new Counter('total_requests');
 
 // =====================================================
@@ -165,19 +162,6 @@ function authenticatedGet(url, jar, csrfToken) {
     return response;
 }
 
-/**
- * 테스트용 날짜 파라미터 생성
- */
-function getTestDateParams() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const firstDayOfMonth = new Date(year, month - 1, 1);
-    const dayOfMonth = now.getDate();
-    const week = Math.ceil((dayOfMonth + firstDayOfMonth.getDay()) / 7);
-    return { year, month, week: Math.min(week, 5) };
-}
-
 // =====================================================
 // 메인 테스트 시나리오
 // =====================================================
@@ -185,7 +169,6 @@ export default function () {
     const vuId = __VU;
     const user = getTestUser(vuId);
     const jar = http.cookieJar();
-    const dateParams = getTestDateParams();
 
     let csrfToken = '';
     let loggedIn = false;
@@ -239,50 +222,6 @@ export default function () {
         }
     });
 
-    sleep(Math.random() * 0.5 + 0.5);
-
-    // 3. 주간 매매 요약 조회
-    group('Weekly Trading Summary API', function () {
-        const startTime = Date.now();
-        const url = `${BASE_URL}/api/v1/weekly-trading-summary/customers/me/years/${dateParams.year}/months/${dateParams.month}/weeks/${dateParams.week}`;
-        const response = authenticatedGet(url, jar, csrfToken);
-        const duration = Date.now() - startTime;
-        weeklyApiTrend.add(duration);
-
-        // 404는 데이터 없음이므로 정상 처리
-        const success = check(response, {
-            'weekly summary status is 200 or 404': (r) => r.status === 200 || r.status === 404,
-        });
-
-        apiErrorRate.add(!success);
-
-        if (!success && response.status !== 404) {
-            console.log(`Weekly summary failed: ${response.status} - ${response.body?.substring(0, 200)}`);
-        }
-    });
-
-    sleep(Math.random() * 0.5 + 0.5);
-
-    // 4. 월간 매매 요약 조회
-    group('Monthly Trading Summary API', function () {
-        const startTime = Date.now();
-        const url = `${BASE_URL}/api/v1/monthly-trading-summaries/customers/me/years/${dateParams.year}/months/${dateParams.month}`;
-        const response = authenticatedGet(url, jar, csrfToken);
-        const duration = Date.now() - startTime;
-        monthlyApiTrend.add(duration);
-
-        // 404는 데이터 없음이므로 정상 처리
-        const success = check(response, {
-            'monthly summary status is 200 or 404': (r) => r.status === 200 || r.status === 404,
-        });
-
-        apiErrorRate.add(!success);
-
-        if (!success && response.status !== 404) {
-            console.log(`Monthly summary failed: ${response.status} - ${response.body?.substring(0, 200)}`);
-        }
-    });
-
     // 요청 간 랜덤 대기 (실제 사용자 행동 시뮬레이션)
     sleep(Math.random() * 2 + 1);
 }
@@ -305,8 +244,6 @@ export function handleSummary(data) {
     console.log('----------------------------------------');
     console.log('API별 평균 응답 시간:');
     console.log(`  - 피드백 목록 (size=50): ${(data.metrics.feedback_api_duration?.values?.avg || 0).toFixed(2)}ms`);
-    console.log(`  - 주간 요약: ${(data.metrics.weekly_api_duration?.values?.avg || 0).toFixed(2)}ms`);
-    console.log(`  - 월간 요약: ${(data.metrics.monthly_api_duration?.values?.avg || 0).toFixed(2)}ms`);
     console.log('========================================');
 
     const thresholdsPassed = Object.entries(data.metrics)
