@@ -142,7 +142,8 @@
       "Bash(START_TIME=\"2025-12-06T09:10:00Z\":*)",
       "Bash(__NEW_LINE__ echo \"=== EC2 CPU Utilization (부하 테스트 시점: 18:10~18:30 KST) ===\")",
       "Bash(__NEW_LINE__ echo \"=== RDS Metrics (부하 테스트 시점) ===\")",
-      "Bash(__NEW_LINE__ echo \"--- CPU Utilization ---\")"
+      "Bash(__NEW_LINE__ echo \"--- CPU Utilization ---\")",
+      "Bash(aws autoscaling update-auto-scaling-group:*)"
     ],
     "deny": [],
     "ask": []
