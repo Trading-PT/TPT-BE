@@ -4,17 +4,20 @@ spring:
       on-profile: prod
 
   datasource:
-    url: jdbc:mysql://${PROD_DB_HOST}:3306/${PROD_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=true&requireSSL=true
+    url: jdbc:mysql://${PROD_DB_HOST}:3306/${PROD_DB_NAME}?serverTimezone=Asia/Seoul&characterEncoding=UTF-8&useSSL=true&requireSSL=true&tcpKeepAlive=true&connectTimeout=10000&socketTimeout=60000
     username: ${PROD_DB_USERNAME}
     password: ${PROD_DB_PASSWORD}
     hikari:
       pool-name: HikariCP-Prod
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: 15                # 10 → 15 증가 (동시 요청 대응)
+      minimum-idle: 7                      # 5 → 7 증가
       connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 1200000
-      leak-detection-threshold: 60000
+      # Stale connection 방지 설정
+      keepalive-time: 30000                # 30초마다 유휴 연결 keepalive 체크
+      validation-timeout: 5000             # 연결 검증 타임아웃 5초
+      leak-detection-threshold: 60000      # 커넥션 누수 감지 임계값 60초
 
   # Redis 설정 (Encryption in-transit 활성화)
   data:

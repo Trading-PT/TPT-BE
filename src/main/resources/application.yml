@@ -14,6 +14,10 @@ spring:
       connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 1200000
+      # Stale connection 방지 설정
+      keepalive-time: 30000              # 30초마다 유휴 연결 keepalive 체크
+      validation-timeout: 5000           # 연결 검증 타임아웃 5초
+      leak-detection-threshold: 60000    # 커넥션 누수 감지 임계값 60초
 
   # 공통 JPA 설정
   jpa:
@@ -196,8 +200,13 @@ aligo:
   user-id: "${ALIGO_USER_ID}"
   api-key: "${ALIGO_API_KEY}"
   senderkey: "${ALIGO_SENDER_KEY}"
-  sender: "${ALIGO_SENDER_NUMBER}"
+  sender: "${ALIGO_SENDER}"
 
   template:
     join: "${ALIGO_TEMPLATE_JOIN}"              # 회원가입 템플릿 코드
     join-approved: "${ALIGO_TEMPLATE_JOIN_APPROVED}" # 가입 승인 템플릿 코드
+
+  button:
+    join:
+      name: "${ALIGO_BUTTON_JOIN_NAME}"
+      link: "${ALIGO_BUTTON_JOIN_LINK}"

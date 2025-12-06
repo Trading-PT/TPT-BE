@@ -163,15 +163,17 @@ public class SubscriptionCommandServiceImpl implements SubscriptionCommandServic
     public Subscription updateNextBillingDate(
         Long subscriptionId,
         LocalDate nextBillingDate,
+        LocalDate currentPeriodStart,
         LocalDate currentPeriodEnd
     ) {
-        log.info("다음 결제일 업데이트: subscriptionId={}, nextBillingDate={}", subscriptionId, nextBillingDate);
+        log.info("다음 결제일 업데이트: subscriptionId={}, nextBillingDate={}, periodStart={}, periodEnd={}",
+            subscriptionId, nextBillingDate, currentPeriodStart, currentPeriodEnd);
 
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
             .orElseThrow(() -> new SubscriptionException(SubscriptionErrorStatus.SUBSCRIPTION_NOT_FOUND));
 
         // JPA dirty checking을 활용한 업데이트 (save() 호출 불필요)
-        subscription.updateBillingDates(nextBillingDate, currentPeriodEnd);
+        subscription.updateBillingDates(nextBillingDate, currentPeriodStart, currentPeriodEnd);
 
         return subscription;
     }
