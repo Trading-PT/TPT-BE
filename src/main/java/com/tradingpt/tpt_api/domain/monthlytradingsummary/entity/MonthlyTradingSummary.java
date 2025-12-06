@@ -116,13 +116,14 @@ public class MonthlyTradingSummary extends BaseEntity {
 	}
 
 	/**
-	 * 평가 작성용 월간 요약 생성 (AFTER_COMPLETION)
+	 * 평가 작성용 월간 요약 생성 (PREMIUM 멤버십 전용)
 	 * ADMIN 또는 TRAINER가 평가를 작성할 때 사용
 	 *
 	 * @param processedEvaluation 처리된 월간 평가
 	 * @param processedGoal       처리된 다음 달 목표
 	 * @param customer            고객
 	 * @param evaluator           평가 작성자 (ADMIN 또는 TRAINER)
+	 * @param courseStatus        고객의 실제 완강 상태 (FeedbackRequest 또는 Customer에서 가져옴)
 	 * @param investmentType      투자 타입
 	 * @param year                연도
 	 * @param month               월
@@ -133,6 +134,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 		String processedGoal,
 		Customer customer,
 		User evaluator,
+		CourseStatus courseStatus,
 		InvestmentType investmentType,
 		Integer year,
 		Integer month
@@ -140,7 +142,7 @@ public class MonthlyTradingSummary extends BaseEntity {
 		return MonthlyTradingSummary.builder()
 			.customer(customer)
 			.evaluator(evaluator)
-			.courseStatus(CourseStatus.AFTER_COMPLETION)
+			.courseStatus(courseStatus)
 			.investmentType(investmentType)
 			.period(MonthlyPeriod.of(year, month))
 			.monthlyEvaluation(processedEvaluation)
@@ -181,19 +183,19 @@ public class MonthlyTradingSummary extends BaseEntity {
 	// ========================================
 
 	/**
-	 * 트레이너 평가 업데이트 (비즈니스 규칙 검증 포함)
+	 * 트레이너 평가 업데이트 (PREMIUM 멤버십 전용)
 	 * JPA Dirty Checking을 활용하여 변경 사항 자동 반영
+	 *
+	 * 비즈니스 규칙:
+	 * - MembershipLevel 검증은 Service에서 수행 (PREMIUM만 허용)
+	 * - CourseStatus 검증 제거됨 (기존 레코드가 어떤 상태여도 PREMIUM이면 평가 가능)
 	 *
 	 * @param processedEvaluation 처리된 월간 평가
 	 * @param processedGoal       처리된 다음 달 목표
-	 * @throws MonthlyTradingSummaryException 완강 전이면 평가 수정 불가
 	 */
 	public void updateTrainerEvaluation(String processedEvaluation, String processedGoal) {
-		if (!canTrainerWriteEvaluation()) {
-			throw new MonthlyTradingSummaryException(
-				MonthlyTradingSummaryErrorStatus.COURSE_NOT_COMPLETED
-			);
-		}
+		// MembershipLevel 검증은 Service에서 수행
+		// CourseStatus와 무관하게 PREMIUM이면 평가 가능
 		this.monthlyEvaluation = processedEvaluation;
 		this.nextMonthGoal = processedGoal;
 		this.evaluatedAt = LocalDateTime.now();

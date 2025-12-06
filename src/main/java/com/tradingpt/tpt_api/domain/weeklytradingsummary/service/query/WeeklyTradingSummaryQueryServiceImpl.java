@@ -77,6 +77,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		Integer week,
 		Long customerId
 	) {
+		log.info("Getting weekly trading summary for customerId={}, year={}, month={}, week={}",
+			customerId, year, month, week);
+
 		// ✅ 연도/월 검증
 		DateValidationUtil.validatePastOrPresentYearMonth(year, month);
 
@@ -100,17 +103,24 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		// 3. MembershipLevel 기준 분기 (null은 BASIC과 동일 처리)
 		MembershipLevel membershipLevel = customer.getMembershipLevel();
 
+		log.info("Customer {} - MembershipLevel: {}, FeedbackCourseStatus: {}, InvestmentType: {}",
+			customerId, membershipLevel, courseStatus, investmentType);
+
 		if (membershipLevel == MembershipLevel.PREMIUM) {
 			// PREMIUM: 트레이너 평가 포함
 			if (investmentType == InvestmentType.DAY) {
+				log.info("Routing to PREMIUM DAY summary for customerId={}", customerId);
 				return buildPremiumDayMembershipSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			} else {
+				log.info("Routing to PREMIUM SWING summary for customerId={}", customerId);
 				return buildPremiumSwingMembershipSummary(
 					customerId, year, month, week, courseStatus, investmentType);
 			}
 		} else {
 			// BASIC 또는 null: 트레이너 평가 없음
+			log.info("Routing to BASIC summary for customerId={} (membershipLevel={})",
+				customerId, membershipLevel);
 			return buildBasicMembershipSummary(
 				customerId, year, month, week, courseStatus, investmentType);
 		}
@@ -286,6 +296,11 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 
 	/**
 	 * PREMIUM 멤버십 데이 트레이딩 주간 요약 생성 (트레이너 평가 포함)
+	 *
+	 * 비즈니스 규칙:
+	 * - PREMIUM 멤버십 고객에게는 CourseStatus와 무관하게 트레이너 평가를 표시
+	 * - JSON 직렬화를 위해 응답의 courseStatus를 AFTER_COMPLETION으로 설정
+	 *   (AfterCompletedDayWeeklySummaryDTO는 @JsonSubTypes에서 AFTER_COMPLETION_DAY에 매핑됨)
 	 */
 	private AfterCompletedDayWeeklySummaryDTO buildPremiumDayMembershipSummary(
 		Long customerId,
@@ -295,6 +310,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		CourseStatus courseStatus,
 		InvestmentType investmentType
 	) {
+		log.info("Building PREMIUM DAY membership summary for customerId={}, year={}, month={}, week={}, feedbackCourseStatus={}",
+			customerId, year, month, week, courseStatus);
+
 		// 1. 일별 통계 조회
 		List<DailyRawData> dailyStats = feedbackRequestRepository.findDailyStatistics(
 			customerId, year, month, week, courseStatus, investmentType
@@ -367,8 +385,17 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		String weeklyEvaluation = evaluation
 			.map(WeeklyTradingSummary::getWeeklyEvaluation).orElse(null);
 
+		log.info("PREMIUM DAY evaluation found: hasEvaluation={}, weeklyEvaluation={}, profitAnalysis={}, lossAnalysis={}",
+			evaluation.isPresent(),
+			weeklyEvaluation != null ? "present" : "null",
+			weeklyProfitableTradingAnalysis != null ? "present" : "null",
+			weeklyLossTradingAnalysis != null ? "present" : "null");
+
+		// ✅ PREMIUM 멤버십용 응답은 AFTER_COMPLETION으로 설정
+		// @JsonSubTypes 매핑: AFTER_COMPLETION_DAY → AfterCompletedDayWeeklySummaryDTO
+		// 이렇게 해야 트레이너 평가 필드가 JSON 응답에 포함됨
 		return AfterCompletedDayWeeklySummaryDTO.builder()
-			.courseStatus(courseStatus)
+			.courseStatus(CourseStatus.AFTER_COMPLETION)
 			.investmentType(investmentType)
 			.year(year)
 			.month(month)
@@ -383,7 +410,12 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 	}
 
 	/**
-	 * PREMIUM 멤버십 스윙 주간 요약 생성 (트레이너 평가 포함)
+	 * PREMIUM 멤버십 스윙 주간 요약 생성
+	 *
+	 * 비즈니스 규칙:
+	 * - PREMIUM 멤버십 고객에게는 CourseStatus와 무관하게 SWING 형태의 응답 제공
+	 * - 현재 SWING 타입에는 트레이너 평가 필드가 없음
+	 * - JSON 직렬화를 위해 응답의 courseStatus를 AFTER_COMPLETION으로 설정
 	 */
 	private AfterCompletedSwingWeeklySummaryDTO buildPremiumSwingMembershipSummary(
 		Long customerId,
@@ -393,6 +425,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 		CourseStatus courseStatus,
 		InvestmentType investmentType
 	) {
+		log.info("Building PREMIUM SWING membership summary for customerId={}, year={}, month={}, week={}, feedbackCourseStatus={}",
+			customerId, year, month, week, courseStatus);
+
 		// 1. 일별 통계 조회
 		List<DailyRawData> dailyStats = feedbackRequestRepository.findDailyStatistics(
 			customerId, year, month, week, courseStatus, investmentType
@@ -405,8 +440,9 @@ public class WeeklyTradingSummaryQueryServiceImpl implements WeeklyTradingSummar
 			))
 			.toList();
 
+		// ✅ PREMIUM 멤버십용 응답은 AFTER_COMPLETION으로 설정
 		return AfterCompletedSwingWeeklySummaryDTO.builder()
-			.courseStatus(courseStatus)
+			.courseStatus(CourseStatus.AFTER_COMPLETION)
 			.investmentType(investmentType)
 			.year(year)
 			.month(month)
