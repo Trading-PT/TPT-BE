@@ -14,9 +14,6 @@ public class LeveltestAttemptListResponseDTO {
     @Schema(description = "시도(Attempt) ID", example = "12")
     private Long attemptId;
 
-    @Schema(description = "총점 (객관식+주관식 채점 결과 포함)", example = "85")
-    private Integer totalScore;
-
     @Schema(description = "등급 (예: A, B, C)", example = "A")
     private String grade;
 
@@ -26,7 +23,6 @@ public class LeveltestAttemptListResponseDTO {
     public static LeveltestAttemptListResponseDTO from(LevelTestAttempt attempt) {
         return LeveltestAttemptListResponseDTO.builder()
                 .attemptId(attempt.getId())
-                .totalScore(attempt.getTotalScore())
                 .grade(attempt.getGrade() != null ? attempt.getGrade().toString() : null)
                 .createdAt(attempt.getCreatedAt()
                         .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
