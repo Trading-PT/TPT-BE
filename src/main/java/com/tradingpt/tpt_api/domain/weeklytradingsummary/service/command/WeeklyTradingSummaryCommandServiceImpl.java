@@ -453,7 +453,16 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 			.orElse(null);
 
 		if (summary != null) {
-			// UPDATE: Entity의 DDD 비즈니스 메서드 호출 (내부에서 검증)
+			// UPDATE: MembershipLevel 검증 (PREMIUM만 평가 수정 가능)
+			MembershipLevel membershipLevel = customer.getMembershipLevel();
+			if (membershipLevel != MembershipLevel.PREMIUM) {
+				log.warn("Cannot update weekly evaluation for non-PREMIUM customer: customerId={}, membershipLevel={}",
+					customerId, membershipLevel);
+				throw new WeeklyTradingSummaryException(
+					WeeklyTradingSummaryErrorStatus.MEMBERSHIP_NOT_PREMIUM);
+			}
+
+			// Entity의 DDD 비즈니스 메서드 호출
 			summary.updateTrainerEvaluation(
 				processedEvaluation,
 				processedProfitAnalysis,
@@ -476,6 +485,7 @@ public class WeeklyTradingSummaryCommandServiceImpl implements WeeklyTradingSumm
 				processedLossAnalysis,
 				customer,
 				evaluator,
+				customer.getCourseStatus(),  // 고객의 실제 완강 상태 사용
 				investmentType,
 				year,
 				month,

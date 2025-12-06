@@ -140,6 +140,7 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 
 	/**
 	 * 월간 평가가 미작성이면 목록에 추가
+	 * (레코드 존재 여부가 아닌 monthlyEvaluation 필드가 채워졌는지 확인)
 	 */
 	private void addMonthlyEvaluationIfPending(
 		Customer customer,
@@ -147,15 +148,16 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 		int month,
 		List<PendingEvaluationItemDTO> pendingEvaluations
 	) {
-		// 월간 평가 존재 여부 확인
-		boolean monthlyExists = monthlyTradingSummaryRepository.existsByCustomer_IdAndPeriod_YearAndPeriod_Month(
-			customer.getId(),
-			year,
-			month
-		);
+		// 월간 평가가 실제로 작성되었는지 확인 (monthlyEvaluation IS NOT NULL)
+		boolean monthlyEvaluationWritten = monthlyTradingSummaryRepository
+			.existsByCustomer_IdAndPeriod_YearAndPeriod_MonthAndMonthlyEvaluationIsNotNull(
+				customer.getId(),
+				year,
+				month
+			);
 
 		// 미작성이면 추가
-		if (!monthlyExists) {
+		if (!monthlyEvaluationWritten) {
 			pendingEvaluations.add(PendingEvaluationItemDTO.monthly(customer, year, month));
 		}
 	}
@@ -163,6 +165,7 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 	/**
 	 * 주간 평가가 미작성이면 목록에 추가
 	 * FeedbackRequest가 존재하는 주차만 대상으로 함
+	 * (레코드 존재 여부가 아닌 weeklyEvaluation 필드가 채워졌는지 확인)
 	 */
 	private void addWeeklyEvaluationsIfPending(
 		Customer customer,
@@ -189,16 +192,17 @@ public class CustomerEvaluationQueryServiceImpl implements CustomerEvaluationQue
 				continue;
 			}
 
-			// 주간 평가 존재 여부 확인
-			boolean weeklyExists = weeklytradingSummaryRepository.existsByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_Week(
-				customer.getId(),
-				year,
-				month,
-				week
-			);
+			// 주간 평가가 실제로 작성되었는지 확인 (weeklyEvaluation IS NOT NULL)
+			boolean weeklyEvaluationWritten = weeklytradingSummaryRepository
+				.existsByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_WeekAndWeeklyEvaluationIsNotNull(
+					customer.getId(),
+					year,
+					month,
+					week
+				);
 
 			// 미작성이면 추가
-			if (!weeklyExists) {
+			if (!weeklyEvaluationWritten) {
 				pendingEvaluations.add(PendingEvaluationItemDTO.weekly(customer, year, month, week));
 			}
 		}

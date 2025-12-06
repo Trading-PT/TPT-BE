@@ -37,4 +37,25 @@ public interface WeeklyTradingSummaryRepository
 		Integer month,
 		Integer week
 	);
+
+	/**
+	 * 특정 고객의 특정 연/월/주차에 대한 주간 평가가 실제로 작성되었는지 확인
+	 * (레코드 존재 여부가 아닌 weeklyEvaluation 필드가 채워졌는지 확인)
+	 *
+	 * 비즈니스 규칙:
+	 * - 고객이 BEFORE_COMPLETION 때 memo만 작성한 레코드가 있어도
+	 * - 트레이너가 weeklyEvaluation을 작성하지 않았으면 pending 목록에 표시해야 함
+	 *
+	 * @param customerId 고객 ID
+	 * @param year       연도
+	 * @param month      월
+	 * @param week       주차
+	 * @return weeklyEvaluation이 작성된 레코드 존재 여부
+	 */
+	boolean existsByCustomer_IdAndPeriod_YearAndPeriod_MonthAndPeriod_WeekAndWeeklyEvaluationIsNotNull(
+		Long customerId,
+		Integer year,
+		Integer month,
+		Integer week
+	);
 }
